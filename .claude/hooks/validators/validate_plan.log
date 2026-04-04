@@ -134,3 +134,15 @@
 2026-04-04 20:00:53 | WARNING | Check 6 (criteria): 1 errors
 2026-04-04 20:00:53 | WARNING | Check 8 (testing task): 1 errors
 2026-04-04 20:00:53 | WARNING | FAIL: 2 errors total
+2026-04-04 21:33:17 | INFO | ============================================================
+2026-04-04 21:33:17 | INFO | Validator started: validate_plan
+2026-04-04 21:33:17 | INFO | Args: file=specs/javaclaw-module-restructure.md, directory=specs, team_dir=.claude/agents/team
+2026-04-04 21:33:17 | INFO | Validating plan: specs/javaclaw-module-restructure.md
+2026-04-04 21:33:17 | INFO | Parsed: 0 files, 0 new files, 10 tasks
+2026-04-04 21:33:17 | INFO | PASS: Plan 'specs/javaclaw-module-restructure.md' passed all 8 structural checks (10 tasks validated)
+2026-04-04 21:41:52 | INFO | ============================================================
+2026-04-04 21:41:52 | INFO | Validator started: validate_plan
+2026-04-04 21:41:52 | INFO | Args: file=specs/javaclaw-module-restructure.md, directory=specs, team_dir=.claude/agents/team
+2026-04-04 21:41:52 | INFO | Validating plan: specs/javaclaw-module-restructure.md
+2026-04-04 21:41:52 | INFO | Parsed: 0 files, 0 new files, 10 tasks
+2026-04-04 21:41:52 | INFO | PASS: Plan 'specs/javaclaw-module-restructure.md' passed all 8 structural checks (10 tasks validated)

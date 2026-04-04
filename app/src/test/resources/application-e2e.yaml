@@ -26,8 +26,6 @@ spring:
             initialize-schema: always
 
 agent:
-  onboarding:
-    completed: true
   workspace: classpath:test-workspace/
 
 jobrunr:

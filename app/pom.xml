@@ -17,7 +17,7 @@
         <!-- Internal modules -->
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-base</artifactId>
+            <artifactId>javaclaw-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -42,22 +42,22 @@
         </dependency>
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-plugin-discord</artifactId>
+            <artifactId>javaclaw-api-chat</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-plugin-telegram</artifactId>
+            <artifactId>javaclaw-api-admin</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-plugin-playwright</artifactId>
+            <artifactId>javaclaw-channel-discord</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-plugin-brave</artifactId>
+            <artifactId>javaclaw-channel-telegram</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -82,10 +82,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
+        <!-- @Deprecated: kept for chat.html.peb, remove when migrating to REST/SPA -->
         <dependency>
             <groupId>io.pebbletemplates</groupId>
             <artifactId>pebble-spring-boot-starter</artifactId>

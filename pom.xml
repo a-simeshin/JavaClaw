@@ -18,11 +18,11 @@
     <description>JavaClaw</description>
 
     <modules>
-        <module>base</module>
-        <module>plugins/discord</module>
-        <module>plugins/telegram</module>
-        <module>plugins/playwright</module>
-        <module>plugins/brave</module>
+        <module>core</module>
+        <module>api/chat</module>
+        <module>api/admin</module>
+        <module>channels/discord</module>
+        <module>channels/telegram</module>
         <module>providers/anthropic</module>
         <module>providers/google</module>
         <module>providers/ollama</module>

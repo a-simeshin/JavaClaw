@@ -1,3 +1,4 @@
+{# @Deprecated: scheduled for removal when migrating from Pebble to REST/SPA #}
 {% extends "base" %}
 
 {% block title %} Chat{% endblock %}

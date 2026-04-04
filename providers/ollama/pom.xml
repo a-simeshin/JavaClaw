@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>ai.javaclaw</groupId>
-            <artifactId>javaclaw-base</artifactId>
+            <artifactId>javaclaw-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

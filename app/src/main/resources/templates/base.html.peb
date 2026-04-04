@@ -1,3 +1,4 @@
+{# @Deprecated: scheduled for removal when migrating from Pebble to REST/SPA #}
 <html lang="en">
 <head>
     <title>JavaClaw{% block title %}{% endblock %}</title>
