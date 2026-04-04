@@ -267,6 +267,16 @@ TaskOutput({
 
 IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a plan document.
 
+0. **Telegram Notification (if available)** — At key milestones, send Telegram updates. Only works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars are set. Use the utility:
+   ```bash
+   uv run .claude/hooks/utils/telegram_notify.py --level plan "📋 Planning started: <topic>"
+   ```
+   Send notifications at these points:
+   - **Planning started** (level: `plan`)
+   - **Interview questions** (level: `warning`) — so user knows input is needed
+   - **Plan review result** (level: `validate`)
+   - **Plan complete** (level: `success`)
+
 1. Analyze Requirements - Parse the USER_PROMPT to understand the core problem and desired outcome. If Serena MCP tools are available, call `read_memory` and `list_memories` to check for existing knowledge about related features or past decisions.
 2. **Explore OpenSpec (if available)** — Check if OpenSpec is initialized by running:
    ```bash

@@ -39,6 +39,12 @@ def debug_log(message: str) -> None:
 sys.path.insert(0, str(Path(__file__).parent))
 
 try:
+    from utils.telegram_notify import send_telegram
+except ImportError:
+    def send_telegram(message, level="info", **kwargs):
+        return False
+
+try:
     from utils.tts.tts_queue import acquire_tts_lock, release_tts_lock, cleanup_stale_locks
 except ImportError:
     # Fallback if imports fail - provide no-op functions
@@ -253,6 +259,12 @@ def main() -> None:
             else:
                 summary_message = "Subagent Complete"
                 debug_log("Summarize disabled, using default message")
+
+            # Send Telegram notification (only if env vars are set)
+            send_telegram(
+                f"<b>Subagent</b> <code>{agent_id}</code> completed.\n{summary_message}",
+                level="build"
+            )
 
             # Acquire lock before speaking (blocks until available or timeout)
             if acquire_tts_lock(agent_id, timeout=30):

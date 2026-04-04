@@ -21,6 +21,15 @@ try:
 except ImportError:
     pass  # dotenv is optional
 
+# Add hooks directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from utils.telegram_notify import send_telegram
+except ImportError:
+    def send_telegram(message, level="info", **kwargs):
+        return False
+
 
 def get_completion_messages():
     """Return list of friendly completion messages."""
@@ -217,6 +226,9 @@ def main():
         # Announce completion via TTS (only if --notify flag is set)
         if args.notify:
             announce_completion()
+
+        # Send Telegram notification (only if env vars are set)
+        send_telegram("Main agent stopped. Work complete.", level="success")
 
         sys.exit(0)
 

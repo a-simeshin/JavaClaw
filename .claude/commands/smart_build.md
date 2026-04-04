@@ -65,6 +65,24 @@ Now you have only the relevant reference sections loaded.
 
 Use this context to implement the task following the patterns.
 
+### Telegram Notifications
+
+At key milestones, send Telegram updates using the utility (only works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars are set):
+
+```bash
+uv run .claude/hooks/utils/telegram_notify.py --level build "🔧 Build started: $ARGUMENTS"
+# ... after completion ...
+uv run .claude/hooks/utils/telegram_notify.py --level success "✅ Build complete: $ARGUMENTS"
+# ... on error ...
+uv run .claude/hooks/utils/telegram_notify.py --level error "❌ Build failed: <error summary>"
+```
+
+Send notifications at these points:
+- **Build start** (level: `build`)
+- **Build complete** (level: `success`)
+- **Build failure** (level: `error`)
+- **Validation results** (level: `validate`)
+
 ### Step 4: Track OpenSpec Progress (if available)
 
 This step runs **incrementally throughout plan execution**, not as a batch at the end.

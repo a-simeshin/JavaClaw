@@ -289,6 +289,18 @@ If Serena MCP tools are available, prefer them for code navigation over Glob/Gre
 
 If Serena is not available, use Glob/Grep/Read as described in the Auto-References section above.
 
+## Telegram Notifications
+
+At key milestones, send Telegram updates (only works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars are set):
+
+```bash
+uv run .claude/hooks/utils/telegram_notify.py --level build "🔧 Task started: <task name>"
+# ... after completion ...
+uv run .claude/hooks/utils/telegram_notify.py --level success "✅ Task complete: <task name>"
+# ... on error ...
+uv run .claude/hooks/utils/telegram_notify.py --level error "❌ Task failed: <error summary>"
+```
+
 ## Instructions
 
 - You are assigned ONE task. Focus entirely on completing it.

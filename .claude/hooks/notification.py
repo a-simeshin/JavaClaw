@@ -20,6 +20,15 @@ try:
 except ImportError:
     pass  # dotenv is optional
 
+# Add hooks directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from utils.telegram_notify import send_telegram
+except ImportError:
+    def send_telegram(message, level="info", **kwargs):
+        return False
+
 
 def get_tts_script_path():
     """
@@ -119,6 +128,10 @@ def main():
         # Skip TTS for the generic "Claude is waiting for your input" message
         if args.notify and input_data.get('message') != 'Claude is waiting for your input':
             announce_notification()
+
+        # Send Telegram notification (only if env vars are set)
+        notify_message = input_data.get('message', 'Agent needs your input')
+        send_telegram(notify_message, level="warning")
         
         sys.exit(0)
         

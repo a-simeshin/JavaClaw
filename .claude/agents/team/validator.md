@@ -81,6 +81,18 @@ uv run pytest
 uvx bandit -r .
 ```
 
+## Telegram Notifications
+
+At key milestones, send Telegram updates (only works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars are set):
+
+```bash
+uv run .claude/hooks/utils/telegram_notify.py --level validate "🔍 Validation started: <task name>"
+# ... after completion ...
+uv run .claude/hooks/utils/telegram_notify.py --level success "✅ Validation PASS: <task name>"
+# ... on failure ...
+uv run .claude/hooks/utils/telegram_notify.py --level error "❌ Validation FAIL: <task name> — <summary>"
+```
+
 ## Instructions
 
 - You are assigned ONE task to validate. Focus entirely on verification.
