@@ -107,8 +107,8 @@ If no changes, state: "No changes" -->
 
 <!-- New fields, entities, tables, columns -->
 
-| Entity / Field | Data Type | Required | Default | Example | Rationale |
-|---|---|---|---|---|---|
+|     Entity / Field     |        Data Type        |          Required          |    Default     |     Example      |  Rationale   |
+|------------------------|-------------------------|----------------------------|----------------|------------------|--------------|
 | <!-- path.to.field --> | <!-- string/int/... --> | <!-- required/optional --> | <!-- value --> | <!-- example --> | <!-- why --> |
 
 <!-- EXAMPLE (API/JSON schema):
@@ -177,8 +177,8 @@ optional string rejection_reason = 5;
 
 <!-- Changed fields/columns/definitions — MUST specify BEFORE and AFTER -->
 
-| Entity / Field | Before | After | Rationale |
-|---|---|---|---|
+|     Entity / Field     |              Before              |              After               |  Rationale   |
+|------------------------|----------------------------------|----------------------------------|--------------|
 | <!-- path.to.field --> | <!-- type, required, default --> | <!-- type, required, default --> | <!-- why --> |
 
 <!-- EXAMPLE (API):
@@ -202,8 +202,8 @@ ALTER TABLE orders ADD COLUMN discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
 
 <!-- Removed fields/tables/columns -->
 
-| Entity / Field | Removal Reason | Migration |
-|---|---|---|
+|     Entity / Field     | Removal Reason  |        Migration        |
+|------------------------|-----------------|-------------------------|
 | <!-- path.to.field --> | <!-- reason --> | <!-- how to migrate --> |
 
 <!-- EXAMPLE:
@@ -356,8 +356,8 @@ data: {"orderId": "ord-123", "status": "SHIPPED", "updatedAt": "2026-04-03T14:30
 
 <!-- Removed endpoints -->
 
-| Endpoint | Reason | Replacement |
-|---|---|---|
+|       Endpoint       |     Reason      |     Replacement      |
+|----------------------|-----------------|----------------------|
 | <!-- method path --> | <!-- reason --> | <!-- alternative --> |
 
 ---
@@ -372,8 +372,8 @@ Error codes MUST follow the coding system from common-requirements.md:
 - Response format: RFC 7807 (application/problem+json)
 -->
 
-| Error Code | HTTP Status | errorCode | Scenario | Client Action |
-|---|---|---|---|---|
+|  Error Code   |   HTTP Status    |                   errorCode                   |        Scenario         |    Client Action    |
+|---------------|------------------|-----------------------------------------------|-------------------------|---------------------|
 | <!-- XXXX --> | <!-- 4xx/5xx --> | <!-- string code from common-requirements --> | <!-- when it occurs --> | <!-- what to do --> |
 
 <!-- EXAMPLE:
@@ -406,8 +406,8 @@ Error response format (RFC 7807):
 HTTP headers, Kafka headers, gRPC metadata, SSE event fields, MCP protocol headers.
 If no changes, state: "No changes" -->
 
-| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
-|---|---|---|---|---|---|---|---|
+|            Operation            |            Transport             |     Name      |         Direction         |          Required          |     Format      |     Example      |   Purpose    |
+|---------------------------------|----------------------------------|---------------|---------------------------|----------------------------|-----------------|------------------|--------------|
 | <!-- ADDED/MODIFIED/REMOVED --> | <!-- HTTP/Kafka/gRPC/SSE/MCP --> | <!-- name --> | <!-- request/response --> | <!-- required/optional --> | <!-- format --> | <!-- example --> | <!-- why --> |
 
 <!-- EXAMPLE (HTTP):
@@ -447,9 +447,9 @@ If no changes, state: "No changes" -->
 
 <!-- If no changes, state: "No changes" -->
 
-| Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
-|---|---|---|---|---|
-| <!-- $.field --> | <!-- format/range/regex/enum/length --> | <!-- rule --> | <!-- text --> | <!-- code --> |
+| Field (JSON path) |             Validation Type             |     Rule      | Error Message |  Error Code   |
+|-------------------|-----------------------------------------|---------------|---------------|---------------|
+| <!-- $.field -->  | <!-- format/range/regex/enum/length --> | <!-- rule --> | <!-- text --> | <!-- code --> |
 
 <!-- EXAMPLE:
 | Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
@@ -521,8 +521,8 @@ If no changes, state: "No changes" -->
 <!-- If no new logging events, state: "No changes"
 Logging levels per common-requirements.md section 1. -->
 
-| Level | Code | Event | Message Format |
-|---|---|---|---|
+|             Level              |                  Code                  |        Event         |  Message Format   |
+|--------------------------------|----------------------------------------|----------------------|-------------------|
 | <!-- ERROR/WARN/INFO/DEBUG --> | <!-- code from common-requirements --> | <!-- description --> | <!-- template --> |
 
 <!-- EXAMPLE:
@@ -547,8 +547,8 @@ Logging levels per common-requirements.md section 1. -->
 - **Type**: <!-- Counter / Gauge / Timer -->
 - **Description**: <!-- what it measures -->
 
-| Tag | Required | Description | Example Value |
-|---|---|---|---|
+|     Tag      |           Required            |     Description      |  Example Value   |
+|--------------|-------------------------------|----------------------|------------------|
 | <!-- tag --> | <!-- Required/Conditional --> | <!-- description --> | <!-- example --> |
 
 <!-- EXAMPLE:
@@ -570,8 +570,8 @@ shop_orders_promo_applied{promoCode="SUMMER2026", discountType="PERCENT"} 42
 
 ### New Calculated Metrics
 
-| Metric | Description | Formula (PromQL) |
-|---|---|---|
+|    Metric     |     Description      | Formula (PromQL) |
+|---------------|----------------------|------------------|
 | <!-- name --> | <!-- description --> | <!-- formula --> |
 
 <!-- EXAMPLE:
@@ -588,8 +588,8 @@ shop_orders_promo_applied{promoCode="SUMMER2026", discountType="PERCENT"} 42
 
 ### ADDED
 
-| Parameter | Required | Type | Default | Description |
-|---|---|---|---|---|
+|        Parameter        |    Required     |           Type           |    Default     |     Description      |
+|-------------------------|-----------------|--------------------------|----------------|----------------------|
 | <!-- parameter name --> | <!-- yes/no --> | <!-- string/int/bool --> | <!-- value --> | <!-- description --> |
 
 <!-- EXAMPLE:
@@ -602,14 +602,14 @@ shop_orders_promo_applied{promoCode="SUMMER2026", discountType="PERCENT"} 42
 
 ### MODIFIED
 
-| Parameter | Before | After | Rationale |
-|---|---|---|---|
+|   Parameter   |         Before         |         After          |  Rationale   |
+|---------------|------------------------|------------------------|--------------|
 | <!-- name --> | <!-- type, default --> | <!-- type, default --> | <!-- why --> |
 
 ### REMOVED
 
-| Parameter | Reason | Migration |
-|---|---|---|
+|   Parameter   |     Reason      |        Migration        |
+|---------------|-----------------|-------------------------|
 | <!-- name --> | <!-- reason --> | <!-- how to migrate --> |
 
 ---
@@ -621,8 +621,8 @@ that the change is correctly implemented. Format: WHEN/THEN.
 Each criterion must be verifiable — through a test, request, or observation.
 Cover: main scenario, edge cases, error scenarios. -->
 
-| # | WHEN | THEN |
-|---|---|---|
+|        #        |            WHEN             |           THEN           |
+|-----------------|-----------------------------|--------------------------|
 | <!-- number --> | <!-- condition / action --> | <!-- expected result --> |
 
 <!-- EXAMPLE:

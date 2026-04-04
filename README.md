@@ -95,17 +95,17 @@ Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 
 ## Tech Stack (target)
 
-|   Layer    |                       Technology                        |
-|------------|---------------------------------------------------------|
-| Language   | Java 21+                                                |
-| Framework  | Spring Boot 4, Spring Modulith, Spring Security         |
-| AI         | Spring AI 2.0 (ChatClient, MCP Client, Observability)  |
-| Frontend   | React 19 + Vite + TanStack Router                       |
-| Database   | PostgreSQL (primary), SQLite (dev/single-node)          |
-| Migrations | Flyway                                                  |
-| Jobs       | JobRunr                                                 |
-| Streaming  | SSE / AG-UI                                             |
-| Deploy     | Docker (Jib), Docker Compose                            |
+|   Layer    |                      Technology                       |
+|------------|-------------------------------------------------------|
+| Language   | Java 21+                                              |
+| Framework  | Spring Boot 4, Spring Modulith, Spring Security       |
+| AI         | Spring AI 2.0 (ChatClient, MCP Client, Observability) |
+| Frontend   | React 19 + Vite + TanStack Router                     |
+| Database   | PostgreSQL (primary), SQLite (dev/single-node)        |
+| Migrations | Flyway                                                |
+| Jobs       | JobRunr                                               |
+| Streaming  | SSE / AG-UI                                           |
+| Deploy     | Docker (Jib), Docker Compose                          |
 
 ## Quick Start
 
@@ -131,12 +131,12 @@ JavaClaw/
 
 ## Specifications
 
-|                              Document                               |                           Description                           |
-|---------------------------------------------------------------------|-----------------------------------------------------------------|
-| [capabilities-catalog.md](specs/capabilities-catalog.md)            | Full capability catalog (~130 items) with P0-P5 priorities      |
-| [roadmap.md](specs/roadmap.md)                                      | Detailed roadmap with sequencing and dependencies               |
-| [skills-catalog.md](specs/skills-catalog.md)                        | Skills catalog from the Claw ecosystem                          |
-| [feature-matrix-and-priorities.md](specs/feature-matrix-and-priorities.md) | Comparison matrix: OpenClaw/NullClaw/PicoClaw/JavaClaw   |
+|                                  Document                                  |                        Description                         |
+|----------------------------------------------------------------------------|------------------------------------------------------------|
+| [capabilities-catalog.md](specs/capabilities-catalog.md)                   | Full capability catalog (~130 items) with P0-P5 priorities |
+| [roadmap.md](specs/roadmap.md)                                             | Detailed roadmap with sequencing and dependencies          |
+| [skills-catalog.md](specs/skills-catalog.md)                               | Skills catalog from the Claw ecosystem                     |
+| [feature-matrix-and-priorities.md](specs/feature-matrix-and-priorities.md) | Comparison matrix: OpenClaw/NullClaw/PicoClaw/JavaClaw     |
 
 ## Tests
 

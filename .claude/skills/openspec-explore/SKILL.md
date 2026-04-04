@@ -125,13 +125,13 @@ If the user mentions a change or you discover one is relevant:
    - "The proposal limits this to premium users, but now we're thinking — for everyone..."
 3. **Suggest capturing when decisions are made**
 
-   |        Insight type        |          Where to capture          |
-   |----------------------------|------------------------------------|
+   |        Insight type        |           Where to capture            |
+   |----------------------------|---------------------------------------|
    | New requirement discovered | `openspec/specs/<capability>/spec.md` |
    | Requirement changed        | `openspec/specs/<capability>/spec.md` |
-   | Architecture decision made | `change.md`                        |
-   | Scope changed              | `change.md`                        |
-   | Assumption disproven       | Relevant artifact                  |
+   | Architecture decision made | `change.md`                           |
+   | Scope changed              | `change.md`                           |
+   | Assumption disproven       | Relevant artifact                     |
 
    Example suggestions:
    - "This is an architecture decision. Capture it in change.md?"
@@ -300,3 +300,4 @@ But this summary is optional. Sometimes the thinking itself IS the value.
 - **Visualize** — a good diagram is worth many paragraphs
 - **Explore the codebase** — anchor discussions to reality
 - **Challenge assumptions** — including the user's and your own
+

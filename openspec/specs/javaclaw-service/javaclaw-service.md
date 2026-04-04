@@ -95,7 +95,7 @@ The service is built on Spring Boot 4, Spring AI 2, and Spring Modulith. It is d
    - **ToolCallAdvisor** — enables automatic tool invocation by the AI model.
    - **SyncMcpToolCallbackProvider** — provides MCP tool definitions.
    - **SimpleLoggerAdvisor** — logs request/response.
-   The agent also receives environment context via `AgentEnvironment.info()` injected into the system prompt, including: working directory, OS platform, timezone, current timestamp, and git repository status.
+     The agent also receives environment context via `AgentEnvironment.info()` injected into the system prompt, including: working directory, OS platform, timezone, current timestamp, and git repository status.
 7. The agent's response is returned as a string.
 8. The system renders the response as an HTML agent bubble and pushes it to the WebSocket.
 9. Conversation history is persisted (JDBC primary, FileSystem fallback).
@@ -286,6 +286,7 @@ The primary interaction API uses WebSocket over the `/chat` endpoint.
 **Client → Server Messages (JSON):**
 
 Switch conversation:
+
 ```json
 {
   "type": "channelChanged",
@@ -294,6 +295,7 @@ Switch conversation:
 ```
 
 Send user message:
+
 ```json
 {
   "type": "userMessage",
@@ -331,9 +333,9 @@ The server pushes HTML fragments that are inserted into the DOM:
 
 **Path parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| stepId | string | yes | Step identifier: `welcome`, `provider`, `credentials`, `agent-md`, `mcp`, `complete` |
+| Parameter |  Type  | Required |                                     Description                                      |
+|-----------|--------|----------|--------------------------------------------------------------------------------------|
+| stepId    | string | yes      | Step identifier: `welcome`, `provider`, `credentials`, `agent-md`, `mcp`, `complete` |
 
 **Response (200 OK):** HTML page for the step. Model attributes include: `currentStep`, `stepNumber`, `totalSteps`, `steps`, `previousUrl`, `nextUrl`, `isOptional`, `stepTemplate`.
 
@@ -358,12 +360,12 @@ The server pushes HTML fragments that are inserted into the DOM:
 
 #### AI Providers (outgoing, HTTP)
 
-| Provider | Protocol | Configuration Key | Default Model | Description |
-|----------|----------|-------------------|---------------|-------------|
-| Anthropic | HTTPS (Anthropic API) | `spring.ai.anthropic.api-key` | claude-sonnet-4-6 | Claude models via Anthropic API. Supports Claude Code OAuth token auto-detection. |
-| OpenAI | HTTPS (OpenAI API) | `spring.ai.openai.api-key` | — | GPT models via OpenAI-compatible API |
-| Google GenAI | HTTPS (Google AI API) | `spring.ai.google.genai.api-key` | — | Google Generative AI models |
-| Ollama | HTTP (local) | `spring.ai.ollama.*` | — | Local LLM inference via Ollama |
+|   Provider   |       Protocol        |        Configuration Key         |   Default Model   |                                    Description                                    |
+|--------------|-----------------------|----------------------------------|-------------------|-----------------------------------------------------------------------------------|
+| Anthropic    | HTTPS (Anthropic API) | `spring.ai.anthropic.api-key`    | claude-sonnet-4-6 | Claude models via Anthropic API. Supports Claude Code OAuth token auto-detection. |
+| OpenAI       | HTTPS (OpenAI API)    | `spring.ai.openai.api-key`       | —                 | GPT models via OpenAI-compatible API                                              |
+| Google GenAI | HTTPS (Google AI API) | `spring.ai.google.genai.api-key` | —                 | Google Generative AI models                                                       |
+| Ollama       | HTTP (local)          | `spring.ai.ollama.*`             | —                 | Local LLM inference via Ollama                                                    |
 
 - **Timeout**: Governed by Spring AI and provider-specific configuration.
 - **Retry**: Delegated to Spring AI ChatClient internals.
@@ -417,27 +419,27 @@ The server pushes HTML fragments that are inserted into the DOM:
 
 #### Task (PostgreSQL: `tasks`)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| id | VARCHAR(36) | PK | Unique task identifier, auto-generated |
-| name | string | yes | Human-readable task name |
-| description | string | no | Detailed task description for the agent |
-| status | enum | yes | Task status: `todo`, `in_progress`, `completed`, `awaiting_human_input` |
-| feedback | string | no | Agent's execution result or feedback |
-| source_channel_name | string | no | Channel that initiated the task |
-| created_at | timestamp | yes | Creation timestamp |
-| updated_at | timestamp | yes | Last update timestamp |
+|        Field        |    Type     | Required |                               Description                               |
+|---------------------|-------------|----------|-------------------------------------------------------------------------|
+| id                  | VARCHAR(36) | PK       | Unique task identifier, auto-generated                                  |
+| name                | string      | yes      | Human-readable task name                                                |
+| description         | string      | no       | Detailed task description for the agent                                 |
+| status              | enum        | yes      | Task status: `todo`, `in_progress`, `completed`, `awaiting_human_input` |
+| feedback            | string      | no       | Agent's execution result or feedback                                    |
+| source_channel_name | string      | no       | Channel that initiated the task                                         |
+| created_at          | timestamp   | yes      | Creation timestamp                                                      |
+| updated_at          | timestamp   | yes      | Last update timestamp                                                   |
 
 #### RecurringTask (PostgreSQL: `recurring_tasks`)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| id | string (UUID) | PK | Unique recurring task identifier |
-| name | string | yes | Task name |
-| description | string | no | Task description template |
-| cron_expression | string | yes | Cron schedule expression |
-| job_id | string | no | JobRunr recurring job ID |
-| created_at | timestamp | yes | Creation timestamp |
+|      Field      |     Type      | Required |           Description            |
+|-----------------|---------------|----------|----------------------------------|
+| id              | string (UUID) | PK       | Unique recurring task identifier |
+| name            | string        | yes      | Task name                        |
+| description     | string        | no       | Task description template        |
+| cron_expression | string        | yes      | Cron schedule expression         |
+| job_id          | string        | no       | JobRunr recurring job ID         |
+| created_at      | timestamp     | yes      | Creation timestamp               |
 
 #### Conversation Memory (YAML file format — FileSystem fallback)
 
@@ -454,11 +456,11 @@ updatedAt: "2026-03-21T10:05:30Z"
     System message text
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| createdAt | ISO 8601 timestamp | yes | Conversation creation time (frontmatter) |
-| updatedAt | ISO 8601 timestamp | yes | Last message time (frontmatter) |
-| body entries | list of role:content | yes | Ordered list of messages. Roles: `user`, `assistant`, `system` |
+|    Field     |         Type         | Required |                          Description                           |
+|--------------|----------------------|----------|----------------------------------------------------------------|
+| createdAt    | ISO 8601 timestamp   | yes      | Conversation creation time (frontmatter)                       |
+| updatedAt    | ISO 8601 timestamp   | yes      | Last message time (frontmatter)                                |
+| body entries | list of role:content | yes      | Ordered list of messages. Roles: `user`, `assistant`, `system` |
 
 File path pattern: `{workspace}/conversations/chat-{conversationId}.yaml`
 
@@ -468,57 +470,57 @@ Schema is managed by project Flyway migrations (V2__init_chat_memory.sql, V3__al
 
 #### MCP Connection Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| name | string | yes | Connection name (letters, numbers, hyphens, underscores) |
-| url | string | yes (HTTP) | MCP server URL |
-| endpoint | string | no | Custom endpoint path |
-| headers | map<string, string> | no | Custom HTTP headers for the connection |
-| command | string | yes (Stdio) | Command with arguments for Stdio transport |
-| env | map<string, string> | no | Environment variables for Stdio subprocess |
+|  Field   |        Type         |  Required   |                       Description                        |
+|----------|---------------------|-------------|----------------------------------------------------------|
+| name     | string              | yes         | Connection name (letters, numbers, hyphens, underscores) |
+| url      | string              | yes (HTTP)  | MCP server URL                                           |
+| endpoint | string              | no          | Custom endpoint path                                     |
+| headers  | map<string, string> | no          | Custom HTTP headers for the connection                   |
+| command  | string              | yes (Stdio) | Command with arguments for Stdio transport               |
+| env      | map<string, string> | no          | Environment variables for Stdio subprocess               |
 
 #### YamlDocument (internal model)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| frontmatter | map<string, string> | no | Key-value pairs from YAML frontmatter block |
-| body | string | no | Content after the frontmatter separator |
+|    Field    |        Type         | Required |                 Description                 |
+|-------------|---------------------|----------|---------------------------------------------|
+| frontmatter | map<string, string> | no       | Key-value pairs from YAML frontmatter block |
+| body        | string              | no       | Content after the frontmatter separator     |
 
 #### CheckList (tool model)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| checkList | list of CheckListItem | yes | Ordered list of checklist items |
-| items[].content | string | yes | Description of the checklist item |
-| items[].status | enum | yes | Status: `pending`, `in_progress`, `completed` |
-| items[].activeForm | string | no | Additional context for the active item |
+|       Field        |         Type          | Required |                  Description                  |
+|--------------------|-----------------------|----------|-----------------------------------------------|
+| checkList          | list of CheckListItem | yes      | Ordered list of checklist items               |
+| items[].content    | string                | yes      | Description of the checklist item             |
+| items[].status     | enum                  | yes      | Status: `pending`, `in_progress`, `completed` |
+| items[].activeForm | string                | no       | Additional context for the active item        |
 
 Constraint: At most one item MAY have status `in_progress` at any given time.
 
 ### 2.7. Configuration
 
-| Parameter | Required | Type | Default | Description |
-|-----------|----------|------|---------|-------------|
-| `agent.workspace` | no | string | `./workspace` | Workspace directory for conversations, agent files, skills |
-| `agent.onboarding.completed` | no | bool | false | Whether onboarding has been completed |
-| `agent.browser.brave.api-key` | no | string | — | Brave Web Search API key. Enables web search tool when set |
-| `spring.ai.model.chat` | no | string | — | Selected AI model identifier |
-| `spring.ai.anthropic.api-key` | no | string | — | Anthropic API key |
-| `spring.ai.anthropic.chat.options.model` | no | string | claude-sonnet-4-6 | Anthropic model name |
-| `spring.ai.openai.api-key` | no | string | — | OpenAI API key |
-| `spring.ai.openai.chat.options.model` | no | string | — | OpenAI model name |
-| `spring.ai.google.genai.api-key` | no | string | — | Google GenAI API key |
-| `spring.ai.ollama.*` | no | — | — | Ollama provider configuration |
-| `spring.ai.mcp.client.streamable-http.connections.*` | no | map | — | MCP Streamable HTTP server connections |
-| `spring.datasource.url` | yes | string | — | PostgreSQL JDBC URL |
-| `spring.datasource.username` | yes | string | — | Database username |
-| `spring.datasource.password` | yes | string | — | Database password |
-| `javaclaw.chat.transport` | no | string | spring-websocket | Chat transport type. Enables Web UI when set to `spring-websocket` |
-| `jobrunr.dashboard.port` | no | int | 8081 | JobRunr dashboard HTTP port |
-| `telegram.bot.token` | no | string | — | Telegram bot token. Enables Telegram channel when set |
-| `telegram.bot.allowed-username` | no | string | — | Telegram username filter |
-| `discord.bot.token` | no | string | — | Discord bot token. Enables Discord channel when set |
-| `discord.bot.allowed-user-id` | no | string | — | Discord user ID filter |
+|                      Parameter                       | Required |  Type  |      Default      |                            Description                             |
+|------------------------------------------------------|----------|--------|-------------------|--------------------------------------------------------------------|
+| `agent.workspace`                                    | no       | string | `./workspace`     | Workspace directory for conversations, agent files, skills         |
+| `agent.onboarding.completed`                         | no       | bool   | false             | Whether onboarding has been completed                              |
+| `agent.browser.brave.api-key`                        | no       | string | —                 | Brave Web Search API key. Enables web search tool when set         |
+| `spring.ai.model.chat`                               | no       | string | —                 | Selected AI model identifier                                       |
+| `spring.ai.anthropic.api-key`                        | no       | string | —                 | Anthropic API key                                                  |
+| `spring.ai.anthropic.chat.options.model`             | no       | string | claude-sonnet-4-6 | Anthropic model name                                               |
+| `spring.ai.openai.api-key`                           | no       | string | —                 | OpenAI API key                                                     |
+| `spring.ai.openai.chat.options.model`                | no       | string | —                 | OpenAI model name                                                  |
+| `spring.ai.google.genai.api-key`                     | no       | string | —                 | Google GenAI API key                                               |
+| `spring.ai.ollama.*`                                 | no       | —      | —                 | Ollama provider configuration                                      |
+| `spring.ai.mcp.client.streamable-http.connections.*` | no       | map    | —                 | MCP Streamable HTTP server connections                             |
+| `spring.datasource.url`                              | yes      | string | —                 | PostgreSQL JDBC URL                                                |
+| `spring.datasource.username`                         | yes      | string | —                 | Database username                                                  |
+| `spring.datasource.password`                         | yes      | string | —                 | Database password                                                  |
+| `javaclaw.chat.transport`                            | no       | string | spring-websocket  | Chat transport type. Enables Web UI when set to `spring-websocket` |
+| `jobrunr.dashboard.port`                             | no       | int    | 8081              | JobRunr dashboard HTTP port                                        |
+| `telegram.bot.token`                                 | no       | string | —                 | Telegram bot token. Enables Telegram channel when set              |
+| `telegram.bot.allowed-username`                      | no       | string | —                 | Telegram username filter                                           |
+| `discord.bot.token`                                  | no       | string | —                 | Discord bot token. Enables Discord channel when set                |
+| `discord.bot.allowed-user-id`                        | no       | string | —                 | Discord user ID filter                                             |
 
 **Configuration files (precedence order):**
 1. `application.private.yaml` — generated during onboarding, contains secrets
@@ -529,104 +531,104 @@ Constraint: At most one item MAY have status `in_progress` at any given time.
 
 ### 2.8. Logging
 
-| Level | Event | Message Format |
-|-------|-------|----------------|
-| INFO | Application started successfully | Startup log with onboarding URL if not completed |
-| INFO | Configuration changed, scheduling restart | "Configuration changed, restarting application in 2 seconds" |
-| INFO | Task created | Task ID, name, scheduled execution time |
-| INFO | Task execution started | "Executing task: {taskId}" |
-| INFO | Task execution completed | Task ID, resulting status, feedback summary |
-| INFO | Recurring task triggered | Recurring task ID, created task ID |
-| INFO | MCP server registered | Server name, type (HTTP/Stdio) |
-| INFO | Channel registered | Channel name, type |
-| INFO | Onboarding step processed | Step ID, success/error |
-| WARN | Task execution skipped (non-todo status) | Task ID, current status |
-| WARN | Telegram message from unauthorized user | Username attempted |
-| WARN | Discord message from unauthorized user | User ID attempted |
-| ERROR | AI provider call failed | Provider name, error message |
-| ERROR | Task execution failed | Task ID, exception details |
-| ERROR | Configuration write failed | IOException details |
-| ERROR | MCP server connection failed | Server name, error |
-| DEBUG | WebSocket connection established | Session ID |
-| DEBUG | WebSocket connection closed | Session ID, close status |
-| DEBUG | Conversation history loaded | Conversation ID, message count |
-| DEBUG | Agent prompt with tools | Tool names registered |
+| Level |                   Event                   |                        Message Format                        |
+|-------|-------------------------------------------|--------------------------------------------------------------|
+| INFO  | Application started successfully          | Startup log with onboarding URL if not completed             |
+| INFO  | Configuration changed, scheduling restart | "Configuration changed, restarting application in 2 seconds" |
+| INFO  | Task created                              | Task ID, name, scheduled execution time                      |
+| INFO  | Task execution started                    | "Executing task: {taskId}"                                   |
+| INFO  | Task execution completed                  | Task ID, resulting status, feedback summary                  |
+| INFO  | Recurring task triggered                  | Recurring task ID, created task ID                           |
+| INFO  | MCP server registered                     | Server name, type (HTTP/Stdio)                               |
+| INFO  | Channel registered                        | Channel name, type                                           |
+| INFO  | Onboarding step processed                 | Step ID, success/error                                       |
+| WARN  | Task execution skipped (non-todo status)  | Task ID, current status                                      |
+| WARN  | Telegram message from unauthorized user   | Username attempted                                           |
+| WARN  | Discord message from unauthorized user    | User ID attempted                                            |
+| ERROR | AI provider call failed                   | Provider name, error message                                 |
+| ERROR | Task execution failed                     | Task ID, exception details                                   |
+| ERROR | Configuration write failed                | IOException details                                          |
+| ERROR | MCP server connection failed              | Server name, error                                           |
+| DEBUG | WebSocket connection established          | Session ID                                                   |
+| DEBUG | WebSocket connection closed               | Session ID, close status                                     |
+| DEBUG | Conversation history loaded               | Conversation ID, message count                               |
+| DEBUG | Agent prompt with tools                   | Tool names registered                                        |
 
 ### 2.9. Input Validation
 
-| Field (context) | Validation Type | Rule | Error Message |
-|-----------------|----------------|------|---------------|
-| MCP server name (McpTool) | regex | `^[a-zA-Z0-9_-]+$` — letters, numbers, hyphens, underscores only | "Name must contain only letters, numbers, hyphens and underscores" |
-| MCP server URL (McpTool) | format | Valid URL string | Tool-level validation |
-| Onboarding provider ID (S2_ProviderStep) | enum | Must match a registered AgentOnboardingProvider ID | Step re-rendered with error |
-| Onboarding API key (S3_CredentialsStep) | length | Non-empty string when provider requires API key | Step re-rendered with error |
-| Task name (TaskTool) | length | Non-empty string | Tool-level validation |
-| Task cron expression (TaskTool) | format | Valid cron expression accepted by JobRunr | JobRunr validation error |
-| CheckList items (CheckListTool) | business | At most 1 item in `in_progress` status | Tool-level validation error |
-| WebSocket message (ChatWebSocketHandler) | format | Valid JSON with `type` field | Message silently dropped |
+|             Field (context)              | Validation Type |                               Rule                               |                           Error Message                            |
+|------------------------------------------|-----------------|------------------------------------------------------------------|--------------------------------------------------------------------|
+| MCP server name (McpTool)                | regex           | `^[a-zA-Z0-9_-]+$` — letters, numbers, hyphens, underscores only | "Name must contain only letters, numbers, hyphens and underscores" |
+| MCP server URL (McpTool)                 | format          | Valid URL string                                                 | Tool-level validation                                              |
+| Onboarding provider ID (S2_ProviderStep) | enum            | Must match a registered AgentOnboardingProvider ID               | Step re-rendered with error                                        |
+| Onboarding API key (S3_CredentialsStep)  | length          | Non-empty string when provider requires API key                  | Step re-rendered with error                                        |
+| Task name (TaskTool)                     | length          | Non-empty string                                                 | Tool-level validation                                              |
+| Task cron expression (TaskTool)          | format          | Valid cron expression accepted by JobRunr                        | JobRunr validation error                                           |
+| CheckList items (CheckListTool)          | business        | At most 1 item in `in_progress` status                           | Tool-level validation error                                        |
+| WebSocket message (ChatWebSocketHandler) | format          | Valid JSON with `type` field                                     | Message silently dropped                                           |
 
 ### 2.10. Error Handling
 
 **WebSocket /chat:**
 
-| Error Scenario | Behavior | User Notification |
-|----------------|----------|-------------------|
-| AI provider timeout | Exception caught in ChatChannel | Error text displayed as agent bubble |
-| AI provider returns error | Exception caught in ChatChannel | Error text displayed as agent bubble |
-| Invalid WebSocket message format | JSON parse exception caught | Message silently dropped, no response |
-| Tool call failure (MCP/other) | Spring AI ToolCallAdvisor handles error | Agent receives error and may retry or explain to user |
+|          Error Scenario          |                Behavior                 |                   User Notification                   |
+|----------------------------------|-----------------------------------------|-------------------------------------------------------|
+| AI provider timeout              | Exception caught in ChatChannel         | Error text displayed as agent bubble                  |
+| AI provider returns error        | Exception caught in ChatChannel         | Error text displayed as agent bubble                  |
+| Invalid WebSocket message format | JSON parse exception caught             | Message silently dropped, no response                 |
+| Tool call failure (MCP/other)    | Spring AI ToolCallAdvisor handles error | Agent receives error and may retry or explain to user |
 
 **POST /onboarding/{stepId}:**
 
-| HTTP Code | Scenario | Behavior |
-|-----------|----------|----------|
-| 200 | Validation error on step | Step page re-rendered with error message in model |
-| 302 | Step processed successfully | Redirect to next step |
-| 302 | Unknown stepId | Redirect to the first onboarding step |
+| HTTP Code |          Scenario           |                     Behavior                      |
+|-----------|-----------------------------|---------------------------------------------------|
+| 200       | Validation error on step    | Step page re-rendered with error message in model |
+| 302       | Step processed successfully | Redirect to next step                             |
+| 302       | Unknown stepId              | Redirect to the first onboarding step             |
 
 **Task execution (JobRunr):**
 
-| Error Scenario | Behavior |
-|----------------|----------|
-| Agent prompt throws exception | JobRunr catches, retries up to 3 times |
-| All retries exhausted | Task enters JobRunr failed state, visible in dashboard |
-| Database unavailable during task save | Exception propagates, JobRunr retries |
+|            Error Scenario             |                        Behavior                        |
+|---------------------------------------|--------------------------------------------------------|
+| Agent prompt throws exception         | JobRunr catches, retries up to 3 times                 |
+| All retries exhausted                 | Task enters JobRunr failed state, visible in dashboard |
+| Database unavailable during task save | Exception propagates, JobRunr retries                  |
 
 ### 2.11. Headers and Metadata
 
-| Transport | Name | Direction | Required | Format | Description |
-|-----------|------|-----------|----------|--------|-------------|
-| HTTP (MCP) | Custom headers | request | optional | string | Per-connection custom headers defined in `spring.ai.mcp.client.streamable-http.connections.{name}.headers` |
-| WebSocket | — | — | — | — | No custom headers; messages are JSON text frames |
-| HTTP (Telegram) | — | — | — | — | Managed by TelegramBots library |
-| HTTP (Discord) | — | — | — | — | Managed by JDA library |
+|    Transport    |      Name      | Direction | Required | Format |                                                Description                                                 |
+|-----------------|----------------|-----------|----------|--------|------------------------------------------------------------------------------------------------------------|
+| HTTP (MCP)      | Custom headers | request   | optional | string | Per-connection custom headers defined in `spring.ai.mcp.client.streamable-http.connections.{name}.headers` |
+| WebSocket       | —              | —         | —        | —      | No custom headers; messages are JSON text frames                                                           |
+| HTTP (Telegram) | —              | —         | —        | —      | Managed by TelegramBots library                                                                            |
+| HTTP (Discord)  | —              | —         | —        | —      | Managed by JDA library                                                                                     |
 
 ---
 
 ## 3. Acceptance Criteria Recommendations
 
-| # | WHEN | THEN |
-|---|------|------|
-| 1 | User navigates to the application for the first time (onboarding not completed) | The system redirects to `/onboarding/welcome` and displays the welcome page |
-| 2 | User completes all 6 onboarding steps with valid Anthropic API key | Configuration is saved to `application.private.yaml`, `agent.onboarding.completed=true`, application restarts, chat is accessible |
-| 3 | User sends a message via Web UI WebSocket | The agent responds, both messages are persisted in conversation memory, response is rendered as HTML bubble |
-| 4 | User switches conversation in Web UI | History for the selected conversation is loaded and displayed, input area is re-rendered |
-| 5 | WebSocket connection drops and reconnects | Full conversation history is re-sent to the client upon reconnection |
-| 6 | Telegram message arrives from allowed username | Agent processes and responds in the same Telegram chat |
-| 7 | Telegram message arrives from unauthorized username | Message is ignored, no response sent |
-| 8 | Discord message arrives from allowed user ID | Agent processes and responds in the same Discord channel |
-| 9 | Agent creates an immediate task via TaskTool | Task is saved with status `todo`, JobRunr picks it up, agent executes it, result is saved, user is notified via active channel |
-| 10 | Agent creates a recurring task with cron `0 0 9 * * *` | RecurringTask is saved, JobRunr registers the recurring job, a new Task is created each day at 09:00 |
-| 11 | Task execution fails 3 times | Task enters JobRunr failed state, visible in JobRunr dashboard at configured port |
-| 12 | Agent registers a new MCP server via McpTool with valid name and URL | Server is persisted to configuration, application restarts, new MCP tools are available to the agent |
-| 13 | Agent attempts to register MCP server with invalid name (special characters) | Registration is rejected with error message, configuration is NOT modified |
-| 14 | Brave API key is configured | BraveWebSearchTool is auto-discovered and available to the agent |
-| 15 | Brave API key is NOT configured | BraveWebSearchTool is not registered, no errors on startup |
-| 16 | Playwright plugin is active and agent navigates to a URL | Page content is returned (max 10K chars), screenshot can be taken |
-| 17 | User changes provider during onboarding (Step 2) | Downstream session state (apiKey, model, baseUrl) is cleared |
-| 18 | ConfigurationManager updates a property | `ConfigurationChangedEvent` is published, application restarts within ~2 seconds |
-| 19 | Multiple configuration changes within 2 seconds | Only one restart occurs |
-| 20 | PostgreSQL is available at startup | JDBC memory repository is used as primary (`@Primary`) for conversation persistence |
+| #  |                                      WHEN                                       |                                                               THEN                                                                |
+|----|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| 1  | User navigates to the application for the first time (onboarding not completed) | The system redirects to `/onboarding/welcome` and displays the welcome page                                                       |
+| 2  | User completes all 6 onboarding steps with valid Anthropic API key              | Configuration is saved to `application.private.yaml`, `agent.onboarding.completed=true`, application restarts, chat is accessible |
+| 3  | User sends a message via Web UI WebSocket                                       | The agent responds, both messages are persisted in conversation memory, response is rendered as HTML bubble                       |
+| 4  | User switches conversation in Web UI                                            | History for the selected conversation is loaded and displayed, input area is re-rendered                                          |
+| 5  | WebSocket connection drops and reconnects                                       | Full conversation history is re-sent to the client upon reconnection                                                              |
+| 6  | Telegram message arrives from allowed username                                  | Agent processes and responds in the same Telegram chat                                                                            |
+| 7  | Telegram message arrives from unauthorized username                             | Message is ignored, no response sent                                                                                              |
+| 8  | Discord message arrives from allowed user ID                                    | Agent processes and responds in the same Discord channel                                                                          |
+| 9  | Agent creates an immediate task via TaskTool                                    | Task is saved with status `todo`, JobRunr picks it up, agent executes it, result is saved, user is notified via active channel    |
+| 10 | Agent creates a recurring task with cron `0 0 9 * * *`                          | RecurringTask is saved, JobRunr registers the recurring job, a new Task is created each day at 09:00                              |
+| 11 | Task execution fails 3 times                                                    | Task enters JobRunr failed state, visible in JobRunr dashboard at configured port                                                 |
+| 12 | Agent registers a new MCP server via McpTool with valid name and URL            | Server is persisted to configuration, application restarts, new MCP tools are available to the agent                              |
+| 13 | Agent attempts to register MCP server with invalid name (special characters)    | Registration is rejected with error message, configuration is NOT modified                                                        |
+| 14 | Brave API key is configured                                                     | BraveWebSearchTool is auto-discovered and available to the agent                                                                  |
+| 15 | Brave API key is NOT configured                                                 | BraveWebSearchTool is not registered, no errors on startup                                                                        |
+| 16 | Playwright plugin is active and agent navigates to a URL                        | Page content is returned (max 10K chars), screenshot can be taken                                                                 |
+| 17 | User changes provider during onboarding (Step 2)                                | Downstream session state (apiKey, model, baseUrl) is cleared                                                                      |
+| 18 | ConfigurationManager updates a property                                         | `ConfigurationChangedEvent` is published, application restarts within ~2 seconds                                                  |
+| 19 | Multiple configuration changes within 2 seconds                                 | Only one restart occurs                                                                                                           |
+| 20 | PostgreSQL is available at startup                                              | JDBC memory repository is used as primary (`@Primary`) for conversation persistence                                               |
 
 ---
 
@@ -643,14 +645,14 @@ Constraint: At most one item MAY have status `in_progress` at any given time.
 
 ### 4.2. Performance
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| WebSocket message queue | Unbounded (ConcurrentLinkedQueue) | In-memory queue for messages when WS is disconnected |
-| Playwright text extraction limit | 10,000 chars | Maximum text extracted per tool call |
-| Brave search results | 15 | Results per web search query |
-| JobRunr task retries | 3 | Maximum retry attempts per task |
-| Configuration restart delay | 2,000 ms | Delay before application restart after config change |
-| Conversation memory | MessageWindowChatMemory | Windowed memory — retains last N messages per conversation |
+|            Parameter             |               Value               |                        Description                         |
+|----------------------------------|-----------------------------------|------------------------------------------------------------|
+| WebSocket message queue          | Unbounded (ConcurrentLinkedQueue) | In-memory queue for messages when WS is disconnected       |
+| Playwright text extraction limit | 10,000 chars                      | Maximum text extracted per tool call                       |
+| Brave search results             | 15                                | Results per web search query                               |
+| JobRunr task retries             | 3                                 | Maximum retry attempts per task                            |
+| Configuration restart delay      | 2,000 ms                          | Delay before application restart after config change       |
+| Conversation memory              | MessageWindowChatMemory           | Windowed memory — retains last N messages per conversation |
 
 ### 4.3. Reliability
 

@@ -464,8 +464,8 @@ Full schema: [schemas/OrderCreatedEvent.json](schemas/OrderCreatedEvent.json)
 
 <!-- Configuration parameters table -->
 
-| Parameter | Required | Type | Default | Description |
-|---|---|---|---|---|
+|        Parameter        |    Required     |           Type           |    Default     |     Description      |
+|-------------------------|-----------------|--------------------------|----------------|----------------------|
 | <!-- parameter name --> | <!-- yes/no --> | <!-- string/int/bool --> | <!-- value --> | <!-- description --> |
 
 <!-- EXAMPLE:
@@ -488,8 +488,8 @@ Full schema: [schemas/OrderCreatedEvent.json](schemas/OrderCreatedEvent.json)
 
 <!-- Logging events table. Levels per common-requirements.md section 1. -->
 
-| Level | Event | Message Format |
-|---|---|---|
+|             Level              |           Event            |      Message Format       |
+|--------------------------------|----------------------------|---------------------------|
 | <!-- ERROR/WARN/INFO/DEBUG --> | <!-- event description --> | <!-- message template --> |
 
 <!-- EXAMPLE:
@@ -511,9 +511,9 @@ Full schema: [schemas/OrderCreatedEvent.json](schemas/OrderCreatedEvent.json)
 
 <!-- Input data validation rules -->
 
-| Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
-|---|---|---|---|---|
-| <!-- $.field --> | <!-- format/range/regex/enum/length --> | <!-- rule --> | <!-- text --> | <!-- code --> |
+| Field (JSON path) |             Validation Type             |     Rule      | Error Message |  Error Code   |
+|-------------------|-----------------------------------------|---------------|---------------|---------------|
+| <!-- $.field -->  | <!-- format/range/regex/enum/length --> | <!-- rule --> | <!-- text --> | <!-- code --> |
 
 <!-- EXAMPLE:
 | Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
@@ -529,8 +529,8 @@ Full schema: [schemas/OrderCreatedEvent.json](schemas/OrderCreatedEvent.json)
 
 <!-- Error codes tied to API endpoints. For each endpoint — error table. -->
 
-| HTTP Code | Error Code | errorCode | Scenario | Client Action |
-|---|---|---|---|---|
+|    HTTP Code     |  Error Code   |      errorCode       |        Scenario         |    Client Action    |
+|------------------|---------------|----------------------|-------------------------|---------------------|
 | <!-- 4xx/5xx --> | <!-- XXXX --> | <!-- string code --> | <!-- when it occurs --> | <!-- what to do --> |
 
 <!-- EXAMPLE:
@@ -568,8 +568,8 @@ Response format (RFC 7807):
 
 <!-- HTTP headers, Kafka headers, gRPC metadata used by the service -->
 
-| Transport | Name | Direction | Required | Format | Description |
-|---|---|---|---|---|---|
+|        Transport         |     Name      |         Direction         |          Required          |     Format      |   Description    |
+|--------------------------|---------------|---------------------------|----------------------------|-----------------|------------------|
 | <!-- HTTP/Kafka/gRPC --> | <!-- name --> | <!-- request/response --> | <!-- required/optional --> | <!-- format --> | <!-- purpose --> |
 
 <!-- EXAMPLE:
@@ -591,8 +591,8 @@ Format: WHEN/THEN. Each criterion must be testable.
 Cover: main scenario, edge cases, error scenarios.
 If the service is new — describe criteria for all key scenarios from 2.1-2.2. -->
 
-| # | WHEN | THEN |
-|---|---|---|
+|        #        |            WHEN             |           THEN           |
+|-----------------|-----------------------------|--------------------------|
 | <!-- number --> | <!-- condition / action --> | <!-- expected result --> |
 
 <!-- EXAMPLE:
@@ -634,8 +634,8 @@ If the service is new — describe criteria for all key scenarios from 2.1-2.2. 
 
 <!-- Performance requirements, timeouts, limits -->
 
-| Parameter | Value | Description |
-|---|---|---|
+|     Parameter      |     Value      |     Description      |
+|--------------------|----------------|----------------------|
 | <!-- parameter --> | <!-- value --> | <!-- description --> |
 
 <!-- EXAMPLE:
@@ -690,8 +690,8 @@ Health-check endpoints:
 - **Type**: <!-- Counter / Gauge / Timer (Histogram) -->
 - **Description**: <!-- what it measures -->
 
-| Tag | Required | Description | Example Value |
-|---|---|---|---|
+|        Tag        |           Required            |     Description      |  Example Value   |
+|-------------------|-------------------------------|----------------------|------------------|
 | <!-- tag name --> | <!-- Required/Conditional --> | <!-- description --> | <!-- example --> |
 
 **Example value:**
@@ -735,8 +735,8 @@ shop_orders_payment_duration_seconds_bucket{status="SUCCESS", le="1.0"} 150
 
 <!-- Metrics calculated on the monitoring system side (Prometheus/Grafana) -->
 
-| Category | Metric | Description | Formula |
-|---|---|---|---|
+|     Category      |    Metric     |     Description      |     Formula     |
+|-------------------|---------------|----------------------|-----------------|
 | <!-- category --> | <!-- name --> | <!-- description --> | <!-- PromQL --> |
 
 <!-- EXAMPLE:

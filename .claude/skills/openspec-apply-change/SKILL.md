@@ -59,22 +59,22 @@ Merge changes from change.md into the main specification (Analyst Merge).
 
    For each change.md section that is NOT "No changes", find the corresponding section in the specification:
 
-   |        change.md section         |              Target specification section (by name)               |
-   |----------------------------------|-------------------------------------------------------------------|
-   | 2. Business Logic                | Business Logic                                                    |
-   | 3. Data Models (ADDED)           | Data Models — add new ones                                        |
-   | 3. Data Models (MODIFIED)        | Data Models — update existing                                     |
-   | 3. Data Models (REMOVED)         | Data Models — remove                                              |
-   | 4. Integrations                  | Integrations                                                      |
-   | 5. Error Handling                | Error Handling                                                    |
-   | 6. Headers                       | Headers                                                           |
-   | 7. Validation                    | Validation                                                        |
-   | 8. Security                      | Security                                                          |
-   | 9. Migration                     | If one-time — leave in change.md. If schema change — in Data Models |
-   | 10. Logging                      | Logging                                                           |
-   | 11. Monitoring                   | Monitoring                                                        |
-   | 12. Configuration                | Configuration                                                     |
-   | 13. Acceptance Criteria          | Acceptance Criteria Recommendations                               |
+   |     change.md section     |               Target specification section (by name)                |
+   |---------------------------|---------------------------------------------------------------------|
+   | 2. Business Logic         | Business Logic                                                      |
+   | 3. Data Models (ADDED)    | Data Models — add new ones                                          |
+   | 3. Data Models (MODIFIED) | Data Models — update existing                                       |
+   | 3. Data Models (REMOVED)  | Data Models — remove                                                |
+   | 4. Integrations           | Integrations                                                        |
+   | 5. Error Handling         | Error Handling                                                      |
+   | 6. Headers                | Headers                                                             |
+   | 7. Validation             | Validation                                                          |
+   | 8. Security               | Security                                                            |
+   | 9. Migration              | If one-time — leave in change.md. If schema change — in Data Models |
+   | 10. Logging               | Logging                                                             |
+   | 11. Monitoring            | Monitoring                                                          |
+   | 12. Configuration         | Configuration                                                       |
+   | 13. Acceptance Criteria   | Acceptance Criteria Recommendations                                 |
 
    **If the target section is not found in the specification** — create it in a logically appropriate place.
 

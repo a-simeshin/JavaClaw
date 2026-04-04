@@ -272,88 +272,88 @@ javaclaw/
 
 ### 2.5. Current-to-Target Structure Mapping
 
-| Current Path | Target Path | Action |
-|---|---|---|
-| `base/` | `core/` | Rename directory |
-| `base/pom.xml` (artifactId=javaclaw-base) | `core/pom.xml` (artifactId=javaclaw-core) | Update artifactId |
-| `base/src/.../org/springframework/ai/chat/*` | — | Remove (Spring AI hacks) |
-| `base/src/.../ai/javaclaw/onboarding/*` | — | Remove (legacy onboarding interfaces) |
-| `app/src/.../ai/javaclaw/chat/ChatChannel` | `api/chat/src/.../ai/javaclaw/api/chat/ChatChannel` | Move, update package |
-| `app/src/.../ai/javaclaw/chat/api/ChatController` | `api/chat/src/.../ai/javaclaw/api/chat/ChatController` | Move, update package |
-| `app/src/.../ai/javaclaw/chat/ws/*` | `api/chat/src/.../ai/javaclaw/api/chat/ws/*` | Move, update packages |
-| `app/src/.../ai/javaclaw/chat/ChatHtml` | — | Remove (htmx legacy) |
-| `app/src/.../ai/javaclaw/chat/Htmx` | — | Remove (htmx legacy) |
-| `app/src/.../ai/javaclaw/onboarding/**` | — | Remove (onboarding wizard) |
-| `app/src/main/resources/templates/**` | — | Remove (Pebble templates) |
-| `plugins/discord/` | `channels/discord/` | Move |
-| `plugins/telegram/` | `channels/telegram/` | Move |
-| `plugins/brave/` | — | Remove entirely |
-| `plugins/playwright/` | — | Remove entirely |
-| `providers/anthropic/` | `providers/anthropic/` | Update dependencies, remove OnboardingProvider |
-| `providers/openai/` | `providers/openai/` | Update dependencies, remove OnboardingProvider |
-| `providers/ollama/` | `providers/ollama/` | Update dependencies, remove OnboardingProvider |
-| `providers/google/` | `providers/google/` | Update dependencies, remove OnboardingProvider |
+|                   Current Path                    |                      Target Path                       |                     Action                     |
+|---------------------------------------------------|--------------------------------------------------------|------------------------------------------------|
+| `base/`                                           | `core/`                                                | Rename directory                               |
+| `base/pom.xml` (artifactId=javaclaw-base)         | `core/pom.xml` (artifactId=javaclaw-core)              | Update artifactId                              |
+| `base/src/.../org/springframework/ai/chat/*`      | —                                                      | Remove (Spring AI hacks)                       |
+| `base/src/.../ai/javaclaw/onboarding/*`           | —                                                      | Remove (legacy onboarding interfaces)          |
+| `app/src/.../ai/javaclaw/chat/ChatChannel`        | `api/chat/src/.../ai/javaclaw/api/chat/ChatChannel`    | Move, update package                           |
+| `app/src/.../ai/javaclaw/chat/api/ChatController` | `api/chat/src/.../ai/javaclaw/api/chat/ChatController` | Move, update package                           |
+| `app/src/.../ai/javaclaw/chat/ws/*`               | `api/chat/src/.../ai/javaclaw/api/chat/ws/*`           | Move, update packages                          |
+| `app/src/.../ai/javaclaw/chat/ChatHtml`           | —                                                      | Remove (htmx legacy)                           |
+| `app/src/.../ai/javaclaw/chat/Htmx`               | —                                                      | Remove (htmx legacy)                           |
+| `app/src/.../ai/javaclaw/onboarding/**`           | —                                                      | Remove (onboarding wizard)                     |
+| `app/src/main/resources/templates/**`             | —                                                      | Remove (Pebble templates)                      |
+| `plugins/discord/`                                | `channels/discord/`                                    | Move                                           |
+| `plugins/telegram/`                               | `channels/telegram/`                                   | Move                                           |
+| `plugins/brave/`                                  | —                                                      | Remove entirely                                |
+| `plugins/playwright/`                             | —                                                      | Remove entirely                                |
+| `providers/anthropic/`                            | `providers/anthropic/`                                 | Update dependencies, remove OnboardingProvider |
+| `providers/openai/`                               | `providers/openai/`                                    | Update dependencies, remove OnboardingProvider |
+| `providers/ollama/`                               | `providers/ollama/`                                    | Update dependencies, remove OnboardingProvider |
+| `providers/google/`                               | `providers/google/`                                    | Update dependencies, remove OnboardingProvider |
 
 ### 2.6. Data Models (Modules)
 
 #### javaclaw-core
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-core` |
-| packaging | jar |
-| Dependencies | spring-boot-starter, spring-modulith-starter-core, spring-ai-client-chat, spring-ai-starter-model-chat-memory-repository-jdbc, spring-ai-starter-mcp-client, spring-ai-agent-utils, jobrunr-spring-boot-4-starter, spring-boot-starter-data-jdbc, commons-lang3, netty-resolver-dns-native-macos (runtime, macOS) |
-| Packages | ai.javaclaw.agent, ai.javaclaw.channels, ai.javaclaw.configuration, ai.javaclaw.files, ai.javaclaw.mcp, ai.javaclaw.providers, ai.javaclaw.tasks, ai.javaclaw.tools |
-| Exports | Agent, DefaultAgent, Channel, ChannelRegistry, ChannelMessageReceivedEvent, ConfigurationManager, ConfigurationChangedEvent, Task, TaskManager, TaskRepository, RecurringTask, RecurringTaskRepository, McpTool, TaskTool, CheckListTool, AutoDiscoveredTool, AgentProvider, AgentEnvironment, YamlParser, YamlDocument, McpConnectionsProperties, McpHeaderCustomizer |
+|  Parameter   |                                                                                                                                                                                 Value                                                                                                                                                                                  |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-core`                                                                                                                                                                                                                                                                                                                                                        |
+| packaging    | jar                                                                                                                                                                                                                                                                                                                                                                    |
+| Dependencies | spring-boot-starter, spring-modulith-starter-core, spring-ai-client-chat, spring-ai-starter-model-chat-memory-repository-jdbc, spring-ai-starter-mcp-client, spring-ai-agent-utils, jobrunr-spring-boot-4-starter, spring-boot-starter-data-jdbc, commons-lang3, netty-resolver-dns-native-macos (runtime, macOS)                                                      |
+| Packages     | ai.javaclaw.agent, ai.javaclaw.channels, ai.javaclaw.configuration, ai.javaclaw.files, ai.javaclaw.mcp, ai.javaclaw.providers, ai.javaclaw.tasks, ai.javaclaw.tools                                                                                                                                                                                                    |
+| Exports      | Agent, DefaultAgent, Channel, ChannelRegistry, ChannelMessageReceivedEvent, ConfigurationManager, ConfigurationChangedEvent, Task, TaskManager, TaskRepository, RecurringTask, RecurringTaskRepository, McpTool, TaskTool, CheckListTool, AutoDiscoveredTool, AgentProvider, AgentEnvironment, YamlParser, YamlDocument, McpConnectionsProperties, McpHeaderCustomizer |
 
 #### javaclaw-api-chat
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-api-chat` |
-| packaging | jar |
-| Dependencies | javaclaw-core, spring-boot-starter-webmvc, spring-boot-starter-websocket |
-| Packages | ai.javaclaw.api.chat, ai.javaclaw.api.chat.ws |
-| Exports | ChatChannel (Channel impl), ChatController, ChatWebSocketHandler, WebSocketConfig |
+|  Parameter   |                                       Value                                       |
+|--------------|-----------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-api-chat`                                                               |
+| packaging    | jar                                                                               |
+| Dependencies | javaclaw-core, spring-boot-starter-webmvc, spring-boot-starter-websocket          |
+| Packages     | ai.javaclaw.api.chat, ai.javaclaw.api.chat.ws                                     |
+| Exports      | ChatChannel (Channel impl), ChatController, ChatWebSocketHandler, WebSocketConfig |
 
 #### javaclaw-api-admin
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-api-admin` |
-| packaging | jar |
-| Dependencies | javaclaw-core, spring-boot-starter-webmvc |
-| Packages | ai.javaclaw.api.admin (scaffold, empty) |
-| Exports | Not defined at current stage. Will be populated during Phase 3 roadmap implementation |
+|  Parameter   |                                         Value                                         |
+|--------------|---------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-api-admin`                                                                  |
+| packaging    | jar                                                                                   |
+| Dependencies | javaclaw-core, spring-boot-starter-webmvc                                             |
+| Packages     | ai.javaclaw.api.admin (scaffold, empty)                                               |
+| Exports      | Not defined at current stage. Will be populated during Phase 3 roadmap implementation |
 
 #### javaclaw-channel-discord
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-channel-discord` |
-| packaging | jar |
-| Dependencies | javaclaw-core, spring-boot-starter, net.dv8tion:JDA:6.1.1 |
-| Packages | ai.javaclaw.channels.discord |
-| Exports | DiscordChannel (Channel impl), DiscordChannelAutoConfiguration |
+|  Parameter   |                             Value                              |
+|--------------|----------------------------------------------------------------|
+| artifactId   | `javaclaw-channel-discord`                                     |
+| packaging    | jar                                                            |
+| Dependencies | javaclaw-core, spring-boot-starter, net.dv8tion:JDA:6.1.1      |
+| Packages     | ai.javaclaw.channels.discord                                   |
+| Exports      | DiscordChannel (Channel impl), DiscordChannelAutoConfiguration |
 
 #### javaclaw-channel-telegram
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-channel-telegram` |
-| packaging | jar |
+|  Parameter   |                                                      Value                                                       |
+|--------------|------------------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-channel-telegram`                                                                                      |
+| packaging    | jar                                                                                                              |
 | Dependencies | javaclaw-core, spring-boot-starter, telegrambots-springboot-longpolling-starter:9.4.0, telegrambots-client:9.4.0 |
-| Packages | ai.javaclaw.channels.telegram |
-| Exports | TelegramChannel (Channel impl), TelegramChannelAutoConfiguration |
+| Packages     | ai.javaclaw.channels.telegram                                                                                    |
+| Exports      | TelegramChannel (Channel impl), TelegramChannelAutoConfiguration                                                 |
 
 #### javaclaw-app
 
-| Parameter | Value |
-|---|---|
-| artifactId | `javaclaw-app` |
-| packaging | jar (Spring Boot executable) |
+|  Parameter   |                                                                                                                                                                                                   Value                                                                                                                                                                                                   |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-app`                                                                                                                                                                                                                                                                                                                                                                                            |
+| packaging    | jar (Spring Boot executable)                                                                                                                                                                                                                                                                                                                                                                              |
 | Dependencies | javaclaw-core, javaclaw-api-chat, javaclaw-api-admin, javaclaw-channel-discord, javaclaw-channel-telegram, javaclaw-provider-anthropic, javaclaw-provider-openai, javaclaw-provider-ollama, javaclaw-provider-google, spring-boot-starter-webmvc, spring-boot-starter-actuator, spring-boot-starter-data-jdbc, spring-boot-starter-restclient, postgresql (runtime), flyway-database-postgresql (runtime) |
-| Contents | JavaClawApplication (main), application.yaml, Flyway migrations |
+| Contents     | JavaClawApplication (main), application.yaml, Flyway migrations                                                                                                                                                                                                                                                                                                                                           |
 
 ### 2.7. Configuration Requirements
 
@@ -361,33 +361,33 @@ Configuration files (`application.yaml`, profile yamls) MUST reside only in the 
 
 Modules `core`, `api/*`, `channels/*`, `providers/*` MUST NOT contain their own `application.yaml`. When defaults are needed, they are provided via `@ConfigurationProperties` with default values in Java code.
 
-| Parameter | Required | Type | Default | Description |
-|---|---|---|---|---|
-| spring.datasource.url | yes | string | — | PostgreSQL connection URL |
-| spring.datasource.username | yes | string | — | Database username |
-| spring.datasource.password | yes | string | — | Database password |
-| spring.flyway.enabled | no | bool | true | Enable automatic migrations |
-| spring.ai.mcp.client.* | no | object | — | MCP server configuration |
-| javaclaw.workspace.path | no | string | ./workspace | Workspace directory path |
+|         Parameter          | Required |  Type  |   Default   |         Description         |
+|----------------------------|----------|--------|-------------|-----------------------------|
+| spring.datasource.url      | yes      | string | —           | PostgreSQL connection URL   |
+| spring.datasource.username | yes      | string | —           | Database username           |
+| spring.datasource.password | yes      | string | —           | Database password           |
+| spring.flyway.enabled      | no       | bool   | true        | Enable automatic migrations |
+| spring.ai.mcp.client.*     | no       | object | —           | MCP server configuration    |
+| javaclaw.workspace.path    | no       | string | ./workspace | Workspace directory path    |
 
 ### 2.8. Logging
 
-| Level | Event | Message Format |
-|---|---|---|
-| INFO | Application started | "JavaClaw started with modules: {module_list}" |
-| INFO | Channel registered | "Channel registered: {channel_name}" |
-| INFO | Channel disconnected | "Channel unregistered: {channel_name}" |
-| WARN | Module not found at startup | "Expected module {module_name} not found on classpath" |
+| Level |            Event             |                      Message Format                       |
+|-------|------------------------------|-----------------------------------------------------------|
+| INFO  | Application started          | "JavaClaw started with modules: {module_list}"            |
+| INFO  | Channel registered           | "Channel registered: {channel_name}"                      |
+| INFO  | Channel disconnected         | "Channel unregistered: {channel_name}"                    |
+| WARN  | Module not found at startup  | "Expected module {module_name} not found on classpath"    |
 | ERROR | Circular dependency detected | "Circular dependency detected: {module_a} <-> {module_b}" |
 
 ### 2.9. Validation
 
-| Check | Timing | Rule | Action on Violation |
-|---|---|---|---|
-| Module dependency graph | mvn compile | Dependencies are unidirectional, core does not depend on other modules | Compilation error |
-| Spring Modulith boundaries | @ApplicationModuleTest | Core packages have no cyclic dependencies | Test failure |
-| Autoconfiguration | Application startup | All channels and providers are discovered automatically | Startup error |
-| No legacy imports | mvn compile | No imports of removed classes anywhere (onboarding, htmx, brave, playwright) | Compilation error |
+|           Check            |         Timing         |                                     Rule                                     | Action on Violation |
+|----------------------------|------------------------|------------------------------------------------------------------------------|---------------------|
+| Module dependency graph    | mvn compile            | Dependencies are unidirectional, core does not depend on other modules       | Compilation error   |
+| Spring Modulith boundaries | @ApplicationModuleTest | Core packages have no cyclic dependencies                                    | Test failure        |
+| Autoconfiguration          | Application startup    | All channels and providers are discovered automatically                      | Startup error       |
+| No legacy imports          | mvn compile            | No imports of removed classes anywhere (onboarding, htmx, brave, playwright) | Compilation error   |
 
 ### 2.10. Error Handling
 
@@ -399,23 +399,23 @@ This refactoring does not change the application's runtime behavior and does not
 
 ## 3. Acceptance Criteria Recommendations
 
-| # | WHEN | THEN |
-|---|---|---|
-| 1 | `mvn clean compile` is executed from the project root | All modules compile without errors |
-| 2 | `mvn test` is executed from the project root | All tests pass (except tests of removed components) |
-| 3 | Application is started via `mvn spring-boot:run -pl app` | Successful startup, all channels and providers registered in logs |
-| 4 | The `plugins/` directory is checked | Directory is absent or empty |
-| 5 | The `base/` directory is checked | Directory is absent (renamed to `core/`) |
-| 6 | Search for imports of `org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor` across the project | Zero results |
-| 7 | Search for imports of `ai.javaclaw.onboarding` across the project | Zero results |
-| 8 | Search for classes `ChatHtml`, `Htmx`, `OnboardingController` | Classes not found |
-| 9 | Search for dependencies on `javaclaw-plugin-brave` and `javaclaw-plugin-playwright` | Zero results in pom.xml files |
-| 10 | `app/src/main/java/` is checked | Contains only `JavaClawApplication` (and optionally `IndexController`) |
-| 11 | `app/src/main/resources/templates/` is checked | Directory is absent or empty |
-| 12 | `core/pom.xml` is checked | artifactId = `javaclaw-core` |
-| 13 | Dependency graph checked: `mvn dependency:tree -pl core` | core does NOT contain dependencies on other project modules |
-| 14 | Dependency graph checked: `mvn dependency:tree -pl api/chat` | api/chat depends on javaclaw-core, not on other api/* |
-| 15 | A WebSocket message is sent to the agent via chat | Agent responds (functionality preserved) |
+| #  |                                                      WHEN                                                      |                                  THEN                                  |
+|----|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| 1  | `mvn clean compile` is executed from the project root                                                          | All modules compile without errors                                     |
+| 2  | `mvn test` is executed from the project root                                                                   | All tests pass (except tests of removed components)                    |
+| 3  | Application is started via `mvn spring-boot:run -pl app`                                                       | Successful startup, all channels and providers registered in logs      |
+| 4  | The `plugins/` directory is checked                                                                            | Directory is absent or empty                                           |
+| 5  | The `base/` directory is checked                                                                               | Directory is absent (renamed to `core/`)                               |
+| 6  | Search for imports of `org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor` across the project | Zero results                                                           |
+| 7  | Search for imports of `ai.javaclaw.onboarding` across the project                                              | Zero results                                                           |
+| 8  | Search for classes `ChatHtml`, `Htmx`, `OnboardingController`                                                  | Classes not found                                                      |
+| 9  | Search for dependencies on `javaclaw-plugin-brave` and `javaclaw-plugin-playwright`                            | Zero results in pom.xml files                                          |
+| 10 | `app/src/main/java/` is checked                                                                                | Contains only `JavaClawApplication` (and optionally `IndexController`) |
+| 11 | `app/src/main/resources/templates/` is checked                                                                 | Directory is absent or empty                                           |
+| 12 | `core/pom.xml` is checked                                                                                      | artifactId = `javaclaw-core`                                           |
+| 13 | Dependency graph checked: `mvn dependency:tree -pl core`                                                       | core does NOT contain dependencies on other project modules            |
+| 14 | Dependency graph checked: `mvn dependency:tree -pl api/chat`                                                   | api/chat depends on javaclaw-core, not on other api/*                  |
+| 15 | A WebSocket message is sent to the agent via chat                                                              | Agent responds (functionality preserved)                               |
 
 ---
 
@@ -429,11 +429,11 @@ This refactoring does not change the application's runtime behavior and does not
 
 ### 4.2. Performance
 
-| Parameter | Value | Description |
-|---|---|---|
-| Compilation time | No more than +20% over current | Adding modules increases Maven overhead, but not critically |
-| Application startup time | No change | Number of Spring beans does not change |
-| Artifact size | Decreases | Removal of Brave, Playwright, Pebble reduces the classpath |
+|        Parameter         |             Value              |                         Description                         |
+|--------------------------|--------------------------------|-------------------------------------------------------------|
+| Compilation time         | No more than +20% over current | Adding modules increases Maven overhead, but not critically |
+| Application startup time | No change                      | Number of Spring beans does not change                      |
+| Artifact size            | Decreases                      | Removal of Brave, Playwright, Pebble reduces the classpath  |
 
 ### 4.3. Reliability
 
