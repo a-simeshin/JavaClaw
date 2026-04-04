@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "JavaClaw",
+    "console": "Консоль"
+  },
+  "nav": {
+    "chat": "Чат",
+    "overview": "Обзор",
+    "admin": "Админ",
+    "settings": "Настройки",
+    "history": "История"
+  },
+  "actions": {
+    "send": "Отправить",
+    "stop": "Остановить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "confirm": "Подтвердить",
+    "retry": "Повторить",
+    "copy": "Копировать",
+    "copied": "Скопировано",
+    "newConversation": "Новый диалог",
+    "signIn": "Войти",
+    "signOut": "Выйти",
+    "search": "Поиск"
+  },
+  "chat": {
+    "title": "Чат",
+    "placeholder": "Сообщение для JavaClaw",
+    "empty": {
+      "title": "Начните диалог",
+      "description": "Отправьте сообщение, чтобы начать. Ответы приходят потоком."
+    },
+    "typing": "Обработка",
+    "assistant": "Ассистент",
+    "you": "Вы",
+    "abort": "Остановить поток",
+    "errorPrefix": "Ошибка запроса",
+    "tool": {
+      "statusPending": "Ожидание",
+      "statusRunning": "Выполняется",
+      "statusComplete": "Готово",
+      "statusError": "Ошибка",
+      "input": "Вход",
+      "output": "Результат",
+      "showDetails": "Показать детали",
+      "hideDetails": "Скрыть детали"
+    }
+  },
+  "login": {
+    "title": "Вход в JavaClaw",
+    "subtitle": "Введите учётные данные для продолжения",
+    "username": "Логин",
+    "password": "Пароль",
+    "submit": "Войти",
+    "signingIn": "Вход",
+    "error": "Неверные учётные данные",
+    "networkError": "Сервер недоступен"
+  },
+  "conversations": {
+    "title": "Диалоги",
+    "searchPlaceholder": "Поиск диалогов",
+    "empty": "Диалогов пока нет",
+    "noResults": "Ничего не найдено",
+    "deletePromptTitle": "Удалить диалог",
+    "deletePromptDescription": "Диалог будет удалён безвозвратно. Это действие нельзя отменить.",
+    "loadError": "Не удалось загрузить диалоги"
+  },
+  "header": {
+    "userMenu": "Меню пользователя",
+    "theme": {
+      "light": "Переключить на светлую тему",
+      "dark": "Переключить на тёмную тему"
+    },
+    "language": "Язык"
+  },
+  "language": {
+    "en": "Английский",
+    "ru": "Русский"
+  },
+  "errors": {
+    "unknown": "Что-то пошло не так",
+    "unauthorized": "Пожалуйста, войдите для продолжения"
+  }
+}

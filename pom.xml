@@ -22,7 +22,9 @@
         <module>javaclaw-api</module>
         <module>javaclaw-channel</module>
         <module>javaclaw-provider</module>
+        <module>javaclaw-frontend</module>
         <module>javaclaw-app</module>
+        <module>javaclaw-e2e</module>
     </modules>
 
     <properties>

@@ -1,0 +1,45 @@
+# Profile for non-browser integration tests.
+# PostgreSQL datasource is provided via @ServiceConnection from Testcontainers.
+# No real LLM calls required — the actuator/health endpoint is the only thing exercised
+# in the baseline IT. Child ITs may mock or bypass the agent layer.
+
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  ai:
+    # MCP client must stay enabled so SyncMcpToolCallbackProvider bean is created
+    # (ChatClient has a hard dependency on it). No remote MCP servers are configured.
+    mcp:
+      client:
+        enabled: true
+        stdio:
+          connections: {}
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+    openai:
+      api-key: dummy-test-key
+      base-url: http://localhost:0
+
+agent:
+  onboarding:
+    completed: true
+  workspace: classpath:test-workspace/
+
+jobrunr:
+  dashboard:
+    enabled: false
+  background-job-server:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always

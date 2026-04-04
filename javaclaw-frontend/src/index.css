@@ -1,0 +1,314 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/outfit";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * JavaClaw Design Context v3 — see .impeccable.md
+ * Dark flagship:  Gradianto Midnight Blue (from theme.json — every hex traced to a real key)
+ * Light fallback: Warm Parchment (cream/amber, editorial)
+ * Typography:     JetBrains Mono (display) + Outfit (body). No Inter, no serif, no italic.
+ * Accent:         purple (dark) / amber (light) — matched to surface temperature.
+ */
+
+@theme inline {
+  --font-sans: "Outfit Variable", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-pill: 24px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* JavaClaw extended semantic tokens (shared across themes via var()). */
+  --color-surface-base: var(--surface-base);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-card: var(--surface-card);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-selection: var(--surface-selection);
+  --color-surface-code: var(--surface-code);
+  --color-surface-code-border: var(--surface-code-border);
+  --color-separator: var(--separator);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-bg: var(--accent-bg);
+  --color-success: var(--success);
+  --color-success-bright: var(--success-bright);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-info: var(--info);
+  --color-error: var(--error);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Light theme — Warm Parchment (cream/amber editorial)
+ * ──────────────────────────────────────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  /* shadcn semantic mapping */
+  --background: #faf8f4;
+  --foreground: #2c2620;
+  --card: #f0ece5;
+  --card-foreground: #2c2620;
+  --popover: #faf8f4;
+  --popover-foreground: #2c2620;
+  --primary: #cc6418;
+  --primary-foreground: #faf8f4;
+  --secondary: #efebe4;
+  --secondary-foreground: #2c2620;
+  --muted: #efebe4;
+  --muted-foreground: #686560;        /* 5.4:1 on card, 5.3:1 on sidebar — AA ✓ both surfaces */
+  --accent: rgba(204, 100, 24, 0.06);
+  --accent-foreground: #1a1510;
+  --destructive: #b83030;
+  --border: rgba(60, 50, 35, 0.10);
+  --input: rgba(60, 50, 35, 0.22);
+  --ring: #cc6418;
+
+  --chart-1: #cc6418;
+  --chart-2: #8a6018;
+  --chart-3: #2860a0;
+  --chart-4: #1a7a3a;
+  --chart-5: #b83030;
+
+  --sidebar: #efebe4;
+  --sidebar-foreground: #2c2620;
+  --sidebar-primary: #cc6418;
+  --sidebar-primary-foreground: #faf8f4;
+  --sidebar-accent: rgba(204, 100, 24, 0.06);
+  --sidebar-accent-foreground: #1a1510;
+  --sidebar-border: rgba(60, 50, 35, 0.10);
+  --sidebar-ring: #cc6418;
+
+  /* JavaClaw extended */
+  --surface-base: #f7f4ef;
+  --surface-raised: #efebe4;
+  --surface-card: #faf8f4;
+  --surface-elevated: #f0ece5;
+  --surface-hover: #e8e3db;
+  --surface-selection: #f3e1d3;
+  --surface-code: #e6dcc4;            /* warm sandstone — distinctly darker than cream surfaces */
+  --surface-code-border: #d4c8a8;
+  --separator: rgba(60, 50, 35, 0.14);
+  --accent-strong: #a85210;           /* accent AS text (5.1:1 AA ✓) */
+  --accent-dim: #b85810;
+  --accent-bg: rgba(204, 100, 24, 0.06);
+  --success: #1a7a3a;
+  --success-bright: #1a7a3a;
+  --warning: #8a6018;
+  --warning-text: #8a6018;
+  --info: #2860a0;
+  --error: #b83030;
+
+  --scrollbar-thumb: rgba(60, 50, 35, 0.10);
+  --scrollbar-thumb-hover: rgba(60, 50, 35, 0.18);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Dark theme — Gradianto Midnight Blue (flagship)
+ * Every color traced to Gradianto_midnight_blue.theme.json
+ * ──────────────────────────────────────────────────────────────────────── */
+.dark {
+  --background: #282839;              /* *.background */
+  --foreground: #d4d4d4;              /* *.foreground */
+  --card: #333345;                    /* VersionControl.Log.Commit.currentBranchBackground */
+  --card-foreground: #d4d4d4;
+  --popover: #3d3d56;                 /* EditorTabs.selectedBackground */
+  --popover-foreground: #d4d4d4;
+  --primary: #544c91;                 /* Button.startBackground */
+  --primary-foreground: #d4d4d4;
+  --secondary: #2c2c3e;               /* Tree.background */
+  --secondary-foreground: #b0b0c0;
+  --muted: #383850;                   /* *.separatorColor */
+  --muted-foreground: #9696a0;        /* 4.9:1 — AA ✓ */
+  --accent: #544092;                  /* *.selectionBackground */
+  --accent-foreground: #d4d4d4;
+  --destructive: #ad3864;             /* ProgressBar.failedColor */
+  --border: #221b3c;                  /* Borders.color */
+  --input: #383850;
+  --ring: #8769cf;                    /* ProgressBar.progressColor */
+
+  --chart-1: #8769cf;
+  --chart-2: #83d68d;
+  --chart-3: #4fc3f7;
+  --chart-4: #ede891;
+  --chart-5: #ad3864;
+
+  --sidebar: #2c2c3e;                 /* Tree.background */
+  --sidebar-foreground: #b0b0c0;
+  --sidebar-primary: #8769cf;
+  --sidebar-primary-foreground: #d4d4d4;
+  --sidebar-accent: #544092;
+  --sidebar-accent-foreground: #d4d4d4;
+  --sidebar-border: #221b3c;
+  --sidebar-ring: #8769cf;
+
+  /* JavaClaw extended */
+  --surface-base: #282839;
+  --surface-raised: #2c2c3e;
+  --surface-card: #333345;
+  --surface-elevated: #3d3d56;
+  --surface-hover: #5841a7;           /* Tree.hoverBackground */
+  --surface-selection: #544092;
+  --surface-code: #1c1930;            /* deeper purple sunk — distinctly darker than base */
+  --surface-code-border: #3a2f5a;
+  --separator: #383850;
+  --accent-strong: #8769cf;
+  --accent-dim: #6b53a5;              /* EditorTabs.underlineColor */
+  --accent-bg: rgba(135, 105, 207, 0.08);
+  --success: #83d68d;                 /* ProgressBar.passedColor */
+  --success-bright: #00d66e;          /* *.infoForeground */
+  --warning: #896a28;                 /* Notification.ToolWindow.warningBackground */
+  --warning-text: #ede891;            /* Link.activeForeground */
+  --info: #4fc3f7;                    /* Objects.Blue */
+  --error: #ad3864;
+
+  --scrollbar-thumb: #2b2040;         /* ScrollBar.thumb */
+  --scrollbar-thumb-hover: #3e3162;   /* ScrollBar.hoverThumbColor */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "ss01", "cv01";
+  }
+
+  /* JetBrains Mono in mono contexts — ligatures + contextual alternates on. */
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono {
+    font-feature-settings: "liga" 1, "calt" 1;
+  }
+
+  /* Tabular numerics — timestamps, durations, kv blocks. */
+  [data-tnum],
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Focus ring per §9: 2px outline + soft accent-bg glow.
+   * Scoped AWAY from shadcn primitives ([data-slot]) which ship their own
+   * focus-visible:ring utilities. This prevents double-ring visual clutter
+   * on <Button>, <Input>, <Select>, <Textarea>, etc. */
+  :focus-visible:where(:not([data-slot])) {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  /* Applied by useTheme during theme swap to kill mid-transition flicker
+   * where bg/text/border interpolate through grey values. */
+  .theme-switching,
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition: none !important;
+  }
+}
+
+/* Motion primitives per §7. Duration 0.15–0.25s, ease (.25,.8,.25,1). */
+@keyframes jc-shimmer {
+  0% { left: -50%; }
+  100% { left: 100%; }
+}
+
+@keyframes jc-fade-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes jc-pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.78; }
+}
+
+@keyframes jc-streaming-dot {
+  0%, 80%, 100% { opacity: 0.15; }
+  40%           { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

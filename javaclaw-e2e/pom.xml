@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ai.javaclaw</groupId>
+        <artifactId>javaclaw-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>javaclaw-e2e</artifactId>
+    <packaging>jar</packaging>
+    <description>End-to-end integration tests (Spring Boot + Testcontainers + Playwright-Java)</description>
+
+    <dependencies>
+        <!-- Depend on the full assembled application -->
+        <dependency>
+            <groupId>ai.javaclaw</groupId>
+            <artifactId>javaclaw-app</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Unit tests disabled in this module: no src/main, only integration/e2e -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Skip producing a jar artifact (this module has no src/main) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Integration tests run by default on `mvn verify` (no browser, no API key required) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/integration/**/*IT.java</include>
+                        <include>**/integration/**/*ITCase.java</include>
+                        <include>**/integration/**/*IntegrationTest.java</include>
+                    </includes>
+                    <excludes>
+                        <!-- Live tests (real LLM) and Playwright tests are opt-in via the `e2e` profile -->
+                        <exclude>**/integration/**/*LiveE2ETest.java</exclude>
+                        <exclude>**/playwright/**/*.java</exclude>
+                    </excludes>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-XX:+TieredCompilation -XX:TieredStopAtLevel=1</argLine>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Opt-in E2E profile: runs Playwright browser tests (requires OPENROUTER_API_KEY + Docker) -->
+        <profile>
+            <id>e2e</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/integration/**/*IT.java</include>
+                                <include>**/integration/**/*IntegrationTest.java</include>
+                                <include>**/integration/**/*LiveE2ETest.java</include>
+                                <include>**/playwright/**/*E2ETest.java</include>
+                                <include>**/playwright/**/*E2EIT.java</include>
+                            </includes>
+                            <excludes combine.self="override"/>
+                            <environmentVariables>
+                                <OPENROUTER_API_KEY>${env.OPENROUTER_API_KEY}</OPENROUTER_API_KEY>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+            Opt-in E2E-MOCK profile: runs Playwright browser tests WITHOUT real LLM.
+            Tests tagged requires-backend or gated on OPENROUTER_API_KEY are skipped;
+            UI rendering + widget behaviour + visual sweep still run.
+        -->
+        <profile>
+            <id>e2e-mock</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/playwright/**/*E2ETest.java</include>
+                            </includes>
+                            <excludes combine.self="override">
+                                <exclude>**/ChatE2ETest.java</exclude>
+                                <exclude>**/ConversationSwitchingE2ETest.java</exclude>
+                                <exclude>**/MultiInstanceE2ETest.java</exclude>
+                                <exclude>**/TaskCreationE2ETest.java</exclude>
+                            </excludes>
+                            <excludedGroups>requires-backend</excludedGroups>
+                            <systemPropertyVariables>
+                                <e2e.mock>true</e2e.mock>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

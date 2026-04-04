@@ -1,4 +1,4 @@
-# JavaClaw (Enterprise Fork)
+# JavaClaw (Fun Fork)
 
 Fork of [JavaClaw](https://github.com/jobrunr/JavaClaw) for building an enterprise-ready AI agent on Java/Spring Boot.
 

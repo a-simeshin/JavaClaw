@@ -61,6 +61,16 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Frontend SPA bundle (built by javaclaw-frontend, copied into static/) -->
+        <dependency>
+            <groupId>ai.javaclaw</groupId>
+            <artifactId>javaclaw-frontend</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Spring Boot starters -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -172,12 +182,38 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-frontend-dist</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../javaclaw-frontend/dist</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <image>
                         <name>jobrunr.io/javaclaw:latest</name>
                     </image>
+                    <!-- Keep the plain (non-fat) jar so other modules (e.g. javaclaw-e2e)
+                         can depend on it as a normal library. The executable jar is
+                         produced under the `exec` classifier. -->
+                    <classifier>exec</classifier>
                 </configuration>
             </plugin>
             <plugin>

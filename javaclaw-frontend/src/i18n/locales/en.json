@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "JavaClaw",
+    "console": "Console"
+  },
+  "nav": {
+    "chat": "Chat",
+    "overview": "Overview",
+    "admin": "Admin",
+    "settings": "Settings",
+    "history": "History"
+  },
+  "actions": {
+    "send": "Send",
+    "stop": "Stop",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "retry": "Retry",
+    "copy": "Copy",
+    "copied": "Copied",
+    "newConversation": "New conversation",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "search": "Search"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Message JavaClaw",
+    "empty": {
+      "title": "Start a conversation",
+      "description": "Send a message to begin. Responses stream in real time."
+    },
+    "typing": "Thinking",
+    "assistant": "Assistant",
+    "you": "You",
+    "abort": "Stop streaming",
+    "errorPrefix": "Request failed",
+    "tool": {
+      "statusPending": "Pending",
+      "statusRunning": "Running",
+      "statusComplete": "Complete",
+      "statusError": "Error",
+      "input": "Input",
+      "output": "Output",
+      "showDetails": "Show details",
+      "hideDetails": "Hide details"
+    }
+  },
+  "login": {
+    "title": "Sign in to JavaClaw",
+    "subtitle": "Enter your credentials to continue",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in",
+    "error": "Invalid credentials",
+    "networkError": "Unable to reach the server"
+  },
+  "conversations": {
+    "title": "Conversations",
+    "searchPlaceholder": "Search conversations",
+    "empty": "No conversations yet",
+    "noResults": "No matches",
+    "deletePromptTitle": "Delete conversation",
+    "deletePromptDescription": "This conversation will be permanently removed. This action cannot be undone.",
+    "loadError": "Failed to load conversations"
+  },
+  "header": {
+    "userMenu": "User menu",
+    "theme": {
+      "light": "Switch to light theme",
+      "dark": "Switch to dark theme"
+    },
+    "language": "Language"
+  },
+  "language": {
+    "en": "English",
+    "ru": "Russian"
+  },
+  "errors": {
+    "unknown": "Something went wrong",
+    "unauthorized": "Please sign in to continue"
+  }
+}

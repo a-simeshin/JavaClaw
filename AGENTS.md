@@ -264,3 +264,18 @@ Related skills:
 
 **REQUIRED** for all Java test writing. Covers: testing philosophy, test structure, AssertJ, Allure annotations, MockMvc, Testcontainers, Mockito, E2E (Selenide), Maven Surefire/Failsafe/JaCoCo.
 
+---
+
+## UI Design Context
+
+All frontend/UI work MUST consult [.impeccable.md](.impeccable.md) before making visual decisions.
+It defines users, brand personality, palette, typography, motion, accessibility requirements, and
+five design principles that govern every screen.
+
+**TL;DR**: dark-first hybrid — shadcn/ui primitives layered with OpenClaw's depth palette
+(`#0e1015`/`#161920`/`#191c24` stacked surfaces, whisper-thin `#1e2028` borders, Inter Variable,
+@tabler/icons-react only). Premium/precise/выверенный. WCAG AA, reduced-motion, no emoji,
+neutral monochrome + one accent. Target: техлиды и архитекторы.
+
+Skills `/frontend-design`, `/audit`, `/polish` should open `.impeccable.md` first.
+

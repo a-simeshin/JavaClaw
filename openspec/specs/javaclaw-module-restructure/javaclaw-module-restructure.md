@@ -308,33 +308,33 @@ Each aggregator POM (`javaclaw-api`, `javaclaw-channel`, `javaclaw-provider`) de
 
 ### 2.5. Current-to-Target Structure Mapping
 
-|                   Current Path                    |                                          Target Path                                           |                              Action                              |
-|---------------------------------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `base/`                                           | `javaclaw-core/`                                                                               | Rename directory                                                 |
-| `base/pom.xml` (artifactId=javaclaw-base)         | `javaclaw-core/pom.xml` (artifactId=javaclaw-core)                                            | Update artifactId                                                |
-| `base/src/.../org/springframework/ai/chat/*`      | —                                                                                              | Remove (Spring AI hacks, replaced by wrappers in ai.javaclaw.ai) |
-| `base/src/.../ai/javaclaw/onboarding/*`           | —                                                                                              | Remove (legacy onboarding interfaces)                            |
-| —                                                 | `javaclaw-api/pom.xml`                                                                         | Create aggregator POM                                            |
-| `app/src/.../ai/javaclaw/chat/ChatChannel`        | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatChannel`                      | Move, update package                                             |
-| `app/src/.../ai/javaclaw/chat/api/ChatController` | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatController`                   | Move, update package                                             |
-| `app/src/.../ai/javaclaw/chat/ws/*`               | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ws/*`                             | Move, update packages                                            |
-| `app/src/.../ai/javaclaw/chat/ChatHtml`           | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatHtml`                         | Move, add @Deprecated(forRemoval = true)                         |
-| `app/src/.../ai/javaclaw/chat/Htmx`               | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/Htmx`                             | Move, add @Deprecated(forRemoval = true)                         |
-| —                                                 | `javaclaw-api/javaclaw-api-admin/pom.xml`                                                      | Create scaffold module                                           |
-| `app/src/.../ai/javaclaw/onboarding/**`           | —                                                                                              | Remove (onboarding wizard)                                       |
-| `app/src/main/resources/templates/onboarding/**`  | —                                                                                              | Remove (onboarding Pebble templates)                             |
-| `app/src/main/resources/templates/chat.html.peb`  | `javaclaw-app/src/main/resources/templates/chat.html.peb`                                      | Keep with deprecation comment                                    |
-| `app/src/main/resources/templates/base.html.peb`  | `javaclaw-app/src/main/resources/templates/base.html.peb`                                      | Keep with deprecation comment                                    |
-| —                                                 | `javaclaw-channel/pom.xml`                                                                     | Create aggregator POM                                            |
-| `plugins/discord/`                                | `javaclaw-channel/javaclaw-channel-discord/`                                                   | Move                                                             |
-| `plugins/telegram/`                               | `javaclaw-channel/javaclaw-channel-telegram/`                                                  | Move                                                             |
-| `plugins/brave/`                                  | —                                                                                              | Remove entirely                                                  |
-| `plugins/playwright/`                             | —                                                                                              | Remove entirely                                                  |
-| —                                                 | `javaclaw-provider/pom.xml`                                                                    | Create aggregator POM                                            |
-| `providers/anthropic/`                            | `javaclaw-provider/javaclaw-provider-anthropic/`                                               | Move, update deps, remove OnboardingProvider                     |
-| `providers/openai/`                               | `javaclaw-provider/javaclaw-provider-openai/`                                                  | Move, update deps, remove OnboardingProvider                     |
-| `providers/ollama/`                               | `javaclaw-provider/javaclaw-provider-ollama/`                                                  | Move, update deps, remove OnboardingProvider                     |
-| `providers/google/`                               | `javaclaw-provider/javaclaw-provider-google/`                                                  | Move, update deps, remove OnboardingProvider                     |
+|                   Current Path                    |                                 Target Path                                  |                              Action                              |
+|---------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------|
+| `base/`                                           | `javaclaw-core/`                                                             | Rename directory                                                 |
+| `base/pom.xml` (artifactId=javaclaw-base)         | `javaclaw-core/pom.xml` (artifactId=javaclaw-core)                           | Update artifactId                                                |
+| `base/src/.../org/springframework/ai/chat/*`      | —                                                                            | Remove (Spring AI hacks, replaced by wrappers in ai.javaclaw.ai) |
+| `base/src/.../ai/javaclaw/onboarding/*`           | —                                                                            | Remove (legacy onboarding interfaces)                            |
+| —                                                 | `javaclaw-api/pom.xml`                                                       | Create aggregator POM                                            |
+| `app/src/.../ai/javaclaw/chat/ChatChannel`        | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatChannel`    | Move, update package                                             |
+| `app/src/.../ai/javaclaw/chat/api/ChatController` | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatController` | Move, update package                                             |
+| `app/src/.../ai/javaclaw/chat/ws/*`               | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ws/*`           | Move, update packages                                            |
+| `app/src/.../ai/javaclaw/chat/ChatHtml`           | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/ChatHtml`       | Move, add @Deprecated(forRemoval = true)                         |
+| `app/src/.../ai/javaclaw/chat/Htmx`               | `javaclaw-api/javaclaw-api-chat/src/.../ai/javaclaw/api/chat/Htmx`           | Move, add @Deprecated(forRemoval = true)                         |
+| —                                                 | `javaclaw-api/javaclaw-api-admin/pom.xml`                                    | Create scaffold module                                           |
+| `app/src/.../ai/javaclaw/onboarding/**`           | —                                                                            | Remove (onboarding wizard)                                       |
+| `app/src/main/resources/templates/onboarding/**`  | —                                                                            | Remove (onboarding Pebble templates)                             |
+| `app/src/main/resources/templates/chat.html.peb`  | `javaclaw-app/src/main/resources/templates/chat.html.peb`                    | Keep with deprecation comment                                    |
+| `app/src/main/resources/templates/base.html.peb`  | `javaclaw-app/src/main/resources/templates/base.html.peb`                    | Keep with deprecation comment                                    |
+| —                                                 | `javaclaw-channel/pom.xml`                                                   | Create aggregator POM                                            |
+| `plugins/discord/`                                | `javaclaw-channel/javaclaw-channel-discord/`                                 | Move                                                             |
+| `plugins/telegram/`                               | `javaclaw-channel/javaclaw-channel-telegram/`                                | Move                                                             |
+| `plugins/brave/`                                  | —                                                                            | Remove entirely                                                  |
+| `plugins/playwright/`                             | —                                                                            | Remove entirely                                                  |
+| —                                                 | `javaclaw-provider/pom.xml`                                                  | Create aggregator POM                                            |
+| `providers/anthropic/`                            | `javaclaw-provider/javaclaw-provider-anthropic/`                             | Move, update deps, remove OnboardingProvider                     |
+| `providers/openai/`                               | `javaclaw-provider/javaclaw-provider-openai/`                                | Move, update deps, remove OnboardingProvider                     |
+| `providers/ollama/`                               | `javaclaw-provider/javaclaw-provider-ollama/`                                | Move, update deps, remove OnboardingProvider                     |
+| `providers/google/`                               | `javaclaw-provider/javaclaw-provider-google/`                                | Move, update deps, remove OnboardingProvider                     |
 
 ### 2.6. Data Models (Modules)
 
@@ -350,21 +350,21 @@ Each aggregator POM (`javaclaw-api`, `javaclaw-channel`, `javaclaw-provider`) de
 
 #### javaclaw-api (aggregator)
 
-|  Parameter   |                           Value                           |
-|--------------|-----------------------------------------------------------|
-| artifactId   | `javaclaw-api`                                            |
-| packaging    | pom                                                       |
-| Modules      | javaclaw-api-chat, javaclaw-api-admin                     |
-| Dependencies | None (aggregator only)                                    |
+|  Parameter   |                 Value                 |
+|--------------|---------------------------------------|
+| artifactId   | `javaclaw-api`                        |
+| packaging    | pom                                   |
+| Modules      | javaclaw-api-chat, javaclaw-api-admin |
+| Dependencies | None (aggregator only)                |
 
 #### javaclaw-api-chat
 
-|  Parameter   |                                       Value                                       |
-|--------------|-----------------------------------------------------------------------------------|
-| artifactId   | `javaclaw-api-chat`                                                               |
-| packaging    | jar                                                                               |
-| Dependencies | javaclaw-core, spring-boot-starter-webmvc, spring-boot-starter-websocket          |
-| Packages     | ai.javaclaw.api.chat, ai.javaclaw.api.chat.ws                                     |
+|  Parameter   |                                                             Value                                                             |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-api-chat`                                                                                                           |
+| packaging    | jar                                                                                                                           |
+| Dependencies | javaclaw-core, spring-boot-starter-webmvc, spring-boot-starter-websocket                                                      |
+| Packages     | ai.javaclaw.api.chat, ai.javaclaw.api.chat.ws                                                                                 |
 | Exports      | ChatChannel (Channel impl), ChatController, ChatWebSocketHandler, WebSocketConfig, ChatHtml (@Deprecated), Htmx (@Deprecated) |
 
 #### javaclaw-api-admin
@@ -379,12 +379,12 @@ Each aggregator POM (`javaclaw-api`, `javaclaw-channel`, `javaclaw-provider`) de
 
 #### javaclaw-channel (aggregator)
 
-|  Parameter   |                                 Value                                  |
-|--------------|------------------------------------------------------------------------|
-| artifactId   | `javaclaw-channel`                                                     |
-| packaging    | pom                                                                    |
-| Modules      | javaclaw-channel-discord, javaclaw-channel-telegram                    |
-| Dependencies | None (aggregator only)                                                 |
+|  Parameter   |                        Value                        |
+|--------------|-----------------------------------------------------|
+| artifactId   | `javaclaw-channel`                                  |
+| packaging    | pom                                                 |
+| Modules      | javaclaw-channel-discord, javaclaw-channel-telegram |
+| Dependencies | None (aggregator only)                              |
 
 #### javaclaw-channel-discord
 
@@ -408,21 +408,21 @@ Each aggregator POM (`javaclaw-api`, `javaclaw-channel`, `javaclaw-provider`) de
 
 #### javaclaw-provider (aggregator)
 
-|  Parameter   |                                                         Value                                                          |
-|--------------|------------------------------------------------------------------------------------------------------------------------|
-| artifactId   | `javaclaw-provider`                                                                                                    |
-| packaging    | pom                                                                                                                    |
-| Modules      | javaclaw-provider-anthropic, javaclaw-provider-google, javaclaw-provider-ollama, javaclaw-provider-openai              |
-| Dependencies | None (aggregator only)                                                                                                 |
+|  Parameter   |                                                   Value                                                   |
+|--------------|-----------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-provider`                                                                                       |
+| packaging    | pom                                                                                                       |
+| Modules      | javaclaw-provider-anthropic, javaclaw-provider-google, javaclaw-provider-ollama, javaclaw-provider-openai |
+| Dependencies | None (aggregator only)                                                                                    |
 
 #### javaclaw-app
 
-|  Parameter   |                                                                                                                                                                                                   Value                                                                                                                                                                                                   |
-|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| artifactId   | `javaclaw-app`                                                                                                                                                                                                                                                                                                                                                                                            |
-| packaging    | jar (Spring Boot executable)                                                                                                                                                                                                                                                                                                                                                                              |
+|  Parameter   |                                                                                                                                                                                                                                    Value                                                                                                                                                                                                                                     |
+|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| artifactId   | `javaclaw-app`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| packaging    | jar (Spring Boot executable)                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Dependencies | javaclaw-core, javaclaw-api-chat, javaclaw-api-admin, javaclaw-channel-discord, javaclaw-channel-telegram, javaclaw-provider-anthropic, javaclaw-provider-openai, javaclaw-provider-ollama, javaclaw-provider-google, spring-boot-starter-webmvc, spring-boot-starter-actuator, spring-boot-starter-data-jdbc, spring-boot-starter-restclient, pebble-spring-boot-starter (@Deprecated, kept for chat templates), postgresql (runtime), flyway-database-postgresql (runtime) |
-| Contents     | JavaClawApplication (main), application.yaml, Flyway migrations, Pebble templates: chat.html.peb, base.html.peb (both @Deprecated)                                                                                                                                                                                                                                                                       |
+| Contents     | JavaClawApplication (main), application.yaml, Flyway migrations, Pebble templates: chat.html.peb, base.html.peb (both @Deprecated)                                                                                                                                                                                                                                                                                                                                           |
 
 ### 2.7. Configuration Requirements
 
@@ -468,23 +468,23 @@ This refactoring does not change the application's runtime behavior and does not
 
 ## 3. Acceptance Criteria Recommendations
 
-| #  |                                                      WHEN                                                      |                                  THEN                                  |
-|----|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| 1  | `mvn clean compile` is executed from the project root                                                          | All modules compile without errors                                     |
-| 2  | `mvn test` is executed from the project root                                                                   | All tests pass (except tests of removed components)                    |
-| 3  | Application is started via `mvn spring-boot:run -pl javaclaw-app`                                              | Successful startup, all channels and providers registered in logs      |
-| 4  | The `plugins/` directory is checked                                                                            | Directory is absent or empty                                           |
-| 5  | The `base/` directory is checked                                                                               | Directory is absent (renamed to `javaclaw-core/`)                      |
-| 6  | Search for imports of `org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor` across the project | Zero results                                                           |
-| 7  | Search for imports of `ai.javaclaw.onboarding` across the project                                              | Zero results                                                           |
+| #  |                                                      WHEN                                                      |                                                            THEN                                                             |
+|----|----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| 1  | `mvn clean compile` is executed from the project root                                                          | All modules compile without errors                                                                                          |
+| 2  | `mvn test` is executed from the project root                                                                   | All tests pass (except tests of removed components)                                                                         |
+| 3  | Application is started via `mvn spring-boot:run -pl javaclaw-app`                                              | Successful startup, all channels and providers registered in logs                                                           |
+| 4  | The `plugins/` directory is checked                                                                            | Directory is absent or empty                                                                                                |
+| 5  | The `base/` directory is checked                                                                               | Directory is absent (renamed to `javaclaw-core/`)                                                                           |
+| 6  | Search for imports of `org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor` across the project | Zero results                                                                                                                |
+| 7  | Search for imports of `ai.javaclaw.onboarding` across the project                                              | Zero results                                                                                                                |
 | 8  | Search for classes `ChatHtml`, `Htmx`, `OnboardingController`                                                  | `ChatHtml` and `Htmx` exist in `javaclaw-api-chat` with `@Deprecated(forRemoval = true)`. `OnboardingController` not found. |
-| 9  | Search for dependencies on `javaclaw-plugin-brave` and `javaclaw-plugin-playwright`                            | Zero results in pom.xml files                                          |
-| 10 | `javaclaw-app/src/main/java/` is checked                                                                       | Contains only `JavaClawApplication` (and optionally `IndexController`) |
-| 11 | `javaclaw-app/src/main/resources/templates/` is checked                                                        | Contains only `chat.html.peb` and `base.html.peb` (both @Deprecated). No `onboarding/` subdirectory. |
-| 12 | `javaclaw-core/pom.xml` is checked                                                                             | artifactId = `javaclaw-core`                                           |
-| 13 | Dependency graph checked: `mvn dependency:tree -pl javaclaw-core`                                              | core does NOT contain dependencies on other project modules            |
-| 14 | Dependency graph checked: `mvn dependency:tree -pl javaclaw-api/javaclaw-api-chat`                             | javaclaw-api-chat depends on javaclaw-core, not on other api modules   |
-| 15 | A WebSocket message is sent to the agent via chat                                                              | Agent responds (functionality preserved)                               |
+| 9  | Search for dependencies on `javaclaw-plugin-brave` and `javaclaw-plugin-playwright`                            | Zero results in pom.xml files                                                                                               |
+| 10 | `javaclaw-app/src/main/java/` is checked                                                                       | Contains only `JavaClawApplication` (and optionally `IndexController`)                                                      |
+| 11 | `javaclaw-app/src/main/resources/templates/` is checked                                                        | Contains only `chat.html.peb` and `base.html.peb` (both @Deprecated). No `onboarding/` subdirectory.                        |
+| 12 | `javaclaw-core/pom.xml` is checked                                                                             | artifactId = `javaclaw-core`                                                                                                |
+| 13 | Dependency graph checked: `mvn dependency:tree -pl javaclaw-core`                                              | core does NOT contain dependencies on other project modules                                                                 |
+| 14 | Dependency graph checked: `mvn dependency:tree -pl javaclaw-api/javaclaw-api-chat`                             | javaclaw-api-chat depends on javaclaw-core, not on other api modules                                                        |
+| 15 | A WebSocket message is sent to the agent via chat                                                              | Agent responds (functionality preserved)                                                                                    |
 
 ---
 
