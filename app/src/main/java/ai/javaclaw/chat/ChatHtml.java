@@ -1,8 +1,7 @@
 package ai.javaclaw.chat;
 
-import org.springframework.web.util.HtmlUtils;
-
 import java.util.List;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  * Chat message bubble HTML fragment helpers.
@@ -17,7 +16,8 @@ public class ChatHtml {
                 <article class="ar-msg ar-msg--agent">\
                 <div class="ar-msg__avatar">JC</div>\
                 <div class="ar-msg__bubble">%s</div>\
-                </article>""".formatted(safe);
+                </article>"""
+                .formatted(safe);
     }
 
     public static String userBubble(String text) {
@@ -25,7 +25,8 @@ public class ChatHtml {
         return """
                 <article class="ar-msg ar-msg--user">\
                 <div class="ar-msg__bubble">%s</div>\
-                </article>""".formatted(safe);
+                </article>"""
+                .formatted(safe);
     }
 
     public static String typingDots() {
@@ -64,12 +65,14 @@ public class ChatHtml {
         String label = HtmlUtils.htmlEscape(labelFor(conversationId));
         return """
                 <p class="chat-readonly-notice">This is a read-only view of <strong>%s</strong>. \
-                Open %s to continue the conversation.</p>""".formatted(label, label);
+                Open %s to continue the conversation.</p>"""
+                .formatted(label, label);
     }
 
     public static String conversationSelector(List<String> ids, String selectedId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("""
+        sb.append(
+                """
                 <select id="channel-select" class="select" name="conversationId" \
                 ws-send hx-trigger="change" \
                 hx-vals='{"type": "channelChanged"}'>""");
@@ -84,8 +87,10 @@ public class ChatHtml {
 
     private static String labelFor(String conversationId) {
         if ("web".equals(conversationId)) return "Web Chat";
-        if (conversationId.startsWith("discord-")) return "Discord (" + conversationId.substring("discord-".length()) + ")";
-        if (conversationId.startsWith("telegram-")) return "Telegram (" + conversationId.substring("telegram-".length()) + ")";
+        if (conversationId.startsWith("discord-"))
+            return "Discord (" + conversationId.substring("discord-".length()) + ")";
+        if (conversationId.startsWith("telegram-"))
+            return "Telegram (" + conversationId.substring("telegram-".length()) + ")";
         return conversationId;
     }
 }

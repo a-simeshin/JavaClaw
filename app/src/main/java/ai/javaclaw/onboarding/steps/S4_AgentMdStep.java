@@ -1,19 +1,18 @@
 package ai.javaclaw.onboarding.steps;
 
+import static ai.javaclaw.JavaClawConfiguration.AGENT_MD;
+
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.OnboardingProvider;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
-
-import static ai.javaclaw.JavaClawConfiguration.AGENT_MD;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
 @Component
 @Order(40)
@@ -28,13 +27,19 @@ public class S4_AgentMdStep implements OnboardingProvider {
     }
 
     @Override
-    public String getStepId() {return "agent";}
+    public String getStepId() {
+        return "agent";
+    }
 
     @Override
-    public String getStepTitle() {return "AGENT.md";}
+    public String getStepTitle() {
+        return "AGENT.md";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/S4-agent";}
+    public String getTemplatePath() {
+        return "onboarding/steps/S4-agent";
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
@@ -74,8 +79,9 @@ public class S4_AgentMdStep implements OnboardingProvider {
                     agentWorkspace.createRelative(AGENT_MD).getFilePath(),
                     agentContent,
                     StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
-            );
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write AGENT.private.md", e);
         }

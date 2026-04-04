@@ -26,6 +26,7 @@ def process_order(order: Order, items: list[OrderItem]) -> OrderResult:
 ```
 
 **Правила:**
+
 ```python
 # Коллекции — встроенные generic (Python 3.9+)
 names: list[str] = []
@@ -73,6 +74,7 @@ print(user.nmae)  # AttributeError сразу в IDE!
 ```
 
 **Когда что использовать:**
+
 ```python
 # dataclass — внутренние данные, DTO между слоями
 @dataclass(frozen=True)
@@ -119,6 +121,7 @@ set_status(order, OrderStatus.CONFIRMED)  # Автодополнение, без
 ```
 
 **StrEnum vs Enum:**
+
 ```python
 # StrEnum (Python 3.11+) — сериализуется в строку автоматически
 class Color(StrEnum):
@@ -160,6 +163,7 @@ def calculate_tax(amount: Decimal) -> Decimal:
 ```
 
 **Параллельный I/O:**
+
 ```python
 # BAD: Последовательные запросы
 async def get_dashboard(user_id: int) -> Dashboard:
@@ -224,6 +228,7 @@ def get_user(user_id: int) -> User:
 ```
 
 **ExceptionGroup (Python 3.11+):**
+
 ```python
 # Сбор нескольких ошибок валидации
 def validate_order(order: OrderInput) -> None:
@@ -267,6 +272,7 @@ def process_payment(order_id: str, amount: Decimal) -> PaymentResult:
 ```
 
 **Если structlog не доступен — стандартный logging:**
+
 ```python
 import logging
 
@@ -304,6 +310,7 @@ def load_config(name: str = "app.yaml") -> str:
 ```
 
 **Полезные методы pathlib:**
+
 ```python
 path = Path("/data/reports/2024")
 
@@ -351,6 +358,7 @@ result: list[TransformedItem] = [
 ```
 
 **Словарные comprehensions:**
+
 ```python
 # GOOD: dict comprehension для трансформации
 users_by_id: dict[int, User] = {
@@ -384,6 +392,7 @@ def export_data(data: list[dict], path: Path) -> None:
 ```
 
 **Кастомный context manager через contextlib:**
+
 ```python
 from contextlib import contextmanager, asynccontextmanager
 import time
@@ -457,6 +466,7 @@ notify(SmsSender(), "+79001234567", "Hello")
 ```
 
 **ABC — когда нужен строгий контракт с общей логикой:**
+
 ```python
 from abc import ABC, abstractmethod
 
@@ -592,6 +602,7 @@ class OrderItemCreate(BaseModel):
 ```
 
 **model_validator — проверка связей между полями:**
+
 ```python
 class DateRange(BaseModel):
     """Диапазон дат."""
@@ -1015,6 +1026,7 @@ def db_session(db_engine):
 ```
 
 **Справочник scope'ов:**
+
 ```python
 # scope="session"   — один раз на весь запуск pytest (движок БД, Docker-контейнеры)
 # scope="module"    — один раз на файл с тестами
@@ -1112,6 +1124,7 @@ def test_validate_email(email: str, expected: bool) -> None:
 ```
 
 **parametrize для API-тестов:**
+
 ```python
 @pytest.mark.parametrize(
     ("payload", "expected_status", "expected_code"),
@@ -1222,6 +1235,7 @@ async def test_create_order_sends_notification() -> None:
 ```
 
 **patch — для замены зависимости в модуле:**
+
 ```python
 # GOOD: patch для замены внешнего вызова
 @pytest.mark.anyio
@@ -1334,6 +1348,7 @@ def test_calculate_tax() -> None:
 ```
 
 **Запуск по маркерам:**
+
 ```bash
 # Только быстрые тесты (без slow)
 pytest -m "not slow"
@@ -1434,6 +1449,7 @@ async def test_list_users(populated_db) -> None:
 ```
 
 **anyio вместо asyncio (рекомендуется для FastAPI):**
+
 ```python
 # pyproject.toml
 # [tool.pytest.ini_options]
@@ -1513,6 +1529,7 @@ def test_order_total_without_discount() -> None:
 ```
 
 **Запуск с покрытием:**
+
 ```bash
 # Запуск тестов с отчётом покрытия
 pytest --cov=app --cov-report=term-missing --cov-fail-under=80

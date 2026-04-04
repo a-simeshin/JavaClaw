@@ -4,13 +4,12 @@ import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.AgentOnboardingProvider;
 import ai.javaclaw.onboarding.AgentOnboardingProviders;
 import ai.javaclaw.onboarding.OnboardingProvider;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 @Component
 @Order(20)
@@ -29,18 +28,26 @@ public class S2_ProviderStep implements OnboardingProvider {
     }
 
     @Override
-    public String getStepId() {return "provider";}
+    public String getStepId() {
+        return "provider";
+    }
 
     @Override
-    public String getStepTitle() {return "Provider";}
+    public String getStepTitle() {
+        return "Provider";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/S2-provider";}
+    public String getTemplatePath() {
+        return "onboarding/steps/S2-provider";
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
         model.put("providers", agentOnboardingProviders.getAll());
-        model.put("selectedProvider", session.getOrDefault(SESSION_PROVIDER, env.getProperty("spring.ai.model.chat", "")));
+        model.put(
+                "selectedProvider",
+                session.getOrDefault(SESSION_PROVIDER, env.getProperty("spring.ai.model.chat", "")));
     }
 
     @Override
@@ -61,7 +68,8 @@ public class S2_ProviderStep implements OnboardingProvider {
     }
 
     @Override
-    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws IOException {
+    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws IOException {
         String providerId = (String) session.get(SESSION_PROVIDER);
         String model = (String) session.get(SESSION_MODEL);
         String apiKey = (String) session.getOrDefault(SESSION_API_KEY, "");

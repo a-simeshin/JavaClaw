@@ -1,8 +1,9 @@
 ---
+
 allowed-tools: Task, Read, Bash, Write, Edit, Glob, Grep
 description: Smart builder with semantic context routing - loads only relevant sections
 argument-hint: [task description]
----
+---------------------------------
 
 # Smart Build
 
@@ -15,9 +16,11 @@ Build with **semantic context routing** - loads only the sections you need.
 If `$ARGUMENTS` ends with `.md` and the file exists in `specs/`, this is a **plan execution** request. The plan has already been reviewed by plan-reviewer during `/plan_w_team`. Read the plan and execute tasks directly (skip Steps 1-3 for context routing — use the plan's Stack keywords instead).
 
 **OpenSpec tracking init:** At the start of plan execution, check if an OpenSpec change exists:
+
 ```bash
 openspec list --changes --json 2>/dev/null
 ```
+
 Look for a change matching the plan filename (kebab-case). If found, note the change name — you will update its `tasks.md` incrementally as builders complete tasks (see Step 4).
 
 ### Step 1: Route Task to Sections
@@ -36,6 +39,7 @@ echo 'Stack: Java Spring Boot JPA. Task: Add @ConfigurationProperties for paymen
 ```
 
 The router returns JSON like:
+
 ```json
 {
   "sections": ["java-patterns#basics", "java-testing#integration"],
@@ -53,6 +57,7 @@ echo '$ARGUMENTS' | uv run --script .claude/hooks/context_router.py | \
 ```
 
 Or in two steps if you need to inspect the routing:
+
 ```bash
 ROUTE=$(echo '$ARGUMENTS' | uv run --script .claude/hooks/context_router.py)
 echo "$ROUTE"  # inspect routing decision
@@ -93,6 +98,7 @@ This step runs **incrementally throughout plan execution**, not as a batch at th
 3. This enables real-time progress tracking via `openspec view`
 
 **After ALL tasks are complete — final report:**
+
 ```
 OpenSpec Change Updated: openspec/changes/<change-name>/tasks.md
 Completed: X/Y tasks
@@ -109,21 +115,21 @@ If no OpenSpec change was found in Step 0, skip this step silently.
 **Task:** "Добавь endpoint /users с тестами"
 
 1. Router returns:
+
    ```json
    {
      "sections": ["java-patterns#basics", "java-patterns#errors", "java-testing#structure", "java-testing#http"],
      "reasoning": "REST endpoint needs code standards, error handling, and HTTP test patterns"
    }
    ```
-
 2. Loader provides ~8k tokens instead of ~20k
-
 3. You implement with focused, relevant patterns only
 
 ## Token Savings
 
-| Approach | Tokens |
-|----------|--------|
+|       Approach       | Tokens  |
+|----------------------|---------|
 | Universal (all refs) | ~20,000 |
-| Smart routing (avg) | ~5,000 |
-| **Savings** | **75%** |
+| Smart routing (avg)  | ~5,000  |
+| **Savings**          | **75%** |
+

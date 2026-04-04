@@ -1,127 +1,134 @@
 ---
+
 name: openspec-apply-change
-description: Влить change.md в основную спецификацию. Мержит разделы change.md (бизнес-логика, модели, интеграции, ошибки и т.д.) в соответствующие разделы целевой спецификации.
+description: Merge change.md into the main specification. Merges change.md sections (business logic, models, integrations, errors, etc.) into corresponding sections of the target specification.
 license: MIT
 metadata:
-  author: openspec-distillate
-  version: "3.0"
----
+author: openspec-distillate
+version: "3.0"
+--------------
 
-Влить изменения из change.md в основную спецификацию (Analyst Merge).
+Merge changes from change.md into the main specification (Analyst Merge).
 
-**Input**: Опционально — имя change. Если не указано, определить автоматически или предложить выбор.
+**Input**: Optionally — change name. If not specified, auto-detect or offer a choice.
 
 **Steps**
 
-1. **Выбрать change**
+1. **Select change**
 
-   Если имя указано — использовать его. Иначе:
+   If name is specified — use it. Otherwise:
+
    ```bash
    ls openspec/changes/ 2>/dev/null
    ```
-   - Автовыбор, если только один активный change (исключая `archive/`)
-   - Если несколько — используй **AskUserQuestion tool** для выбора
 
-   Всегда объяви: "Применяю change: <name>"
+   - Auto-select if only one active change (excluding `archive/`)
+   - If multiple — use **AskUserQuestion tool** to choose
 
-2. **Проверь наличие change.md**
+   Always announce: "Applying change: <name>"
 
-   Прочитай `openspec/changes/<name>/change.md`.
+2. **Check for change.md**
 
-   **Если файл не существует:** предложи сначала `/opsx:propose`
-   **Если статус в шапке "Реализовано":** поздравь, предложи `/opsx:archive`
+   Read `openspec/changes/<name>/change.md`.
 
-3. **Прочитай контекст**
+   **If file does not exist:** suggest running `/opsx:propose` first
+   **If header status is "Implemented":** congratulate, suggest `/opsx:archive`
 
-   Прочитай change.md и все связанные файлы:
+3. **Read context**
+
+   Read change.md and all related files:
    - `openspec/changes/<name>/change.md`
-   - Целевую спецификацию (указана в шапке change.md)
+   - Target specification (specified in change.md header)
 
 4. **Analyst Merge Workflow**
 
-   a. **Прочитай целевую спецификацию**
+   a. **Read the target specification**
 
-      Путь — в шапке change.md, поле "Целевая спецификация".
-      Если не указан — спроси пользователя.
+   Path is in the change.md header, "Target specification" field.
+   If not specified — ask the user.
 
-   b. **Создай бэкап**
-      ```bash
-      cp <spec-path> <spec-path>.bak
-      ```
+   b. **Create backup**
 
-   c. **Мержи разделы change.md → спецификация**
+   ```bash
+   cp <spec-path> <spec-path>.bak
+   ```
 
-      **ВАЖНО:** Не привязывайся к номерам разделов — используй ТЕКУЩУЮ нумерацию и структуру целевой спецификации. Находи целевой раздел ПО НАЗВАНИЮ, а не по номеру.
+   c. **Merge change.md sections → specification**
 
-      Для каждого раздела change.md, который НЕ "Нет изменений", найди соответствующий раздел в спецификации:
+   **IMPORTANT:** Don't bind to section numbers — use the CURRENT numbering and structure of the target specification. Find the target section BY NAME, not by number.
 
-      | Раздел change.md | Целевой раздел спецификации (по названию) |
-      |-----------------|-------------------------------------------|
-      | 2. Бизнес-логика | Бизнес-логика |
-      | 3. Модели данных (ADDED) | Модели данных — добавить новые |
-      | 3. Модели данных (MODIFIED) | Модели данных — обновить существующие |
-      | 3. Модели данных (REMOVED) | Модели данных — удалить |
-      | 4. Интеграции | Интеграции |
-      | 5. Обработка ошибок | Обработка ошибок |
-      | 6. Хедеры | Хедеры |
-      | 7. Валидация | Валидация |
-      | 8. Безопасность | Безопасность |
-      | 9. Миграция | Если одноразовая — оставить в change.md. Если меняет схему — в Модели данных |
-      | 10. Логирование | Логирование |
-      | 11. Мониторинг | Мониторинг |
-      | 12. Конфигурация | Конфигурация |
-      | 13. Рекомендации к критериям приёмки | Рекомендации к критериям приёмки |
+   For each change.md section that is NOT "No changes", find the corresponding section in the specification:
 
-      **Если целевой раздел не найден в спецификации** — создай его в логически подходящем месте.
+   |        change.md section         |              Target specification section (by name)               |
+   |----------------------------------|-------------------------------------------------------------------|
+   | 2. Business Logic                | Business Logic                                                    |
+   | 3. Data Models (ADDED)           | Data Models — add new ones                                        |
+   | 3. Data Models (MODIFIED)        | Data Models — update existing                                     |
+   | 3. Data Models (REMOVED)         | Data Models — remove                                              |
+   | 4. Integrations                  | Integrations                                                      |
+   | 5. Error Handling                | Error Handling                                                    |
+   | 6. Headers                       | Headers                                                           |
+   | 7. Validation                    | Validation                                                        |
+   | 8. Security                      | Security                                                          |
+   | 9. Migration                     | If one-time — leave in change.md. If schema change — in Data Models |
+   | 10. Logging                      | Logging                                                           |
+   | 11. Monitoring                   | Monitoring                                                        |
+   | 12. Configuration                | Configuration                                                     |
+   | 13. Acceptance Criteria          | Acceptance Criteria Recommendations                               |
 
-   d. **Перенумеруй подразделы**
+   **If the target section is not found in the specification** — create it in a logically appropriate place.
 
-      После вставки новых подразделов ОБЯЗАТЕЛЬНО перенумеруй ВСЕ подразделы
-      в затронутых секциях, чтобы нумерация была последовательной.
+   d. **Renumber subsections**
 
-      Пример: если в 2.3 было 2.3.1–2.3.7 и добавились 3 новых подраздела после 2.3.2,
-      то итоговая нумерация должна быть 2.3.1–2.3.10, а НЕ 2.3.1, 2.3.2, 2.3.8, 2.3.9, 2.3.10, 2.3.3, ...
+   After inserting new subsections, you MUST renumber ALL subsections
+   in affected sections so numbering is sequential.
 
-      Правила:
-      - Новые подразделы вставляются в логически правильное место (рядом с тематически близкими)
-      - Все последующие подразделы перенумеровываются
-      - Все внутренние ссылки (напр. "см. п. 2.3.2") обновляются на новые номера
+   Example: if section 2.3 had 2.3.1–2.3.7 and 3 new subsections were added after 2.3.2,
+   the final numbering must be 2.3.1–2.3.10, NOT 2.3.1, 2.3.2, 2.3.8, 2.3.9, 2.3.10, 2.3.3, ...
 
-   e. **Пересобери TOC (оглавление)**
+   Rules:
+   - New subsections are inserted in the logically correct place (near thematically related ones)
+   - All subsequent subsections are renumbered
+   - All internal references (e.g., "see section 2.3.2") are updated to new numbers
 
-      После мержа ОБЯЗАТЕЛЬНО обнови блок `<!-- TOC --> ... <!-- TOC -->` в начале файла.
+   e. **Rebuild TOC (table of contents)**
 
-      Правила пересборки:
-      - Просканируй ВСЕ заголовки `##`, `###`, `####` в файле
-      - Для каждого заголовка сгенерируй markdown-ссылку с якорем
-      - Якорь формируется: lowercase, пробелы → `-`, удаляются спецсимволы
-      - Уровни вложенности: `##` без отступа, `###` с 2 пробелами, `####` с 4 пробелами
-      - Сохраняй HTML-теги (напр. `<font>`) в тексте ссылки, но НЕ в якоре
+   After merge, you MUST update the `<!-- TOC --> ... <!-- TOC -->` block at the start of the file.
 
-      Формат строки TOC:
-      ```
-      * [2.3.8. Правила классификации email bounce](#238-правила-классификации-email-bounce)
-      ```
+   Rebuild rules:
+   - Scan ALL headings `##`, `###`, `####` in the file
+   - For each heading generate a markdown link with anchor
+   - Anchor format: lowercase, spaces → `-`, special characters removed
+   - Nesting levels: `##` no indent, `###` with 2 spaces, `####` with 4 spaces
+   - Preserve HTML tags (e.g., `<font>`) in link text, but NOT in anchor
 
-   f. **Инкрементируй версию** спецификации (напр. 1.0 → 1.1)
+   TOC line format:
 
-   g. **НЕ УДАЛЯЙ** существующий контент, не затронутый изменением
+   ```
+   * [2.3.8. Email bounce classification rules](#238-email-bounce-classification-rules)
+   ```
 
-   g2. **Сохраняй форматирование** — при мер��е НЕ теряй HTML-разметку: цветовые маркеры (`<font color="red">**Alt**</font>`, `<font color="blue">**Opt**</font>`, `<font color="green">**Примечание:**</font>`), и прочие HTML-теги в тексте спецификации
+   f. **Increment version** of the specification (e.g., 1.0 → 1.1)
 
-   h. **Обнови статус** change.md на "Реализовано"
+   g. **DO NOT DELETE** existing content not affected by the change
 
-   i. **Запиши** обновлённую спецификацию
+   g2. **Preserve formatting** — during merge DO NOT lose HTML markup: color markers (`<font color="red">**Alt**</font>`, `<font color="blue">**Opt**</font>`, `<font color="green">**Note:**</font>`), and other HTML tags in the specification text
 
-   j. **Проверь мерж**
-      ```bash
-      wc -l <spec-path> <spec-path>.bak
-      grep "^## \|^### \|^#### " <spec-path>
-      ```
-      Убедись:
-      - Если change не содержит REMOVED-секций — line count >= оригинала. Если содержит — уменьшение допустимо.
-      - Нумерация подразделов последовательная (нет пропусков или дублей)
-      - TOC соответствует фактическим заголовкам
+   h. **Update status** of change.md to "Implemented"
+
+   i. **Write** the updated specification
+
+   j. **Verify merge**
+
+   ```bash
+   wc -l <spec-path> <spec-path>.bak
+   grep "^## \|^### \|^#### " <spec-path>
+   ```
+
+   Ensure:
+   - If change contains no REMOVED sections — line count >= original. If it does — decrease is acceptable.
+   - Subsection numbering is sequential (no gaps or duplicates)
+   - TOC matches actual headings
 
 **Output**
 
@@ -133,19 +140,19 @@ metadata:
 **Version:** X.Y → X.Y+1
 
 ### Merged Sections
-- ✓ Бизнес-логика → 2.3
-- ✓ Модели данных (3 ADDED) → 2.6
-- ✓ Интеграции (2 ADDED) → 2.5
-- ○ Безопасность — Нет изменений
+- ✓ Business Logic → 2.3
+- ✓ Data Models (3 ADDED) → 2.6
+- ✓ Integrations (2 ADDED) → 2.5
+- ○ Security — No changes
 ...
 
 Backup: <spec-path>.bak
-Готово к архивации: /opsx:archive
+Ready for archival: /opsx:archive
 ```
 
 **Guardrails**
-- ВСЕГДА читай contextFiles перед началом
-- НИКОГДА не удаляй контент, не упомянутый в change
-- ВСЕГДА делай бэкап перед записью
-- Проверяй line count после мержа (должен быть >= оригинала)
-- Показывай что было сделано в итоге
+- ALWAYS read contextFiles before starting
+- NEVER delete content not mentioned in the change
+- ALWAYS create backup before writing
+- Verify line count after merge (must be >= original)
+- Show what was done in the summary

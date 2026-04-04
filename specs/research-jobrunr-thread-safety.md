@@ -23,11 +23,11 @@ Since `TaskHandler` is a Spring singleton and JobRunr worker threads all share i
 
 **Yes.** Channel registration happens in constructors of `@Component` classes:
 
-| Channel | Registration point |
-|---|---|
-| `ChatChannel` | Constructor (line 48) -- `@Component`, created during Spring context init |
-| `DiscordChannel` | Constructor (line 34) -- created by a `@Configuration` class |
-| `TelegramChannel` | Constructor (line 42) -- created by a `@Configuration` class |
+|      Channel      |                            Registration point                             |
+|-------------------|---------------------------------------------------------------------------|
+| `ChatChannel`     | Constructor (line 48) -- `@Component`, created during Spring context init |
+| `DiscordChannel`  | Constructor (line 34) -- created by a `@Configuration` class              |
+| `TelegramChannel` | Constructor (line 42) -- created by a `@Configuration` class              |
 
 While currently all channels are registered during Spring context initialization (before JobRunr workers start processing), the API allows dynamic registration:
 
@@ -51,11 +51,11 @@ From the Java Memory Model (JMM) perspective:
 
 ## 5. Specific Thread-Safety Issues
 
-| Issue | Severity | Description |
-|---|---|---|
-| `HashMap` concurrent read/write | **High** | If `registerChannel()` or `unregisterChannel()` is ever called while workers read, `HashMap.get()` can throw `ConcurrentModificationException` or return corrupt data (infinite loop on resize in older JDKs). |
-| `defaultChannelName` visibility | **Medium** | Non-volatile field written in `registerChannel()`, read in `getLatestChannel()`. A worker thread may see a stale `null` value. |
-| `unregisterChannel()` existence | **Medium** | The presence of `unregisterChannel()` means the map is mutable by API contract, even if not currently called at runtime. |
+|              Issue              |  Severity  |                                                                                                  Description                                                                                                   |
+|---------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `HashMap` concurrent read/write | **High**   | If `registerChannel()` or `unregisterChannel()` is ever called while workers read, `HashMap.get()` can throw `ConcurrentModificationException` or return corrupt data (infinite loop on resize in older JDKs). |
+| `defaultChannelName` visibility | **Medium** | Non-volatile field written in `registerChannel()`, read in `getLatestChannel()`. A worker thread may see a stale `null` value.                                                                                 |
+| `unregisterChannel()` existence | **Medium** | The presence of `unregisterChannel()` means the map is mutable by API contract, even if not currently called at runtime.                                                                                       |
 
 ## 6. Recommendation: Use ConcurrentHashMap
 

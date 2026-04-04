@@ -2,9 +2,6 @@ package ai.javaclaw.providers.anthropic;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
@@ -12,6 +9,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnthropicClaudeCodeOAuthTokenExtractor {
 
@@ -19,8 +18,8 @@ public class AnthropicClaudeCodeOAuthTokenExtractor {
     private static final String KEYCHAIN_SERVICE = "Claude Code-credentials";
     private static final String LINUX_CREDENTIALS_PATH = System.getProperty("user.home") + "/.claude/.credentials.json";
 
-    private final static JsonMapper jsonMapper;
-    private final static AtomicReference<CachedToken> cachedToken;
+    private static final JsonMapper jsonMapper;
+    private static final AtomicReference<CachedToken> cachedToken;
 
     static {
         jsonMapper = JsonMapper.builder().build();
@@ -36,7 +35,8 @@ public class AnthropicClaudeCodeOAuthTokenExtractor {
         return readCredentials()
                 .filter(c -> c.claudeAiOauth() != null)
                 .map(ClaudeCredentials::claudeAiOauth)
-                .filter(oauth -> oauth.accessToken() != null && !oauth.accessToken().isBlank())
+                .filter(oauth ->
+                        oauth.accessToken() != null && !oauth.accessToken().isBlank())
                 .map(oauth -> {
                     cachedToken.set(new CachedToken(oauth.accessToken(), oauth.expiresAt()));
                     return oauth.accessToken();

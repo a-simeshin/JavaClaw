@@ -12,7 +12,9 @@ public class BraveWebSearchAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "agent.browser.brave.api-key")
-    public AutoDiscoveredTool<BraveWebSearchTool> autoDiscoveredBraveWebSearchTool(@Value("${agent.browser.brave.api-key}") String braveApiKey) {
-        return new AutoDiscoveredTool<>(BraveWebSearchTool.builder(braveApiKey).resultCount(15).build());
+    public AutoDiscoveredTool<BraveWebSearchTool> autoDiscoveredBraveWebSearchTool(
+            @Value("${agent.browser.brave.api-key}") String braveApiKey) {
+        return new AutoDiscoveredTool<>(
+                BraveWebSearchTool.builder(braveApiKey).resultCount(15).build());
     }
 }

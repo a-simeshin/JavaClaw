@@ -1,10 +1,10 @@
 package ai.javaclaw.e2e;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.Test;
-
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * E2E test for switching between conversations in the chat UI.
@@ -25,8 +25,7 @@ class ConversationSwitchingE2ETest extends ChatReadyE2ETestBase {
         navigateTo("/chat");
 
         // Wait for welcome bubble or history (proves WebSocket connected)
-        page.waitForSelector("article.ar-msg--agent",
-                new Page.WaitForSelectorOptions().setTimeout(30_000));
+        page.waitForSelector("article.ar-msg--agent", new Page.WaitForSelectorOptions().setTimeout(30_000));
 
         // Verify the channel selector is present (populated via OOB swap on WS connect)
         Locator channelSelector = page.locator("#channel-select");
@@ -72,8 +71,8 @@ class ConversationSwitchingE2ETest extends ChatReadyE2ETestBase {
                     break;
                 }
             }
-            org.junit.jupiter.api.Assertions.assertFalse(foundWebMessage,
-                    "Web conversation message should not appear in a different conversation");
+            org.junit.jupiter.api.Assertions.assertFalse(
+                    foundWebMessage, "Web conversation message should not appear in a different conversation");
 
             // Switch back to "web"
             page.locator("#channel-select").selectOption("web");
@@ -88,8 +87,8 @@ class ConversationSwitchingE2ETest extends ChatReadyE2ETestBase {
                     break;
                 }
             }
-            org.junit.jupiter.api.Assertions.assertTrue(foundAfterSwitch,
-                    "Web conversation message should be present after switching back");
+            org.junit.jupiter.api.Assertions.assertTrue(
+                    foundAfterSwitch, "Web conversation message should be present after switching back");
         } else {
             // Only one conversation -- just verify the selector shows "Web Chat"
             assertThat(channelSelector).containsText("Web Chat");

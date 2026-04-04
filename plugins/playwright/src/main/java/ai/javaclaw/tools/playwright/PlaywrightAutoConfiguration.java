@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Bean;
 public class PlaywrightAutoConfiguration {
 
     @Bean
-    public AutoDiscoveredTool<PlaywrightBrowserTool> autoDiscoveredPlaywrightBrowserTool(PlaywrightBrowserTool playwrightBrowserTool) {
+    public AutoDiscoveredTool<PlaywrightBrowserTool> autoDiscoveredPlaywrightBrowserTool(
+            PlaywrightBrowserTool playwrightBrowserTool) {
         return new AutoDiscoveredTool<>(playwrightBrowserTool);
     }
 
     @Bean(destroyMethod = "close")
-    public PlaywrightBrowserTool playwrightBrowserTool(@Value("${agent.tools.playwright.headless:true}") boolean headless) {
+    public PlaywrightBrowserTool playwrightBrowserTool(
+            @Value("${agent.tools.playwright.headless:true}") boolean headless) {
         return PlaywrightBrowserTool.builder().headless(headless).build();
     }
 }

@@ -1,7 +1,6 @@
 package ai.javaclaw.tasks;
 
 import java.time.Instant;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -9,11 +8,15 @@ import org.springframework.data.relational.core.mapping.Table;
 public class Task {
 
     public enum Status {
-        todo, in_progress, completed, awaiting_human_input
+        todo,
+        in_progress,
+        completed,
+        awaiting_human_input
     }
 
     @Id
     private final String id;
+
     private final String name;
     private final Instant createdAt;
     private final Instant updatedAt;
@@ -22,8 +25,15 @@ public class Task {
     private final String feedback;
     private final String sourceChannelName;
 
-    public Task(String id, String name, Instant createdAt, Instant updatedAt, Status status,
-                String description, String feedback, String sourceChannelName) {
+    public Task(
+            String id,
+            String name,
+            Instant createdAt,
+            Instant updatedAt,
+            Status status,
+            String description,
+            String feedback,
+            String sourceChannelName) {
         this.id = id;
         this.name = name;
         this.createdAt = createdAt;

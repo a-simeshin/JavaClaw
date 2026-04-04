@@ -1,0 +1,162 @@
+2026-04-04 13:39:08,546 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/Task.java
+2026-04-04 13:39:08,546 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:16,274 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTask.java
+2026-04-04 13:39:16,274 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:22,366 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskRepository.java
+2026-04-04 13:39:22,366 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:26,919 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskRepository.java
+2026-04-04 13:39:26,919 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:34,736 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskIdGeneratorCallback.java
+2026-04-04 13:39:34,737 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:38,848 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:38,848 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:40,079 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskIdGeneratorCallback.java
+2026-04-04 13:39:40,080 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:43,225 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:43,226 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:55,291 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:39:55,292 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:58,644 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:39:58,645 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:04,150 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:40:04,151 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:11,791 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskHandler.java
+2026-04-04 13:40:11,791 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:17,709 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskNotFoundException.java
+2026-04-04 13:40:17,710 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:59,067 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:40:59,068 - INFO - No pom.xml found, skipping
+2026-04-04 13:41:06,651 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskManagerTest.java
+2026-04-04 13:41:06,651 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:32,619 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/channels/ChannelRegistry.java
+2026-04-04 13:45:32,619 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:41,186 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:41,187 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:51,096 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:51,097 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:59,959 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:59,959 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:08,965 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:46:08,966 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:23,136 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:23,137 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:31,963 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:31,963 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:32,392 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskTest.java
+2026-04-04 13:50:32,392 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:39,160 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/channels/ChannelRegistryTest.java
+2026-04-04 13:50:39,160 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:54,756 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 13:50:54,757 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:20,494 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 13:51:20,494 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:26,709 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 13:51:26,710 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:24,945 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 13:56:24,946 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:46,216 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 13:56:46,216 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:55,839 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 13:56:55,839 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:17,420 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 13:57:17,420 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:21,468 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 13:57:21,468 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:32,470 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/AgentLiveTest.java
+2026-04-04 13:57:32,470 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:35,355 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 13:57:35,355 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:45,507 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/TaskLiveTest.java
+2026-04-04 13:57:45,508 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:55,008 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 13:57:55,009 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:59,740 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 13:57:59,740 - INFO - No pom.xml found, skipping
+2026-04-04 13:58:14,519 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 13:58:14,519 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:13,477 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 14:15:13,478 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:24,444 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:24,444 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:30,573 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:30,573 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:35,792 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:35,792 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:40,687 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:40,687 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:24,291 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:24,292 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:51,835 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:51,835 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:20,464 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:20,464 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:25,836 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:25,836 - INFO - No pom.xml found, skipping
+2026-04-04 15:25:06,353 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 15:25:06,353 - INFO - No pom.xml found, skipping
+2026-04-04 15:26:10,041 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/TestApplication.java
+2026-04-04 15:26:10,041 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:27,188 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:27:27,188 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:36,665 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:27:36,666 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:03,865 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:28:03,865 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:11,680 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:28:11,680 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:44,113 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:36:44,115 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:51,535 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 15:36:51,535 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:04,779 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 15:37:04,780 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:30,256 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:37:30,257 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:51,824 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:37:51,825 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:09,446 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:38:09,446 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:23,503 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:38:23,503 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:36,958 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:41:36,958 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:55,488 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:41:55,488 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:18,958 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:42:18,958 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:32,450 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:42:32,450 - INFO - No pom.xml found, skipping
+2026-04-04 15:45:05,238 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/DiagnosticE2ETest.java
+2026-04-04 15:45:05,238 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:27,733 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:46:27,733 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:48,136 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:46:48,136 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:07,193 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:47:07,194 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:21,292 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:47:21,293 - INFO - No pom.xml found, skipping
+2026-04-04 15:52:11,747 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:52:11,748 - INFO - No pom.xml found, skipping
+2026-04-04 15:56:36,317 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:56:36,317 - INFO - No pom.xml found, skipping
+2026-04-04 16:09:02,520 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:09:02,521 - INFO - No pom.xml found, skipping
+2026-04-04 16:19:45,808 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:19:45,808 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:03,540 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:20:03,540 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:09,697 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:09,697 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:14,225 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:14,225 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:05,579 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatHtml.java
+2026-04-04 16:35:05,580 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:13,947 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatChannel.java
+2026-04-04 16:35:13,948 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:26,192 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ws/ChatWebSocketHandler.java
+2026-04-04 16:35:26,192 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:34,461 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:34,461 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:43,090 - INFO - Spotless validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:43,091 - INFO - No pom.xml found, skipping

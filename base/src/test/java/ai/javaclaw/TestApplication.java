@@ -7,5 +7,4 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * in the {@code base} module which has no production {@code @SpringBootApplication}.
  */
 @SpringBootApplication
-class TestApplication {
-}
+class TestApplication {}

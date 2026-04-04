@@ -3,6 +3,7 @@
 This project represents a Java version of OpenClaw. OpenClaw is an open-source, personal AI assistant designed to run on your own devices. It acts as a control plane (Gateway) for an assistant that can interact across multiple communication channels.
 
 ### Key Capabilities of OpenClaw
+
 - **Multi-Channel Integration:** Supports platforms like WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, iMessage, Microsoft Teams, Matrix, and more.
 - **Background Daemon:** Runs as a background service to handle tasks and messages autonomously.
 - **Extensible Skills:** Modular capabilities that can be added to enhance the assistant's functionality.
@@ -11,6 +12,7 @@ This project represents a Java version of OpenClaw. OpenClaw is an open-source, 
 ---
 
 ## Technology Stack
+
 - **Java 25**, Spring Boot 4.0.3, Spring Modulith 2.0.3
 - **Job Scheduling:** JobRunr 8.5.0 — background jobs, dashboard on `:8081`
 - **LLM Integration:** Spring AI 2.0.0-SNAPSHOT (OpenAI, Anthropic, Ollama)
@@ -50,6 +52,7 @@ Each **provider** implements `AgentOnboardingProvider` (in `base`) and is auto-d
 ## Java Implementation Strategy (JavaClaw)
 
 ### Task Management
+
 - Tasks are stored as Markdown files in the `workspace/tasks` folder.
 - Path format for normal tasks: `yyyy-MM-dd/<HHmmss>-<name>.md`.
 - Path format for recurring tasks: `recurring/<name>.md`.
@@ -58,6 +61,7 @@ Each **provider** implements `AgentOnboardingProvider` (in `base`) and is auto-d
 - The task `id` is the absolute file path, set by `FileSystemTaskRepository` on first save.
 
 ### Core Task Flow
+
 ```
 User/Agent → TaskManager.create()
   → Task written as .md file via TaskRepository
@@ -67,6 +71,7 @@ User/Agent → TaskManager.create()
 ```
 
 ### Core Components
+
 - **`TaskManager`** (`base/src/main/java/ai/javaclaw/tasks/TaskManager.java`): Creates, schedules (immediate, specific-time, or cron), and manages recurring tasks. Saves via `TaskRepository`, then enqueues to JobRunr by task ID.
 - **`Task`** (`base/.../tasks/Task.java`): Immutable value class. Fields: `id` (absolute file path), `name`, `createdAt`, `status`, `description`. Mutation via `withStatus()` / `withFeedback()`.
 - **`TaskRepository`** (`base/.../tasks/TaskRepository.java`): Interface for task persistence — `save(Task)`, `getTaskById(String)`, `getTasks(LocalDate, Status)`, `save(RecurringTask)`, `getRecurringTaskById(String)`.
@@ -77,6 +82,7 @@ User/Agent → TaskManager.create()
 - **`TaskNotFoundException`** (`base/.../tasks/TaskNotFoundException.java`): Thrown when a task file cannot be found or read by its ID.
 
 ### Workspace
+
 - `workspace/AGENT.md`: System instructions + user-specific information (editable during onboarding).
 - `workspace/AGENT-ORIGINAL.md`: Template / backup of original AGENT.md.
 - `workspace/INFO.md`: Environment context auto-injected into every prompt.
@@ -109,12 +115,12 @@ User/Agent → TaskManager.create()
 
 **Supported LLM Providers** — each lives in its own `providers/<name>/` module and implements `AgentOnboardingProvider`:
 
-| Provider | Module | Default Model | API Key |
-|---|---|---|---|
-| `anthropic` | `providers/anthropic` | `claude-sonnet-4-6` | Required (or Claude Code OAuth) |
-| `openai` | `providers/openai` | `gpt-5.4` | Required |
-| `ollama` | `providers/ollama` | `qwen3.5:27b` | Not required (local) |
-| `google.genai` | `providers/google` | `gemini-3-flash-preview` | Required |
+|    Provider    |        Module         |      Default Model       |             API Key             |
+|----------------|-----------------------|--------------------------|---------------------------------|
+| `anthropic`    | `providers/anthropic` | `claude-sonnet-4-6`      | Required (or Claude Code OAuth) |
+| `openai`       | `providers/openai`    | `gpt-5.4`                | Required                        |
+| `ollama`       | `providers/ollama`    | `qwen3.5:27b`            | Not required (local)            |
+| `google.genai` | `providers/google`    | `gemini-3-flash-preview` | Required                        |
 
 The `AnthropicAgentOnboardingProvider` additionally supports a **system-wide token** via `AnthropicClaudeCodeOAuthTokenExtractor` — if a Claude Code OAuth token is found locally, it is offered as a zero-config option during onboarding.
 
@@ -149,6 +155,7 @@ Incoming message → ChannelMessageReceivedEvent (channel name, message text)
 ---
 
 ## Tools and Capabilities
+
 - **File System:** Read, write, and edit files.
 - **Shell:** Execute bash commands.
 - **Web:** Search (Brave API) and smart web fetching.
@@ -159,11 +166,13 @@ Incoming message → ChannelMessageReceivedEvent (channel name, message text)
 ---
 
 ## Frontend Notes
+
 - **Templating (https://pebbletemplates.io/):** Server-rendered HTML uses Pebble templates (suffix `.html.peb`) under `app/src/main/resources/templates/`. Base template: `templates/base.html.peb`.
 - **Bulma (https://bulma.io/documentation):** Bulma v1.0.4 (CDN) is used for all web layout — CSS-only, mobile-first, semantic classes + modifiers like `is-primary`, `is-loading`, `is-danger`. Bulma v1 relies heavily on CSS variables. Themes are collections of CSS variables, so branding and light/dark adjustments can be done without rewriting component markup. Use Bulma layout primitives (`section`, `container`, `columns`, `card`, `message`, `progress`, `hero`) and helper classes instead of bespoke layout CSS where possible.
 - **htmx v2.0.8 (https://htmx.org/docs/):** htmx is a strong fit for this app because it keeps the interaction model server-driven: the server returns HTML fragments, not JSON, and htmx swaps them into the DOM. We are using `hx-boost` which "boosts" normal anchors and form tags to use AJAX instead (preventing reloading of css and js). This has the nice fallback that, if the user does not have javascript enabled, the site will continue to work. Both Bulma and htmx are already included in `base.html.peb`.
 
 ### Onboarding UI
+
 Entry point: `GET /index` → `IndexController.java` (redirects to `/onboarding/`) → `OnboardingController.java`. Session-based flow:
 1. Welcome
 2. Provider selection — dynamically populated from all `AgentOnboardingProvider` beans (Anthropic, OpenAI, Ollama, Google Gen AI, + any future providers)
@@ -179,15 +188,15 @@ Templates live under `templates/onboarding/`, with plugin steps contributed from
 
 ## Key Architectural Patterns
 
-| Pattern | Usage |
-|---|---|
-| **Event-Driven** | `ChannelMessageReceivedEvent`, `ConfigurationChangedEvent`, JobRunr background dispatch |
-| **Template Method** | `AbstractTask` subclassed by `Task`, `RecurringTask` |
-| **Strategy** | Multiple `Channel` implementations (Discord, Telegram, Chat) |
-| **Record Types** | `TaskResult`, `CheckListItem` — structured LLM response types |
-| **Markdown as State** | Tasks stored as `.md` files — queryable, diffable, human-readable |
-| **Single Agent Instance** | `DefaultAgent` wraps `ChatClient`; all prompts routed through it |
-| **Server-Driven HTML** | htmx + Pebble; progressive enhancement, works without JS |
+|          Pattern          |                                          Usage                                          |
+|---------------------------|-----------------------------------------------------------------------------------------|
+| **Event-Driven**          | `ChannelMessageReceivedEvent`, `ConfigurationChangedEvent`, JobRunr background dispatch |
+| **Template Method**       | `AbstractTask` subclassed by `Task`, `RecurringTask`                                    |
+| **Strategy**              | Multiple `Channel` implementations (Discord, Telegram, Chat)                            |
+| **Record Types**          | `TaskResult`, `CheckListItem` — structured LLM response types                           |
+| **Markdown as State**     | Tasks stored as `.md` files — queryable, diffable, human-readable                       |
+| **Single Agent Instance** | `DefaultAgent` wraps `ChatClient`; all prompts routed through it                        |
+| **Server-Driven HTML**    | htmx + Pebble; progressive enhancement, works without JS                                |
 
 ---
 
@@ -198,3 +207,60 @@ Templates live under `templates/onboarding/`, with plugin steps contributed from
 - `plugins/telegram/src/test/` — `TelegramChannelTest`: unauthorized user rejection, authorized message flow (mocked).
 - `providers/anthropic/src/test/` — `AnthropicClaudeCodeBackendTest`: Claude Code OAuth token extraction.
 - `app/src/test/` — `OnboardingControllerTest`: session-based workflow; `JavaClawApplicationTests`: full Spring context load with Testcontainers.
+
+---
+
+## Mandatory Standards & Skills
+
+### OpenSpec (REQUIRED)
+
+**Planning** — Always run `/openspec-propose` before any project changes to create a formal change.md with motivation (WHY) and system requirements (WHAT CHANGES).
+
+**Validation** — Verify that everything from change.md is correctly implemented. If the implementation diverges from the proposal (e.g., scope changed, requirements added/removed), update change.md to reflect the actual state. Change.md must be the source of truth for what was done and why.
+
+**After successful validation** — Always run `/openspec-apply-change` (merge change.md into the main specification), then `/openspec-archive-change` (archive the completed change). This is the final step of every task.
+
+Related skills:
+- `/openspec-propose` — create a change proposal (during planning)
+- `/openspec-apply-change` — merge change.md into the main spec (after implementation)
+- `/openspec-archive-change` — archive the completed change
+- `/openspec-explore` — exploration mode for brainstorming and requirement refinement
+- `/openspec-new-spec` — create a full service specification from template
+
+---
+
+### UI Design Skills — Impeccable (REQUIRED for UI tasks)
+
+**UI validation** — always run these two:
+- `/critique` — UX evaluation against Nielsen's heuristics, persona archetype testing
+- `/audit` — comprehensive audit of accessibility, performance, theming, responsive design
+
+**UI development** — use as appropriate:
+- `/frontend-design` — production-grade interfaces with high design quality
+- `/polish` — final pass before release: alignment, spacing, consistency
+- `/typeset` — typography: fonts, hierarchy, sizing, weight
+- `/arrange` — layout, spacing, visual rhythm
+- `/colorize` — strategic color additions
+- `/animate` — micro-interactions and motion effects
+- `/adapt` — adaptation for different screens and devices
+- `/harden` — error handling, i18n, text overflow, edge cases
+- `/clarify` — UX copywriting, error messages, microcopy
+- `/normalize` — normalize to match the design system
+- `/onboard` — onboarding flows and empty states
+- `/optimize` — performance: loading, rendering, bundle size
+- `/bolder` / `/quieter` — amplify or tone down visual style
+- `/delight` — moments of joy and personality
+- `/distill` — remove unnecessary complexity
+- `/extract` — extract reusable components and design tokens
+- `/overdrive` — technically ambitious UI implementations
+
+---
+
+### Java Code Standards — [`.claude/refs/java-patterns.md`](.claude/refs/java-patterns.md)
+
+**REQUIRED** for all Java development. Covers: No-Nest Rule, naming, error handling, Spring Boot patterns, Java 17/21 features, controllers, entities, DTOs, exceptions.
+
+### Java Testing Standards — [`.claude/refs/java-testing.md`](.claude/refs/java-testing.md)
+
+**REQUIRED** for all Java test writing. Covers: testing philosophy, test structure, AssertJ, Allure annotations, MockMvc, Testcontainers, Mockito, E2E (Selenide), Maven Surefire/Failsafe/JaCoCo.
+

@@ -16,5 +16,4 @@ public record ConfigurationChangedEvent(Map<String, Object> allConfig) {
         }
         return map.get(keys[keys.length - 1]);
     }
-
 }

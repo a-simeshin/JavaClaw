@@ -1,9 +1,23 @@
 package ai.javaclaw.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.tasks.Task.Status;
 import ai.javaclaw.tasks.TaskHandler.TaskResult;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobScheduler;
@@ -19,31 +33,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-
 @ExtendWith(MockitoExtension.class)
 class TaskManagerTest {
 
     @Mock
     Agent agentMock;
+
     @Mock
     TaskRepository taskRepositoryMock;
+
     @Mock
     RecurringTaskRepository recurringTaskRepositoryMock;
+
     @Mock
     ChannelRegistry channelRegistryMock;
 
@@ -56,7 +57,8 @@ class TaskManagerTest {
         JobScheduler jobScheduler = JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useJobActivator(getJobActivator())
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(200)))
+                .useBackgroundJobServer(
+                        usingStandardBackgroundJobServerConfiguration().andPollInterval(Duration.ofMillis(200)))
                 .initialize()
                 .getJobScheduler();
 
@@ -70,11 +72,19 @@ class TaskManagerTest {
 
     @Test
     void createEnqueuesJob() {
-        Task saved = new Task("some-id", "handle-email", Instant.now(), Instant.now(),
-                Task.Status.todo, "Process unread email messages", null, null);
+        Task saved = new Task(
+                "some-id",
+                "handle-email",
+                Instant.now(),
+                Instant.now(),
+                Task.Status.todo,
+                "Process unread email messages",
+                null,
+                null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
         when(taskRepositoryMock.findById("some-id")).thenReturn(Optional.of(saved));
-        when(agentMock.prompt(eq("some-id"), anyString(), any())).thenReturn(new TaskResult(Status.completed, "All mail was summarized!"));
+        when(agentMock.prompt(eq("some-id"), anyString(), any()))
+                .thenReturn(new TaskResult(Status.completed, "All mail was summarized!"));
 
         taskManager.create("handle-email", "Process unread email messages");
 
@@ -83,9 +93,17 @@ class TaskManagerTest {
 
     @Test
     void scheduleRegistersScheduledJob() {
-        LocalDateTime executionTime = LocalDateTime.now().plusMinutes(5).withSecond(0).withNano(0);
-        Task saved = new Task("some-id", "weekly-summary", Instant.now(), Instant.now(),
-                Task.Status.todo, "Prepare the weekly summary", null, null);
+        LocalDateTime executionTime =
+                LocalDateTime.now().plusMinutes(5).withSecond(0).withNano(0);
+        Task saved = new Task(
+                "some-id",
+                "weekly-summary",
+                Instant.now(),
+                Instant.now(),
+                Task.Status.todo,
+                "Prepare the weekly summary",
+                null,
+                null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
 
         taskManager.schedule(executionTime, "weekly-summary", "Prepare the weekly summary");
@@ -96,8 +114,8 @@ class TaskManagerTest {
     @Test
     void scheduleRecurrentlyRegistersRecurringJob() {
         String cronExpression = "0 */15 * * *";
-        RecurringTask saved = new RecurringTask("some-id", "check-mail",
-                "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+        RecurringTask saved = new RecurringTask(
+                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cronExpression, "check-mail", "Check the inbox every 15 minutes");
@@ -113,8 +131,8 @@ class TaskManagerTest {
     @Test
     void deleteRecurringTaskRemovesFromJobRunr() {
         String cronExpression = "0 */15 * * *";
-        RecurringTask saved = new RecurringTask("some-id", "check-mail",
-                "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+        RecurringTask saved = new RecurringTask(
+                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
         when(recurringTaskRepositoryMock.findAll()).thenReturn(List.of(saved));
 
@@ -127,8 +145,11 @@ class TaskManagerTest {
 
         taskManager.deleteRecurringTask("check-mail");
 
-        await().untilAsserted(() -> assertThat(storageProvider.getRecurringJobs()).isEmpty());
-        await().untilAsserted(() -> assertThat(storageProvider.getJobList(StateName.SCHEDULED, Paging.AmountBasedList.ascOnCreatedAt(100))).isEmpty());
+        await().untilAsserted(
+                        () -> assertThat(storageProvider.getRecurringJobs()).isEmpty());
+        await().untilAsserted(() -> assertThat(
+                        storageProvider.getJobList(StateName.SCHEDULED, Paging.AmountBasedList.ascOnCreatedAt(100)))
+                .isEmpty());
         verify(recurringTaskRepositoryMock).deleteById("some-id");
     }
 
@@ -136,8 +157,10 @@ class TaskManagerTest {
         return new JobActivator() {
             @Override
             public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
-                if (TaskHandler.class.equals(type)) return (T) new TaskHandler(agentMock, taskRepositoryMock, channelRegistryMock);
-                else if (RecurringTaskHandler.class.equals(type)) return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
+                if (TaskHandler.class.equals(type))
+                    return (T) new TaskHandler(agentMock, taskRepositoryMock, channelRegistryMock);
+                else if (RecurringTaskHandler.class.equals(type))
+                    return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");
             }
         };

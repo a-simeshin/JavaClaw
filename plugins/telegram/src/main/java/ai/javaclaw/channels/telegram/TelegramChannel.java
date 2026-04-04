@@ -1,5 +1,7 @@
 package ai.javaclaw.channels.telegram;
 
+import static java.util.Optional.ofNullable;
+
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelMessageReceivedEvent;
@@ -16,8 +18,6 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-import static java.util.Optional.ofNullable;
-
 public class TelegramChannel implements Channel, SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramChannel.class);
@@ -33,7 +33,12 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
         this(botToken, allowedUsername, new OkHttpTelegramClient(botToken), agent, channelRegistry);
     }
 
-    TelegramChannel(String botToken, String allowedUsername, TelegramClient telegramClient, Agent agent, ChannelRegistry channelRegistry) {
+    TelegramChannel(
+            String botToken,
+            String allowedUsername,
+            TelegramClient telegramClient,
+            Agent agent,
+            ChannelRegistry channelRegistry) {
         this.botToken = botToken;
         this.allowedUsername = normalizeUsername(allowedUsername);
         this.telegramClient = telegramClient;
@@ -58,7 +63,9 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
         if (!(update.hasMessage() && update.getMessage().hasText())) return;
 
         Message requestMessage = update.getMessage();
-        String userName = requestMessage.getFrom() == null ? null : requestMessage.getFrom().getUserName();
+        String userName = requestMessage.getFrom() == null
+                ? null
+                : requestMessage.getFrom().getUserName();
         if (!isAllowedUser(userName)) {
             log.warn("Ignoring Telegram message from unauthorized username '{}'", userName);
             sendMessage("I'm sorry, I don't accept instructions from you.");
@@ -68,7 +75,8 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
         String messageText = requestMessage.getText();
         this.chatId = requestMessage.getChatId();
         this.messageThreadId = requestMessage.getMessageThreadId();
-        channelRegistry.publishMessageReceivedEvent(new TelegramChannelMessageReceivedEvent(getName(), messageText, chatId, messageThreadId));
+        channelRegistry.publishMessageReceivedEvent(
+                new TelegramChannelMessageReceivedEvent(getName(), messageText, chatId, messageThreadId));
         String response = agent.respondTo(getConversationId(chatId, messageThreadId), messageText);
         sendMessage(chatId, messageThreadId, response);
     }
@@ -114,7 +122,8 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
     }
 
     private String getConversationId(Long chatId, Integer messageThreadId) {
-        return "telegram-" + chatId + ofNullable(messageThreadId).map(i -> "-" + i).orElse("");
+        return "telegram-" + chatId
+                + ofNullable(messageThreadId).map(i -> "-" + i).orElse("");
     }
 
     static class TelegramChannelMessageReceivedEvent extends ChannelMessageReceivedEvent {
@@ -122,7 +131,8 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
         private final long chatId;
         private final Integer messageThreadId;
 
-        public TelegramChannelMessageReceivedEvent(String channel, String message, long chatId, Integer messageThreadId) {
+        public TelegramChannelMessageReceivedEvent(
+                String channel, String message, long chatId, Integer messageThreadId) {
             super(channel, message);
             this.chatId = chatId;
             this.messageThreadId = messageThreadId;

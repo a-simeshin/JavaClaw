@@ -5,22 +5,19 @@ import com.anthropic.backends.Backend;
 import com.anthropic.core.http.HttpRequest;
 import com.anthropic.core.http.HttpRequestBody;
 import com.anthropic.core.http.HttpResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
 class AnthropicClaudeCodeBackend implements Backend {
-
 
     private static final String OAUTH_BETA = "claude-code-20250219,oauth-2025-04-20";
 
     private final AnthropicBackend delegate;
-
 
     AnthropicClaudeCodeBackend() {
         // Build delegate with a placeholder token so prepareRequest() adds all standard
@@ -35,7 +32,7 @@ class AnthropicClaudeCodeBackend implements Backend {
 
     @Override
     public HttpRequest prepareRequest(HttpRequest request) {
-        //return delegate.prepareRequest(request);
+        // return delegate.prepareRequest(request);
         HttpRequest prepared = delegate.prepareRequest(request);
         HttpRequestBody originalBody = prepared.body();
         if (originalBody == null) {
@@ -48,9 +45,9 @@ class AnthropicClaudeCodeBackend implements Backend {
 
     @Override
     public HttpRequest authorizeRequest(HttpRequest request) {
-        String token = AnthropicClaudeCodeOAuthTokenExtractor
-                .getToken()
-                .orElseThrow(() -> new IllegalStateException("No valid Claude Code OAuth token found. Run 'claude auth login' to authenticate."));
+        String token = AnthropicClaudeCodeOAuthTokenExtractor.getToken()
+                .orElseThrow(() -> new IllegalStateException(
+                        "No valid Claude Code OAuth token found. Run 'claude auth login' to authenticate."));
 
         HttpRequest prepared = delegate.authorizeRequest(request);
         return prepared.toBuilder()
@@ -69,7 +66,6 @@ class AnthropicClaudeCodeBackend implements Backend {
     public void close() {
         delegate.close();
     }
-
 
     /**
      * Wraps the original request body and injects the required Claude Code system

@@ -2,11 +2,6 @@ package ai.javaclaw.onboarding.steps;
 
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.OnboardingProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,6 +11,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 @Component
 @Order(50)
@@ -32,16 +31,24 @@ public class S5_McpStep implements OnboardingProvider {
     }
 
     @Override
-    public String getStepId() {return "mcp";}
+    public String getStepId() {
+        return "mcp";
+    }
 
     @Override
-    public String getStepTitle() {return "MCP Servers";}
+    public String getStepTitle() {
+        return "MCP Servers";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/S5-mcp";}
+    public String getTemplatePath() {
+        return "onboarding/steps/S5-mcp";
+    }
 
     @Override
-    public boolean isOptional() {return true;}
+    public boolean isOptional() {
+        return true;
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
@@ -68,7 +75,8 @@ public class S5_McpStep implements OnboardingProvider {
 
         if ("add".equals(action)) {
             String name = formParams.getOrDefault("serverName", "").trim();
-            String type = formParams.getOrDefault("serverType", "streamable-http").trim();
+            String type =
+                    formParams.getOrDefault("serverType", "streamable-http").trim();
 
             if (name.isBlank()) return "Server name is required.";
             if (!name.matches("[a-zA-Z0-9_-]+"))
@@ -106,7 +114,8 @@ public class S5_McpStep implements OnboardingProvider {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws IOException, URISyntaxException {
+    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws IOException, URISyntaxException {
         List<Map<String, Object>> servers = getServers(session);
         if (servers.isEmpty()) return;
 
@@ -117,7 +126,9 @@ public class S5_McpStep implements OnboardingProvider {
 
             if ("streamable-http".equals(type)) {
                 URI uri = new URI(server.get("url").toString());
-                props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".url", uri.getScheme() + "://" + uri.getAuthority());
+                props.put(
+                        "spring.ai.mcp.client.streamable-http.connections." + name + ".url",
+                        uri.getScheme() + "://" + uri.getAuthority());
                 props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".endpoint", uri.getPath());
                 Map<String, String> headers = (Map<String, String>) server.get("headers");
                 headers.forEach((k, v) ->
@@ -129,8 +140,7 @@ public class S5_McpStep implements OnboardingProvider {
                     props.put("spring.ai.mcp.client.stdio.connections." + name + ".args", args);
                 }
                 Map<String, String> env = (Map<String, String>) server.get("env");
-                env.forEach((k, v) ->
-                        props.put("spring.ai.mcp.client.stdio.connections." + name + ".env." + k, v));
+                env.forEach((k, v) -> props.put("spring.ai.mcp.client.stdio.connections." + name + ".env." + k, v));
             }
         }
         configurationManager.updateProperties(props);
@@ -207,7 +217,8 @@ public class S5_McpStep implements OnboardingProvider {
             line = line.trim();
             int sep = line.indexOf(':');
             if (sep > 0) {
-                result.put(line.substring(0, sep).trim(), line.substring(sep + 1).trim());
+                result.put(
+                        line.substring(0, sep).trim(), line.substring(sep + 1).trim());
             }
         }
         return result;
@@ -222,7 +233,8 @@ public class S5_McpStep implements OnboardingProvider {
             line = line.trim();
             int sep = line.indexOf('=');
             if (sep > 0) {
-                result.put(line.substring(0, sep).trim(), line.substring(sep + 1).trim());
+                result.put(
+                        line.substring(0, sep).trim(), line.substring(sep + 1).trim());
             }
         }
         return result;

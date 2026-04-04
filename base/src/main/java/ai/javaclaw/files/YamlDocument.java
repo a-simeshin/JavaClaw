@@ -21,5 +21,4 @@ import java.util.Map;
  *   <li>Chat {@code .yaml} files: body only (no frontmatter, empty map).</li>
  * </ul>
  */
-public record YamlDocument(Map<String, String> frontmatter, String body) {
-}
+public record YamlDocument(Map<String, String> frontmatter, String body) {}

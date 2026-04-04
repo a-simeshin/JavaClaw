@@ -6,13 +6,12 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.WaitForSelectorState;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Browser automation tool powered by Playwright for Java.
@@ -54,7 +53,7 @@ public class PlaywrightBrowserTool implements AutoCloseable {
             if (e.getMessage() != null && e.getMessage().contains("Executable doesn't exist")) {
                 logger.info("Chromium not found — installing. This may take a moment...");
                 try {
-                    com.microsoft.playwright.CLI.main(new String[]{"install", "chromium"});
+                    com.microsoft.playwright.CLI.main(new String[] {"install", "chromium"});
                 } catch (Exception installEx) {
                     throw new RuntimeException("Failed to install Chromium: " + installEx.getMessage(), installEx);
                 }
@@ -64,9 +63,10 @@ public class PlaywrightBrowserTool implements AutoCloseable {
         }
     }
 
-    @Tool(description = "Navigate to a URL in the browser. Returns the page title and a text summary of the page content.")
-    public synchronized String navigateTo(
-            @ToolParam(description = "The URL to navigate to") String url) {
+    @Tool(
+            description =
+                    "Navigate to a URL in the browser. Returns the page title and a text summary of the page content.")
+    public synchronized String navigateTo(@ToolParam(description = "The URL to navigate to") String url) {
         try {
             Page p = getOrCreatePage();
             p.navigate(url);
@@ -105,7 +105,9 @@ public class PlaywrightBrowserTool implements AutoCloseable {
         }
     }
 
-    @Tool(description = "Extract text content from elements matching a CSS selector. Use 'body' for the full page text.")
+    @Tool(
+            description =
+                    "Extract text content from elements matching a CSS selector. Use 'body' for the full page text.")
     public synchronized String getText(
             @ToolParam(description = "CSS selector to extract text from (use 'body' for full page)") String selector) {
         try {
@@ -148,9 +150,11 @@ public class PlaywrightBrowserTool implements AutoCloseable {
         try {
             Page p = getOrCreatePage();
             int timeout = timeoutMs > 0 ? timeoutMs : 5000;
-            p.waitForSelector(selector, new Page.WaitForSelectorOptions()
-                    .setState(WaitForSelectorState.VISIBLE)
-                    .setTimeout(timeout));
+            p.waitForSelector(
+                    selector,
+                    new Page.WaitForSelectorOptions()
+                            .setState(WaitForSelectorState.VISIBLE)
+                            .setTimeout(timeout));
             return "Element " + selector + " is now visible.";
         } catch (Exception e) {
             return "Timeout waiting for " + selector + ": " + e.getMessage();

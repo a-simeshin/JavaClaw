@@ -2,24 +2,29 @@ package ai.javaclaw.onboarding.steps;
 
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.OnboardingProvider;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Map;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 @Component
 @Order(Integer.MAX_VALUE)
 public class S6_CompleteStep implements OnboardingProvider {
 
     @Override
-    public String getStepId() {return "complete";}
+    public String getStepId() {
+        return "complete";
+    }
 
     @Override
-    public String getStepTitle() {return "Complete";}
+    public String getStepTitle() {
+        return "Complete";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/S6-complete";}
+    public String getTemplatePath() {
+        return "onboarding/steps/S6-complete";
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
@@ -33,7 +38,8 @@ public class S6_CompleteStep implements OnboardingProvider {
     }
 
     @Override
-    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws IOException {
+    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws IOException {
         configurationManager.updateProperty("agent.onboarding.completed", true);
     }
 }

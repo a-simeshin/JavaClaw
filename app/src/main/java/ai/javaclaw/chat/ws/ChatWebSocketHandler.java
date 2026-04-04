@@ -3,6 +3,8 @@ package ai.javaclaw.chat.ws;
 import ai.javaclaw.chat.ChatChannel;
 import ai.javaclaw.chat.ChatHtml;
 import ai.javaclaw.chat.Htmx;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,9 +14,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import tools.jackson.databind.ObjectMapper;
-
-import java.util.List;
-import java.util.Map;
 
 @Component
 @ConditionalOnProperty(name = "javaclaw.chat.transport", havingValue = "spring-websocket", matchIfMissing = true)
@@ -50,7 +49,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             log.error("Failed to send initial chat state for session {}", session.getId(), ex);
             // Send a minimal welcome so the UI is still usable
             chatChannel.sendHtml(
-                    Htmx.oobInnerHtml("chat-messages",
+                    Htmx.oobInnerHtml(
+                            "chat-messages",
                             ChatHtml.agentBubble("Hi! I'm your JavaClaw assistant. How can I help you today?")),
                     Htmx.oobInnerHtml("chat-input-area", ChatHtml.chatInputArea("web")));
         }
@@ -82,8 +82,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         String bubbles = String.join(System.lineSeparator(), chatChannel.loadHistoryAsHtml(conversationId));
         String inputArea = ChatHtml.chatInputArea(conversationId);
         chatChannel.sendHtml(
-                Htmx.oobInnerHtml("chat-messages", bubbles),
-                Htmx.oobInnerHtml("chat-input-area", inputArea));
+                Htmx.oobInnerHtml("chat-messages", bubbles), Htmx.oobInnerHtml("chat-input-area", inputArea));
     }
 
     private void handleUserMessage(Map<String, Object> payload) throws Exception {

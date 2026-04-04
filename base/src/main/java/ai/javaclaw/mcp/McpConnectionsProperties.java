@@ -1,8 +1,7 @@
 package ai.javaclaw.mcp;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.util.Map;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("spring.ai.mcp.client.streamable-http")
 public record McpConnectionsProperties(Map<String, Connection> connections) {

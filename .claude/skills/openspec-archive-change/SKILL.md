@@ -1,62 +1,64 @@
 ---
+
 name: openspec-archive-change
-description: Архивировать завершённый change после вливания в основную спецификацию. Перемещает директорию change в archive/ с датой.
+description: Archive a completed change after merging into the main specification. Moves the change directory to archive/ with a date prefix.
 license: MIT
 metadata:
-  author: openspec-distillate
-  version: "3.0"
----
+author: openspec-distillate
+version: "3.0"
+--------------
 
-Архивировать завершённый change.
+Archive a completed change.
 
-**Input**: Опционально — имя change. Если не указано, предложить выбор из активных.
+**Input**: Optionally — change name. If not specified, offer a choice from active changes.
 
 **Steps**
 
-1. **Если имя не указано — предложить выбор**
+1. **If name not specified — offer a choice**
 
-   Найди активные changes:
+   Find active changes:
+
    ```bash
    ls openspec/changes/ 2>/dev/null
    ```
-   Исключи `archive/` из списка. Используй **AskUserQuestion tool** для выбора.
 
-   Показывай только активные (не архивированные) changes.
+   Exclude `archive/` from the list. Use **AskUserQuestion tool** to choose.
 
-   **ВАЖНО**: НЕ угадывай и НЕ выбирай автоматически. Пусть пользователь выберет.
+   Show only active (non-archived) changes.
 
-2. **Проверь наличие change.md**
+   **IMPORTANT**: DO NOT guess or auto-select. Let the user choose.
 
-   Проверь, что файл `openspec/changes/<name>/change.md` существует.
+2. **Check for change.md**
 
-   **Если change.md не существует:**
-   - Покажи предупреждение: change.md не создан
-   - Спроси подтверждение через **AskUserQuestion tool**
-   - Продолжи при подтверждении
+   Verify that `openspec/changes/<name>/change.md` exists.
 
-3. **Проверь статус change.md**
+   **If change.md does not exist:**
+   - Show warning: change.md not created
+   - Ask for confirmation via **AskUserQuestion tool**
+   - Proceed on confirmation
 
-   Прочитай `openspec/changes/<name>/change.md` и проверь поле "Статус" в шапке:
-   - Если "Реализовано" — всё ок, готов к архивации
-   - Если другой статус — предупреди и спроси подтверждение
+3. **Check change.md status**
 
-4. **Выполни архивацию**
+   Read `openspec/changes/<name>/change.md` and check the "Status" field in the header:
+   - If "Implemented" — all ok, ready for archival
+   - If other status — warn and ask for confirmation
+
+4. **Perform archival**
 
    ```bash
    mkdir -p openspec/changes/archive
    ```
 
-   Имя архива: `YYYY-MM-DD-<change-name>`
+   Archive name: `YYYY-MM-DD-<change-name>`
 
-   **Проверь, что целевая директория не существует:**
-   - Если существует — ошибка, предложи переименовать
-   - Если нет — перемести:
+   **Check that the target directory does not exist:**
+   - If it exists — error, suggest renaming
+   - If not — move:
 
    ```bash
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
-
-5. **Покажи результат**
+5. **Show result**
 
 **Output On Success**
 
@@ -67,27 +69,27 @@ metadata:
 **Schema:** analyst-driven
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 
-Все артефакты завершены. Change архивирован.
+All artifacts finalized. Change archived.
 ```
 
 **Output With Warnings**
 
 ```
-## Archive Complete (с предупреждениями)
+## Archive Complete (with warnings)
 
 **Change:** <change-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
 
-**Предупреждения:**
-- change.md не в статусе "Реализовано"
-- N невыполненных задач
+**Warnings:**
+- change.md not in "Implemented" status
+- N incomplete tasks
 
-Проверьте архив, если это не было намеренным.
+Review the archive if this was not intentional.
 ```
 
 **Guardrails**
-- Всегда предлагай выбор change, если имя не указано
-- Проверяй статус по содержимому change.md, а не через CLI
-- НЕ блокируй архивацию при предупреждениях — информируй и подтверждай
-- Вся директория change перемещается целиком
-- Покажи понятный итог
+- Always offer change selection if name not specified
+- Check status by reading change.md content, not via CLI
+- DO NOT block archival on warnings — inform and confirm
+- The entire change directory is moved as a whole
+- Show a clear summary

@@ -1,16 +1,15 @@
 package ai.javaclaw.live;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 import ai.javaclaw.tasks.Task;
 import ai.javaclaw.tasks.TaskManager;
 import ai.javaclaw.tasks.TaskRepository;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 /**
  * Live integration tests for {@link TaskManager} task creation and

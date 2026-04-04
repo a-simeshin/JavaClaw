@@ -1,113 +1,123 @@
 # JavaClaw (Enterprise Fork)
 
-Форк [JavaClaw](https://github.com/jobrunr/JavaClaw) для создания enterprise-ready AI-агента на Java/Spring Boot.
+Fork of [JavaClaw](https://github.com/jobrunr/JavaClaw) for building an enterprise-ready AI agent on Java/Spring Boot.
 
-Цель — превратить single-user pet-project в масштабируемый сервис: много пользователей, ролевая модель, виртуальная FS в PostgreSQL, Streamable MCP, A2A, красивый React SPA вместо htmx.
+Goal — transform a single-user pet project into a scalable service: multi-user support, role-based access, virtual FS in a persistent database, Streamable MCP, A2A, and a polished React SPA instead of htmx.
 
-> Weekend coding project с серьёзными амбициями: затащить в большой enterprise.
+> Weekend coding project with serious ambitions: bring it into the enterprise.
 
-## Что уже есть (из оригинала)
+## What's Already Here (from the original)
 
 - Spring Boot 4 + Spring AI 2.0 + Spring Modulith
-- Agent loop с tool calling (Spring AI ChatClient)
+- Agent loop with tool calling (Spring AI ChatClient)
 - MCP Client (stdio + streamable HTTP)
-- JobRunr для фоновых задач и cron
-- Plugin-based каналы (Web, Telegram, Discord)
+- JobRunr for background tasks and cron
+- Plugin-based channels (Web, Telegram, Discord)
 - Workspace skills (runtime loading)
 
-## Что делаем
+## What We're Building
 
-Превращаем в enterprise-платформу. Полный каталог — в [specs/capabilities-catalog.md](specs/capabilities-catalog.md).
+Turning it into an enterprise platform. Full catalog — in [specs/capabilities-catalog.md](specs/capabilities-catalog.md).
 
 ## Roadmap
 
-Полная детализация — в [specs/roadmap.md](specs/roadmap.md).
+Full details — in [specs/roadmap.md](specs/roadmap.md).
 
-Методология: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
+Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 
-### Phase 0: Подготовка
-- Архитектурные решения (стек фронтенда, протокол streaming, API contract)
-- Чистка легаси (onboarding wizard, FileSystem memory, Playwright/Brave plugins)
+### Phase 0: Preparation
 
-### Phase 1: Фундамент данных
-- DB Schema + Flyway миграции
-- Virtual filesystem в PostgreSQL (замена файлов на диске)
+- Architectural decisions (frontend stack, streaming protocol, API contract)
+- Legacy cleanup (onboarding wizard, FileSystem memory, Playwright/Brave plugins)
+
+### Phase 1: Data Foundation
+
+- DB Schema + Flyway migrations
+- Virtual filesystem in PostgreSQL (replacing files on disk)
 - JDBC Chat Memory
-- Skills, MCP-серверы, Tasks — всё в БД
+- Skills, MCP servers, Tasks — all in DB
 
-### Phase 2: Агентное ядро
+### Phase 2: Agent Core
+
 - Agent loop + SSE streaming
-- System prompt из DB (AGENT.md + SOUL.md + USER_AGENT.md)
-- Agent environment (per-user контекст)
+- System prompt from DB (AGENT.md + SOUL.md + USER_AGENT.md)
+- Agent environment (per-user context)
 - Skill management tool
 
 ### Phase 3: REST API
+
 - OpenAPI contract
 - Chat API + SSE streaming
 - Files, Skills, MCP Servers API
 - Actuator + health checks
 
 ### Phase 4: Basic Auth
-- Spring Security + Basic Auth (admin/user из конфига)
-- Per-user изоляция диалогов и файлов
+
+- Spring Security + Basic Auth (admin/user from config)
+- Per-user isolation of dialogs and files
 
 ### Phase 5: React SPA
+
 - Vite + React 19 + TypeScript + TanStack Router
-- Chat UI с markdown, streaming, tool call visualization
+- Chat UI with markdown, streaming, tool call visualization
 - File manager, Admin UI, User workspace UI
 
 ### Phase 6: Docker
-- Production-ready образ (Jib)
+
+- Production-ready image (Jib)
 - Docker Compose (app + PostgreSQL)
 - Graceful shutdown, health checks
 
 > **=== P0 DONE ===**
 
-### Phase 7-12: P1 — Enterprise ядро
-- Users в БД, роли ADMIN/USER
-- Steering / interruption (коррекция агента на лету)
-- Dreamin (long-term memory а-ля Anthropic Memory)
-- FewShotExamples для GigaChat API
+### Phase 7-12: P1 — Enterprise Core
+
+- Users in DB, ADMIN/USER roles
+- Steering / interruption (correcting the agent on the fly)
+- Dreamin (long-term memory a la Anthropic Memory)
+- FewShotExamples for GigaChat API
 - MCP as server + A2A
 - Dark/light theme, config generator CLI, SQLite backend
 
-### Phase 13-16: P2 — Полный RBAC и масштаб
-- Гранулярные permissions, role hierarchy
+### Phase 13-16: P2 — Full RBAC and Scale
+
+- Granular permissions, role hierarchy
 - Skill/MCP access per role
 - Vector memory + hybrid retrieval
 - Multi-tenancy, horizontal scaling
 
 ### Phase 17+: P3-P5
-- Внешние каналы (Slack, Teams, Telegram...)
+
+- External channels (Slack, Teams, Telegram...)
 - OAuth2/OIDC/SSO
 - Voice, multimedia
 - GraalVM native
 
 ## Tech Stack (target)
 
-| Слой | Технология |
-|---|---|
-| Language | Java 21+ |
-| Framework | Spring Boot 4, Spring Modulith, Spring Security |
-| AI | Spring AI 2.0 (ChatClient, MCP Client, Observability) |
-| Frontend | React 19 + Vite + TanStack Router |
-| Database | PostgreSQL (primary), SQLite (dev/single-node) |
-| Migrations | Flyway |
-| Jobs | JobRunr |
-| Streaming | SSE / AG-UI |
-| Deploy | Docker (Jib), Docker Compose |
+|   Layer    |                       Technology                        |
+|------------|---------------------------------------------------------|
+| Language   | Java 21+                                                |
+| Framework  | Spring Boot 4, Spring Modulith, Spring Security         |
+| AI         | Spring AI 2.0 (ChatClient, MCP Client, Observability)  |
+| Frontend   | React 19 + Vite + TanStack Router                       |
+| Database   | PostgreSQL (primary), SQLite (dev/single-node)          |
+| Migrations | Flyway                                                  |
+| Jobs       | JobRunr                                                 |
+| Streaming  | SSE / AG-UI                                             |
+| Deploy     | Docker (Jib), Docker Compose                            |
 
-## Быстрый старт
+## Quick Start
 
 ```bash
-# Поднять PostgreSQL
+# Start PostgreSQL
 docker compose -f docker-compose.dev.yml up -d
 
-# Запустить приложение
+# Run the application
 ./gradlew :app:bootRun
 ```
 
-## Структура проекта
+## Project Structure
 
 ```
 JavaClaw/
@@ -115,20 +125,20 @@ JavaClaw/
 ├── app/            # Spring Boot entry, web chat, API
 ├── plugins/        # Channel plugins (Discord, Telegram)
 ├── providers/      # LLM providers (OpenAI, Anthropic, Ollama, Google)
-├── specs/          # Спецификации, roadmap, каталоги возможностей
+├── specs/          # Specifications, roadmap, capability catalogs
 └── .claude/        # Claude Code: skills, templates, references, hooks
 ```
 
-## Спецификации
+## Specifications
 
-| Документ | Описание |
-|---|---|
-| [capabilities-catalog.md](specs/capabilities-catalog.md) | Полный каталог возможностей (~130 пунктов) с приоритетами P0-P5 |
-| [roadmap.md](specs/roadmap.md) | Детальный roadmap с очерёдностью и зависимостями |
-| [skills-catalog.md](specs/skills-catalog.md) | Каталог скиллов из экосистемы Claw |
-| [feature-matrix-and-priorities.md](specs/feature-matrix-and-priorities.md) | Сравнительная матрица OpenClaw/NullClaw/PicoClaw/JavaClaw |
+|                              Document                               |                           Description                           |
+|---------------------------------------------------------------------|-----------------------------------------------------------------|
+| [capabilities-catalog.md](specs/capabilities-catalog.md)            | Full capability catalog (~130 items) with P0-P5 priorities      |
+| [roadmap.md](specs/roadmap.md)                                      | Detailed roadmap with sequencing and dependencies               |
+| [skills-catalog.md](specs/skills-catalog.md)                        | Skills catalog from the Claw ecosystem                          |
+| [feature-matrix-and-priorities.md](specs/feature-matrix-and-priorities.md) | Comparison matrix: OpenClaw/NullClaw/PicoClaw/JavaClaw   |
 
-## Тесты
+## Tests
 
 ```bash
 ./gradlew test

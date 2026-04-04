@@ -1,16 +1,15 @@
 package org.springframework.ai.chat.memory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageWindowChatMemoryTest {
 
@@ -64,10 +63,7 @@ class MessageWindowChatMemoryTest {
 
     @Test
     void getReturnsAllMessagesWhenBelowMaxMessages() {
-        memory.add(CONVERSATION_ID, List.of(
-                new UserMessage("hello"),
-                new AssistantMessage("hi")
-        ));
+        memory.add(CONVERSATION_ID, List.of(new UserMessage("hello"), new AssistantMessage("hi")));
 
         List<Message> result = memory.get(CONVERSATION_ID);
 

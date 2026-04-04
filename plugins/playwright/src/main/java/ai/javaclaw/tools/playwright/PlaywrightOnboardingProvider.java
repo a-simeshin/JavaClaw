@@ -2,12 +2,11 @@ package ai.javaclaw.tools.playwright;
 
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.OnboardingProvider;
+import java.io.IOException;
+import java.util.Map;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Map;
 
 @Component
 @Order(60)
@@ -22,21 +21,29 @@ public class PlaywrightOnboardingProvider implements OnboardingProvider {
     }
 
     @Override
-    public boolean isOptional() {return true;}
+    public boolean isOptional() {
+        return true;
+    }
 
     @Override
-    public String getStepId() {return "playwright";}
+    public String getStepId() {
+        return "playwright";
+    }
 
     @Override
-    public String getStepTitle() {return "Browser Automation";}
+    public String getStepTitle() {
+        return "Browser Automation";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/playwright";}
+    public String getTemplatePath() {
+        return "onboarding/steps/playwright";
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
-        String enabled = (String) session.getOrDefault(SESSION_ENABLED,
-                env.getProperty("agent.tools.playwright.enabled", "false"));
+        String enabled = (String)
+                session.getOrDefault(SESSION_ENABLED, env.getProperty("agent.tools.playwright.enabled", "false"));
         model.put("playwrightEnabled", "true".equals(enabled));
     }
 
@@ -48,12 +55,11 @@ public class PlaywrightOnboardingProvider implements OnboardingProvider {
     }
 
     @Override
-    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws IOException {
+    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws IOException {
         String enabled = (String) session.getOrDefault(SESSION_ENABLED, "false");
         if ("true".equals(enabled)) {
-            configurationManager.updateProperties(Map.of(
-                    "agent.tools.playwright.enabled", true
-            ));
+            configurationManager.updateProperties(Map.of("agent.tools.playwright.enabled", true));
         }
     }
 }

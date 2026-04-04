@@ -1,159 +1,163 @@
 ---
+
 name: openspec-new-spec
-description: Создать полную спецификацию сервиса по шаблону. Используй, когда нужно задокументировать новый или существующий сервис по шаблону service-spec.md.
+description: Create a full service specification from template. Use when you need to document a new or existing service using the service-spec.md template.
 license: MIT
 metadata:
-  author: openspec-distillate
-  version: "3.0"
+author: openspec-distillate
+version: "3.0"
+--------------
+
+Create a full service specification — for a new or existing service.
+
+Read the specification template and common requirements, then generate a complete specification.
+
 ---
 
-Создать полную спецификацию сервиса — нового или существующего.
-
-Прочитаю шаблон спецификации и общие требования, затем сгенерирую полную спецификацию.
-
----
-
-**Input**: Название сервиса и описание, или просто название, если пользователь хочет описать интерактивно.
+**Input**: Service name and description, or just a name if the user wants to describe it interactively.
 
 **Steps**
 
-1. **Этап 1: Интервью по задаче — понять ЧТО за сервис**
+1. **Phase 1: Task Interview — understand WHAT the service is**
 
-   **НЕ создавай спецификацию после одного вопроса.** Сначала разберись в самом сервисе, без привязки к коду.
+   **DO NOT create a specification after a single question.** First understand the service itself, without tying it to code.
 
-   Начни с открытого вопроса:
-   > "Какой сервис нужно документировать? Опишите его назначение и ключевые функции."
+   Start with an open question:
 
-   Затем задавай уточняющие вопросы по сути сервиса:
-   - **Назначение**: "Кто потребители этого сервиса? Какую задачу он решает для бизнеса?"
-   - **Функции**: "Какие ключевые операции выполняет? Что самое важное?"
-   - **Контекст**: "Где этот сервис в общей архитектуре? Часть платформы, standalone?"
-   - **Надёжность**: "Какие SLA? Что происходит при недоступности зависимостей?"
+   > "What service needs to be documented? Describe its purpose and key functions."
 
-   **Правила этапа 1:**
-   - Задавай вопросы порциями по 2–3, не заваливай стеной
-   - Адаптируйся к ответам — если пользователь описал подробно, не переспрашивай очевидное
-   - Если ответ неполный — копай глубже
-   - **НЕ ПЕРЕХОДИ к этапу 2, пока назначение и контекст сервиса не ясны**
-   - Когда суть понятна — подведи итог и получи подтверждение
+   Then ask clarifying questions about the service's essence:
+   - **Purpose**: "Who are the consumers of this service? What business problem does it solve?"
+   - **Functions**: "What key operations does it perform? What's most important?"
+   - **Context**: "Where does this service fit in the overall architecture? Part of a platform, standalone?"
+   - **Reliability**: "What SLAs apply? What happens when dependencies are unavailable?"
 
-   Из описания выведи kebab-case имя.
+   **Phase 1 rules:**
+   - Ask questions in batches of 2–3, don't overwhelm with a wall of text
+   - Adapt to answers — if the user described in detail, don't re-ask the obvious
+   - If an answer is incomplete — dig deeper
+   - **DO NOT proceed to Phase 2 until the service's purpose and context are clear**
+   - When the essence is understood — summarize and get confirmation
 
-2. **Изучи код и существующие спецификации**
+   Derive a kebab-case name from the description.
 
-   Прочитай шаблон спецификации — поставляется с плагином: `templates/service-spec.md` (в корне директории плагина, рядом с `skills/`).
-   Определи путь к шаблону по пути этого SKILL.md — поднимись на два уровня вверх и найди `templates/service-spec.md`.
-   Если шаблон в проекте (`openspec/schemas/analyst-driven/templates/service-spec.md`) тоже есть — используй проектный, он имеет приоритет.
+2. **Study code and existing specifications**
 
-   Также изучи:
-   - Код сервиса — контроллеры, сервисы, сущности, конфиги
-   - 1–2 существующие спецификации из `openspec/specs/` как образец стиля (если есть)
+   Read the specification template — shipped with the plugin: `templates/service-spec.md` (in the plugin's root directory, next to `skills/`).
+   Determine the template path from this SKILL.md's path — go up two levels and find `templates/service-spec.md`.
+   If the template also exists in the project (`openspec/schemas/analyst-driven/templates/service-spec.md`) — use the project one, it takes priority.
 
-   **Справочные материалы** (поставляются с плагином в `references/`, рядом с `skills/`):
-   - `references/common-requirements.md` — стандарты логирования (уровни ERROR/WARN/INFO/DEBUG/TRACE), коды ошибок с зарезервированными диапазонами, RFC 7807 формат, маппинг HTTP-статусов
-   - `references/analytics-rules.md` — правила оформления документации
-   - `references/terms-and-abbreviations.md` — терминология
+   Also study:
+   - Service code — controllers, services, entities, configs
+   - 1–2 existing specifications from `openspec/specs/` as a style reference (if any)
 
-   **Анализ кода — используй лучшие доступные инструменты:**
+   **Reference materials** (shipped with the plugin in `references/`, next to `skills/`):
+   - `references/common-requirements.md` — logging standards (ERROR/WARN/INFO/DEBUG/TRACE levels), error codes with reserved ranges, RFC 7807 format, HTTP status mapping
+   - `references/analytics-rules.md` — documentation formatting rules
+   - `references/terms-and-abbreviations.md` — terminology
 
-   Проверь, какие инструменты анализа кода доступны, и используй наиболее эффективный из них (в порядке приоритета):
-   1. **Serena** (MCP) — `find_symbol`, `get_symbols_overview`, `find_referencing_symbols` — семантический анализ, навигация по символам, поиск зависимостей
-   2. **LSP-инструменты** — go-to-definition, find-references, workspace symbols — если доступен языковой сервер
-   3. **Code index / embeddings** — семантический поиск по кодовой базе
-   4. **Любые другие MCP-серверы или инструменты** для анализа кода, навигации, индексации — если доступны, используй
-   5. **Grep/Glob** — текстовый поиск как последний вариант
+   **Code analysis — use the best available tools:**
 
-   Не ограничивайся чтением отдельных файлов — строй полную картину: все эндпоинты, все сущности, все интеграции, все конфиг-параметры.
+   Check which code analysis tools are available and use the most effective one (in priority order):
+   1. **Serena** (MCP) — `find_symbol`, `get_symbols_overview`, `find_referencing_symbols` — semantic analysis, symbol navigation, dependency search
+   2. **LSP tools** — go-to-definition, find-references, workspace symbols — if a language server is available
+   3. **Code index / embeddings** — semantic codebase search
+   4. **Any other MCP servers or tools** for code analysis, navigation, indexing — if available, use them
+   5. **Grep/Glob** — text search as a last resort
 
-3. **Этап 2: Интервью по деталям — КАК устроен сервис**
+   Don't limit yourself to reading individual files — build a complete picture: all endpoints, all entities, all integrations, all config parameters.
 
-   Теперь, зная назначение сервиса И изучив его код, задавай вопросы по конкретным деталям:
-   - **API**: "Я вижу эндпоинты X, Y, Z в коде. Все актуальны? Есть ли незадокументированные?"
-   - **Бизнес-логика**: "В коде я нашёл правило X. Это верно? Есть граничные случаи, исключения?"
-   - **Интеграции**: "Сервис вызывает A и B. Это полный список? Как обрабатываются ошибки вызовов?"
-   - **Данные**: "Вижу сущности X, Y. Какие связи между ними? Есть ли кэширование?"
-   - **Авторизация**: "Какие роли имеют доступ? Есть ли ограничения по данным?"
-   - **Конфигурация**: "Вижу параметры X, Y в конфиге. Все документировать? Есть ли feature-флаги?"
+3. **Phase 2: Detail Interview — HOW the service works**
 
-   **Правила этапа 2:**
-   - Привязывай вопросы к конкретике из кода — "Я вижу в коде X. Это актуально?"
-   - Если нашёл несоответствия или неочевидную логику — уточни
-   - **НЕ ПЕРЕХОДИ к созданию файла, пока остаются неточности, неясности или недосказанности**
-   - Когда все детали разобраны — подведи итог ВСЕХ собранных данных и явно спроси: "Всё ли учтено? Есть ли что-то, что я упустил?"
-   - Только после подтверждения пользователя — переходи к созданию спецификации
-   - Если пользователь при подтверждении добавляет новые детали — обработай их и снова подведи итог
+   Now, knowing the service's purpose AND having studied its code, ask questions about specific details:
+   - **API**: "I see endpoints X, Y, Z in the code. Are all current? Any undocumented ones?"
+   - **Business logic**: "In the code I found rule X. Is this correct? Are there edge cases, exceptions?"
+   - **Integrations**: "The service calls A and B. Is that the full list? How are call errors handled?"
+   - **Data**: "I see entities X, Y. What are the relationships? Is there caching?"
+   - **Authorization**: "Which roles have access? Are there data-level restrictions?"
+   - **Configuration**: "I see parameters X, Y in config. Document all? Are there feature flags?"
 
-4. **Создай директорию и спецификацию**
+   **Phase 2 rules:**
+   - Tie questions to specifics from the code — "I see X in the code. Is this current?"
+   - If you found inconsistencies or non-obvious logic — clarify
+   - **DO NOT proceed to file creation while inaccuracies, ambiguities, or gaps remain**
+   - When all details are covered — summarize ALL collected data and explicitly ask: "Is everything accounted for? Is there anything I missed?"
+   - Only after user confirmation — proceed to creating the specification
+   - If the user adds new details during confirmation — process them and summarize again
+
+4. **Create directory and specification**
+
    ```bash
    mkdir -p openspec/specs/<service-name>
    ```
 
-   Заполни структуру реальными данными на основе описания пользователя:
-   - Если используешь шаблон — удали ВСЕ HTML-комментарии (`<!-- -->`)
-   - Заполни ВСЕ разделы реальным содержимым, без плейсхолдеров. Если раздел не применим (например, мониторинг для прототипа) — напиши: "Не определено на текущем этапе. Будет добавлено при подготовке к production."
-   - Бизнес-правила в формате ЕСЛИ/ТОГДА/ИНАЧЕ (примеры есть в шаблоне)
-   - Рекомендации к критериям приёмки в формате КОГДА/ТОГДА (примеры есть в шаблоне)
+   Fill the structure with real data based on user description:
+   - If using the template — remove ALL HTML comments (`<!-- -->`)
+   - Fill ALL sections with real content, no placeholders. If a section is not applicable (e.g., monitoring for a prototype) — write: "Not defined at current stage. Will be added during production preparation."
+   - Business rules in IF/THEN/ELSE format (examples are in the template)
+   - Acceptance criteria recommendations in WHEN/THEN format (examples are in the template)
 
-   **Уровни обязательности требований:**
-   - ДОЛЖЕН / ОБЯЗАН — обязательно, система не работает без этого
-   - СЛЕДУЕТ — рекомендуется, но допускается отступление с обоснованием
-   - МОЖЕТ — опционально
+   **Requirement obligation levels:**
+   - MUST / SHALL — mandatory, system does not work without it
+   - SHOULD — recommended, but deviation is allowed with justification
+   - MAY — optional
 
-   Запиши в: `openspec/specs/<service-name>/<service-name>.md`
+   Write to: `openspec/specs/<service-name>/<service-name>.md`
 
-   **ВНИМАНИЕ: большие файлы.** Спецификация может получиться очень объёмной (300+ строк). Если файл большой — записывай его по частям (раздел за разделом), чтобы не потерять контент из-за ограничений контекстного окна. Предупреди пользователя: "Спецификация объёмная, записываю по частям."
+   **WARNING: large files.** The specification may be very large (300+ lines). If the file is large — write it in parts (section by section) to avoid losing content due to context window limitations. Warn the user: "Specification is large, writing in parts."
 
-5. **Ревью в субагенте**
+5. **Review in subagent**
 
-   После создания файла запусти ревью. Если доступен Agent tool — запусти **отдельный субагент**. Если нет — проведи ревью самостоятельно по чеклисту ниже.
+   After creating the file, run a review. If the Agent tool is available — launch a **separate subagent**. If not — perform the review yourself using the checklist below.
 
-   Промпт для субагента:
-   > Проведи ревью файла `openspec/specs/<service-name>/<service-name>.md`.
-   > Прочитай спецификацию и код сервиса (контроллеры, сервисы, сущности, конфиги).
-   > Проверь:
-   > 1. **Полнота** — все ли функции сервиса из кода отражены в спецификации? Нет ли пропущенных эндпоинтов, сущностей, интеграций?
-   > 2. **Точность** — соответствуют ли описания реальному коду? Нет ли расхождений в названиях полей, типах, бизнес-логике?
-   > 3. **Непротиворечивость** — нет ли конфликтов между разделами внутри спецификации?
-   > 4. **Конкретность** — нет ли размытых формулировок, плейсхолдеров, TODO?
-   > 5. **Структура** — все ли обязательные разделы присутствуют и заполнены?
-   > Верни список найденных проблем или "Ревью пройдено, замечаний нет".
+   Subagent prompt:
 
-   **Если субагент нашёл проблемы** — исправь спецификацию и сообщи пользователю, что было исправлено.
+   > Review file `openspec/specs/<service-name>/<service-name>.md`.
+   > Read the specification and service code (controllers, services, entities, configs).
+   > Check:
+   > 1. **Completeness** — are all service functions from the code reflected in the specification? Are there missing endpoints, entities, integrations?
+   > 2. **Accuracy** — do descriptions match the actual code? Are there discrepancies in field names, types, business logic?
+   > 3. **Consistency** — are there conflicts between sections within the specification?
+   > 4. **Specificity** — are there vague formulations, placeholders, TODOs?
+   > 5. **Structure** — are all required sections present and filled?
+   > Return a list of found issues or "Review passed, no issues found".
+
+   **If the subagent found issues** — fix the specification and inform the user what was corrected.
 
 **Output**
 
-После создания и ревью покажи:
-- Название сервиса и путь к файлу
-- Список сгенерированных разделов
-- Ключевые задокументированные интеграции
-- Результат ревью (замечания и исправления, если были)
-- Подсказка: "Спецификация готова. Для внесения изменений используйте `/opsx:propose`"
+After creation and review, show:
+- Service name and file path
+- List of generated sections
+- Key documented integrations
+- Review results (issues and corrections, if any)
+- Hint: "Specification is ready. To make changes, use `/opsx:propose`"
 
 **Guardrails**
 
-**КРИТИЧНО — роль документа:**
-- Спецификация — это документ СИСТЕМНОГО АНАЛИТИКА, а не разработчика
-- Описывай ЧТО сервис делает, КАК себя ведёт, КАКИЕ данные принимает/отдаёт — но НИКОГДА не пиши КАК реализовать В КОДЕ
-- **ЗАПРЕЩЕНО включать в спецификацию:**
-  - Код на любом языке (Java, Python и т.д.)
-  - Реализацию методов, классов, функций
-  - Unit-тесты, integration-тесты, тестовый код
-  - Конкретные алгоритмические решения (это задача разработчика)
-- **ПРАВИЛЬНО:**
-  - Бизнес-правила в формате ЕСЛИ/ТОГДА/ИНАЧЕ (без кода)
-  - Модели данных как таблицы полей (имя, тип, обязательность, пример значения, описание)
-  - API как описание эндпоинтов (метод, путь, request/response JSON-схема)
-  - Интеграции как описание взаимодействий (протокол, формат, таймаут, retry-политика)
-  - Рекомендации к критериям приёмки в формате КОГДА/ТОГДА (без тестового кода)
-  - Конфигурация как таблица параметров (имя, тип, default, описание)
-- SQL допустим ТОЛЬКО как рекомендации по DDL/DML (CREATE TABLE, ALTER TABLE) для описания структуры данных
-- JSON-schema, Protobuf-определения, Avro-схемы допустимы для описания моделей данных
-- Код приложения (Java, Python, Go и т.д.) ЗАПРЕЩЁН полностью
+**CRITICAL — document role:**
+- The specification is a SYSTEMS ANALYST document, not a developer document
+- Describe WHAT the service does, HOW it behaves, WHAT data it accepts/returns — but NEVER write HOW to implement IN CODE
+- **PROHIBITED in specifications:**
+- Code in any language (Java, Python, etc.)
+- Method, class, or function implementations
+- Unit tests, integration tests, test code
+- Specific algorithmic solutions (that's the developer's job)
+- **CORRECT:**
+- Business rules in IF/THEN/ELSE format (without code)
+- Data models as field tables (name, type, required, example value, description)
+- API as endpoint descriptions (method, path, request/response JSON schema)
+- Integrations as interaction descriptions (protocol, format, timeout, retry policy)
+- Acceptance criteria recommendations in WHEN/THEN format (without test code)
+- Configuration as parameter tables (name, type, default, description)
+- SQL is allowed ONLY as DDL/DML recommendations (CREATE TABLE, ALTER TABLE) for describing data structure
+- JSON-schema, Protobuf definitions, Avro schemas are allowed for describing data models
+- Application code (Java, Python, Go, etc.) is COMPLETELY PROHIBITED
 
-**Процесс:**
-- НИКОГДА не создавай спецификацию, пока остаются неясности — проведи полноценное интервью до полной ясности
-- Перед созданием файла подведи итог ВСЕХ данных о сервисе и получи явное подтверждение пользователя
-- ВСЕГДА читай шаблон из директории плагина — он поставляется вместе со скиллами
-- Удали ВСЕ HTML-комментарии из результата
-- Каждый раздел должен содержать реальный контент — никаких остатков `<!-- placeholder -->`
-- Проверь, что файл существует после записи
+**Process:**
+- NEVER create a specification while ambiguities remain — conduct a full interview until complete clarity
+- Before creating the file, summarize ALL data about the service and get explicit user confirmation
+- ALWAYS read the template from the plugin directory — it ships with the skills
+- Remove ALL HTML comments from the result
+- Every section must contain real content — no leftover `<!-- placeholder -->`
+- Verify the file exists after writing

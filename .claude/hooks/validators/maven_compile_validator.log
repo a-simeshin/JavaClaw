@@ -1,0 +1,194 @@
+2026-04-04 13:39:08,602 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/Task.java
+2026-04-04 13:39:08,602 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:16,331 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTask.java
+2026-04-04 13:39:16,332 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:22,400 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskRepository.java
+2026-04-04 13:39:22,400 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:26,952 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskRepository.java
+2026-04-04 13:39:26,952 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:34,769 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskIdGeneratorCallback.java
+2026-04-04 13:39:34,769 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:38,880 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:38,880 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:40,113 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskIdGeneratorCallback.java
+2026-04-04 13:39:40,113 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:43,258 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:43,259 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:55,325 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:39:55,325 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:58,677 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:39:58,677 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:04,184 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:40:04,184 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:11,822 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskHandler.java
+2026-04-04 13:40:11,823 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:17,757 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskNotFoundException.java
+2026-04-04 13:40:17,757 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:59,106 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:40:59,106 - INFO - No pom.xml found, skipping
+2026-04-04 13:41:06,689 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskManagerTest.java
+2026-04-04 13:41:06,690 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:32,654 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/channels/ChannelRegistry.java
+2026-04-04 13:45:32,654 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:41,225 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:41,225 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:51,133 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:51,133 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:59,995 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:59,995 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:09,008 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:46:09,008 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:23,174 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:23,175 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:31,998 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:31,998 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:32,428 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskTest.java
+2026-04-04 13:50:32,429 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:39,194 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/channels/ChannelRegistryTest.java
+2026-04-04 13:50:39,195 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:54,793 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 13:50:54,794 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:20,529 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 13:51:20,529 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:26,743 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 13:51:26,745 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:24,981 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 13:56:24,981 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:46,250 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 13:56:46,250 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:55,871 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 13:56:55,872 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:17,454 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 13:57:17,454 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:21,499 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 13:57:21,499 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:32,503 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/AgentLiveTest.java
+2026-04-04 13:57:32,504 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:35,388 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 13:57:35,388 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:45,541 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/TaskLiveTest.java
+2026-04-04 13:57:45,542 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:55,040 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 13:57:55,041 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:59,772 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 13:57:59,772 - INFO - No pom.xml found, skipping
+2026-04-04 13:58:14,556 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 13:58:14,557 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:13,506 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 14:15:13,507 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:24,473 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:24,473 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:30,602 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:30,602 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:35,821 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:35,821 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:40,720 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:40,720 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:24,323 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:24,324 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:51,868 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:51,869 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:20,501 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:20,502 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:25,868 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:25,869 - INFO - No pom.xml found, skipping
+2026-04-04 15:25:06,387 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 15:25:06,387 - INFO - No pom.xml found, skipping
+2026-04-04 15:26:10,073 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/TestApplication.java
+2026-04-04 15:26:10,074 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:27,222 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:27:27,223 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:36,701 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:27:36,701 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:03,899 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:28:03,900 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:11,719 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:28:11,719 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:44,150 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:36:44,151 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:51,578 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 15:36:51,579 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:04,814 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 15:37:04,814 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:30,294 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:37:30,294 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:51,860 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:37:51,861 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:09,481 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:38:09,481 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:23,543 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:38:23,543 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:36,991 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:41:36,991 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:55,523 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:41:55,523 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:18,990 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:42:18,991 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:32,484 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:42:32,484 - INFO - No pom.xml found, skipping
+2026-04-04 15:45:05,271 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/DiagnosticE2ETest.java
+2026-04-04 15:45:05,271 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:27,766 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:46:27,767 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:48,168 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:46:48,169 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:07,227 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:47:07,228 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:21,325 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:47:21,326 - INFO - No pom.xml found, skipping
+2026-04-04 15:52:11,781 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:52:11,782 - INFO - No pom.xml found, skipping
+2026-04-04 15:56:36,352 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:56:36,353 - INFO - No pom.xml found, skipping
+2026-04-04 16:09:02,554 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:09:02,554 - INFO - No pom.xml found, skipping
+2026-04-04 16:19:45,840 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:19:45,840 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:03,575 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:20:03,576 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:09,731 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:09,731 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:14,259 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:14,259 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:05,615 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatHtml.java
+2026-04-04 16:35:05,616 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:13,982 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatChannel.java
+2026-04-04 16:35:13,983 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:26,228 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ws/ChatWebSocketHandler.java
+2026-04-04 16:35:26,229 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:34,496 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:34,497 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:43,125 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:43,125 - INFO - No pom.xml found, skipping
+2026-04-04 19:28:46,206 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:28:46,207 - INFO - Skipping non-Java file
+2026-04-04 19:30:00,895 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/pom.xml
+2026-04-04 19:30:00,896 - INFO - Skipping non-Java file
+2026-04-04 19:30:04,607 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/anthropic/pom.xml
+2026-04-04 19:30:04,607 - INFO - Skipping non-Java file
+2026-04-04 19:30:07,890 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/google/pom.xml
+2026-04-04 19:30:07,890 - INFO - Skipping non-Java file
+2026-04-04 19:30:12,048 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/ollama/pom.xml
+2026-04-04 19:30:12,049 - INFO - Skipping non-Java file
+2026-04-04 19:30:15,902 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/openai/pom.xml
+2026-04-04 19:30:15,903 - INFO - Skipping non-Java file
+2026-04-04 19:30:19,858 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/discord/pom.xml
+2026-04-04 19:30:19,858 - INFO - Skipping non-Java file
+2026-04-04 19:30:24,834 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/telegram/pom.xml
+2026-04-04 19:30:24,835 - INFO - Skipping non-Java file
+2026-04-04 19:30:28,897 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/playwright/pom.xml
+2026-04-04 19:30:28,897 - INFO - Skipping non-Java file
+2026-04-04 19:30:33,449 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/brave/pom.xml
+2026-04-04 19:30:33,449 - INFO - Skipping non-Java file
+2026-04-04 19:37:49,697 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:37:49,697 - INFO - Skipping non-Java file
+2026-04-04 19:37:57,065 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:37:57,065 - INFO - Skipping non-Java file
+2026-04-04 19:39:43,271 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/pom.xml
+2026-04-04 19:39:43,271 - INFO - Skipping non-Java file
+2026-04-04 19:47:36,738 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:36,738 - INFO - Skipping non-Java file
+2026-04-04 19:47:51,943 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:51,943 - INFO - Skipping non-Java file
+2026-04-04 19:47:57,620 - INFO - Maven compile validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:57,620 - INFO - Skipping non-Java file

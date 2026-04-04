@@ -1,36 +1,37 @@
 ---
+
 description: Creates a concise engineering implementation plan based on user requirements and saves it to specs directory
 argument-hint: [user prompt] [orchestration prompt]
 model: opus
 disallowed-tools: EnterPlanMode
 hooks:
-  Stop:
-    - hooks:
-        - type: command
-          command: >-
-            uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_new_file.py
-            --directory specs
-            --extension .md
-        - type: command
-          command: >-
-            uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_file_contains.py
-            --directory specs
-            --extension .md
-            --contains '## Task Description'
-            --contains '## Objective'
-            --contains '## Relevant Files'
-            --contains '## Step by Step Tasks'
-            --contains '## Testing Strategy'
-            --contains '## Acceptance Criteria'
-            --contains '## Team Orchestration'
-            --contains '### Team Members'
-        - type: command
-          command: >-
-            uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_plan.py
-            --directory specs
-            --extension .md
-            --team-dir $CLAUDE_PROJECT_DIR/.claude/agents/team
----
+Stop:
+- hooks:
+- type: command
+command: >-
+uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_new_file.py
+--directory specs
+--extension .md
+- type: command
+command: >-
+uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_file_contains.py
+--directory specs
+--extension .md
+--contains '## Task Description'
+--contains '## Objective'
+--contains '## Relevant Files'
+--contains '## Step by Step Tasks'
+--contains '## Testing Strategy'
+--contains '## Acceptance Criteria'
+--contains '## Team Orchestration'
+--contains '### Team Members'
+- type: command
+command: >-
+uv run $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validate_plan.py
+--directory specs
+--extension .md
+--team-dir $CLAUDE_PROJECT_DIR/.claude/agents/team
+--------------------------------------------------
 
 # Plan With Team
 
@@ -73,30 +74,30 @@ GENERAL_PURPOSE_AGENT: `general-purpose`
 
 Pick keywords from the **Trigger keywords** column. Each keyword you include loads the corresponding section into the builder's context.
 
-| Section | Trigger keywords | Add when task involves |
-|---------|-----------------|----------------------|
-| **Java** | | |
-| `java-patterns#basics` | `java`, `spring`, `controller`, `entity`, `jpa`, `maven`, `lombok` | Any Java/Spring Boot code |
-| `java-patterns#errors` | `exception`, `error handling`, `controlleradvice`, `404`, `400`, `500` | Exception classes, @ControllerAdvice, HTTP error responses |
-| `java-patterns#java17` | `record`, `pattern matching`, `switch expression`, `text block`, `sealed` | Java 17 language features |
-| `java-patterns#java21` | `virtual thread`, `sequenced collection` | Java 21 language features |
-| **Java Testing** | | |
-| `java-testing#structure` | `assertj`, `allure`, `test naming`, `test structure` | Test organization, naming, Allure annotations |
-| `java-testing#integration` | `testcontainers`, `integration test`, `podman` | Integration tests with containers |
-| `java-testing#http` | `mockmvc`, `resttemplate`, `http test` | HTTP/REST endpoint testing |
-| `java-testing#kafka` | `kafka test`, `consumer test`, `producer test` | Kafka integration testing |
-| `java-testing#jdbc` | `database test`, `repository test`, `jdbc test` | Database/repository testing |
-| `java-testing#mockito` | `mockito`, `spy` | Unit tests with mocking |
-| `java-testing#e2e` | `selenide`, `e2e`, `page object` | End-to-end browser testing |
-| `java-testing#maven` | `surefire`, `failsafe`, `jacoco` | Maven test plugins, coverage |
-| **React** | | |
-| `react-patterns#core` | `react`, `component`, `hook`, `useState`, `useEffect`, `tsx` | Any React code |
-| `react-patterns#nextjs` | `next.js`, `server component`, `app router`, `server action` | Next.js App Router features |
-| `react-patterns#vite` | `vite`, `react-router`, `code splitting` | Vite bundler, React Router |
-| **Python** | | |
-| `python-patterns#core` | `python`, `typing`, `dataclass`, `asyncio`, `pathlib` | Any Python code |
-| `python-patterns#fastapi` | `fastapi`, `pydantic`, `apirouter`, `depends`, `uvicorn` | FastAPI endpoints, Pydantic models |
-| `python-patterns#testing` | `pytest`, `fixture`, `parametrize`, `conftest`, `httpx` | Python testing |
+|          Section           |                             Trigger keywords                              |                   Add when task involves                   |
+|----------------------------|---------------------------------------------------------------------------|------------------------------------------------------------|
+| **Java**                   |                                                                           |                                                            |
+| `java-patterns#basics`     | `java`, `spring`, `controller`, `entity`, `jpa`, `maven`, `lombok`        | Any Java/Spring Boot code                                  |
+| `java-patterns#errors`     | `exception`, `error handling`, `controlleradvice`, `404`, `400`, `500`    | Exception classes, @ControllerAdvice, HTTP error responses |
+| `java-patterns#java17`     | `record`, `pattern matching`, `switch expression`, `text block`, `sealed` | Java 17 language features                                  |
+| `java-patterns#java21`     | `virtual thread`, `sequenced collection`                                  | Java 21 language features                                  |
+| **Java Testing**           |                                                                           |                                                            |
+| `java-testing#structure`   | `assertj`, `allure`, `test naming`, `test structure`                      | Test organization, naming, Allure annotations              |
+| `java-testing#integration` | `testcontainers`, `integration test`, `podman`                            | Integration tests with containers                          |
+| `java-testing#http`        | `mockmvc`, `resttemplate`, `http test`                                    | HTTP/REST endpoint testing                                 |
+| `java-testing#kafka`       | `kafka test`, `consumer test`, `producer test`                            | Kafka integration testing                                  |
+| `java-testing#jdbc`        | `database test`, `repository test`, `jdbc test`                           | Database/repository testing                                |
+| `java-testing#mockito`     | `mockito`, `spy`                                                          | Unit tests with mocking                                    |
+| `java-testing#e2e`         | `selenide`, `e2e`, `page object`                                          | End-to-end browser testing                                 |
+| `java-testing#maven`       | `surefire`, `failsafe`, `jacoco`                                          | Maven test plugins, coverage                               |
+| **React**                  |                                                                           |                                                            |
+| `react-patterns#core`      | `react`, `component`, `hook`, `useState`, `useEffect`, `tsx`              | Any React code                                             |
+| `react-patterns#nextjs`    | `next.js`, `server component`, `app router`, `server action`              | Next.js App Router features                                |
+| `react-patterns#vite`      | `vite`, `react-router`, `code splitting`                                  | Vite bundler, React Router                                 |
+| **Python**                 |                                                                           |                                                            |
+| `python-patterns#core`     | `python`, `typing`, `dataclass`, `asyncio`, `pathlib`                     | Any Python code                                            |
+| `python-patterns#fastapi`  | `fastapi`, `pydantic`, `apirouter`, `depends`, `uvicorn`                  | FastAPI endpoints, Pydantic models                         |
+| `python-patterns#testing`  | `pytest`, `fixture`, `parametrize`, `conftest`, `httpx`                   | Python testing                                             |
 
 ### Team Orchestration
 
@@ -105,6 +106,7 @@ As the team lead, you have access to powerful tools for coordinating work across
 #### Task Management Tools
 
 **TaskCreate** - Create tasks in the shared task list:
+
 ```typescript
 TaskCreate({
   subject: "Implement user authentication",
@@ -115,6 +117,7 @@ TaskCreate({
 ```
 
 **TaskUpdate** - Update task status, assignment, or dependencies:
+
 ```typescript
 TaskUpdate({
   taskId: "1",
@@ -124,12 +127,14 @@ TaskUpdate({
 ```
 
 **TaskList** - View all tasks and their status:
+
 ```typescript
 TaskList({})
 // Returns: Array of tasks with id, subject, status, owner, blockedBy
 ```
 
 **TaskGet** - Get full details of a specific task:
+
 ```typescript
 TaskGet({ taskId: "1" })
 // Returns: Full task including description
@@ -154,6 +159,7 @@ TaskUpdate({
 ```
 
 Dependency chain example:
+
 ```
 Task 1: Setup foundation     → no dependencies
 Task 2: Implement feature    → blockedBy: ["1"]
@@ -179,12 +185,13 @@ TaskList({})  // Filter by owner to find assigned work
 #### Agent Deployment with Task Tool
 
 **Task** - Deploy an agent to do work:
+
 ```typescript
 Task({
   description: "Implement auth endpoints",
   prompt: "Implement the authentication endpoints as specified in Task 1...",
   subagent_type: "general-purpose",
-  model: "opus",  // or "opus" for complex work, "haiku" for VERY simple
+  model: "sonnet",  // default for all builders. Use "opus" only for architecture-level tasks, "haiku" for VERY simple
   run_in_background: false  // true for parallel execution
 })
 // Returns: agentId (e.g., "a1b2c3")
@@ -268,9 +275,11 @@ TaskOutput({
 IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a plan document.
 
 0. **Telegram Notification (if available)** — At key milestones, send Telegram updates. Only works if `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars are set. Use the utility:
+
    ```bash
    uv run .claude/hooks/utils/telegram_notify.py --level plan "📋 Planning started: <topic>"
    ```
+
    Send notifications at these points:
    - **Planning started** (level: `plan`)
    - **Interview questions** (level: `warning`) — so user knows input is needed
@@ -278,16 +287,21 @@ IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a pla
    - **Plan complete** (level: `success`)
 
 1. Analyze Requirements - Parse the USER_PROMPT to understand the core problem and desired outcome. If Serena MCP tools are available, call `read_memory` and `list_memories` to check for existing knowledge about related features or past decisions.
+
 2. **Explore OpenSpec (if available)** — Check if OpenSpec is initialized by running:
+
    ```bash
    openspec list --specs --json 2>/dev/null
    ```
+
    - If the command fails or returns empty → OpenSpec not installed/initialized. Skip with note: "OpenSpec not available — skipping spec exploration." Proceed directly to Interview Round 1.
    - If specs exist, extract keywords from USER_PROMPT and search for related specifications:
+
      ```bash
      openspec show <matching-spec> --json --requirements
      ```
    - Also check for active changes that might overlap:
+
      ```bash
      openspec list --changes --json 2>/dev/null
      ```
@@ -319,11 +333,13 @@ IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a pla
 12. **Plan Review** — Run structural validation and architectural review on the saved plan. This ensures plan quality BEFORE OpenSpec artifacts are generated.
 
     **Structural check:**
+
     ```bash
     uv run --script .claude/hooks/validators/validate_plan.py --file <plan-path> --team-dir .claude/agents/team
     ```
 
     **Content review** (spawn plan-reviewer agent):
+
     ```
     Task({
       subagent_type: "plan-reviewer",
@@ -337,6 +353,7 @@ IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a pla
 13. **OpenSpec Propose (if available)** — If OpenSpec is initialized (Step 2 succeeded), create OpenSpec change artifacts from the reviewed plan.
 
     Run the following to check availability:
+
     ```bash
     openspec list --specs --json 2>/dev/null
     ```
@@ -348,7 +365,9 @@ IMPORTANT: **PLANNING ONLY** - Do not execute, build, or deploy. Output is a pla
     - OpenSpec will create: `openspec/changes/<name>/` with proposal.md, specs/, design.md, tasks.md
 
     If OpenSpec is not available, skip with note: "OpenSpec not initialized — skipping artifact generation."
+
 14. Report - Follow the `Report` section to provide a summary of key components
+
 15. Record Knowledge (Serena only) - If Serena MCP tools are available, call `write_memory` with a summary of: what was planned, key architectural decisions, patterns chosen, and any tradeoffs resolved during interviews. Use the plan filename as memory name. If Serena is not available, skip this step.
 
 ## Plan Format
@@ -520,3 +539,4 @@ OpenSpec Change: openspec/changes/<name>/ (if created)
 When you're ready, you can execute the plan in a new agent by running:
 /smart_build <replace with path to plan>
 ```
+

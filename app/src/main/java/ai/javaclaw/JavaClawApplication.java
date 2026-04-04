@@ -23,8 +23,7 @@ public class JavaClawApplication {
     }
 
     @Component
-    static public class JavaClawApplicationMonitor implements ApplicationRunner {
-
+    public static class JavaClawApplicationMonitor implements ApplicationRunner {
 
         private final Environment environment;
 
@@ -38,14 +37,16 @@ public class JavaClawApplication {
             if (Boolean.parseBoolean(isConfigured)) {
                 log.info("JavaClaw is running and waiting for your commands!");
             } else {
-                log.info("JavaClaw is waiting to be configured! Navigate to http://localhost:{}/onboarding to start the onboarding wizard", environment.getProperty("local.server.port"));
+                log.info(
+                        "JavaClaw is waiting to be configured! Navigate to http://localhost:{}/onboarding to start the onboarding wizard",
+                        environment.getProperty("local.server.port"));
             }
         }
 
         @EventListener
         public void on(ConfigurationChangedEvent configurationChangedEvent) {
             ApplicationArguments args = applicationContext.getBean(ApplicationArguments.class);
-            
+
             Thread thread = new Thread(() -> {
                 try {
                     Thread.sleep(2000);

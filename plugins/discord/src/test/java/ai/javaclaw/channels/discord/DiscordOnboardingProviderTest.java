@@ -1,20 +1,19 @@
 package ai.javaclaw.channels.discord;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import ai.javaclaw.configuration.ConfigurationManager;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DiscordOnboardingProviderTest {
@@ -40,10 +39,11 @@ class DiscordOnboardingProviderTest {
         DiscordOnboardingProvider provider = new DiscordOnboardingProvider(environment);
         Map<String, Object> session = new HashMap<>();
 
-        String result = provider.processStep(Map.of(
-                "discordToken", " bot-token ",
-                "discordAllowedUser", "<@!123456789>"
-        ), session);
+        String result = provider.processStep(
+                Map.of(
+                        "discordToken", " bot-token ",
+                        "discordAllowedUser", "<@!123456789>"),
+                session);
 
         assertThat(result).isNull();
         assertThat(session).containsEntry(DiscordOnboardingProvider.SESSION_TOKEN, "bot-token");
@@ -54,10 +54,11 @@ class DiscordOnboardingProviderTest {
     void processStepReturnsErrorWhenRequiredValueIsMissing() {
         DiscordOnboardingProvider provider = new DiscordOnboardingProvider(environment);
 
-        String result = provider.processStep(Map.of(
-                "discordToken", "",
-                "discordAllowedUser", "123456789"
-        ), new HashMap<>());
+        String result = provider.processStep(
+                Map.of(
+                        "discordToken", "",
+                        "discordAllowedUser", "123456789"),
+                new HashMap<>());
 
         assertThat(result).isEqualTo("Enter the Discord bot token to continue.");
     }
@@ -67,8 +68,7 @@ class DiscordOnboardingProviderTest {
         DiscordOnboardingProvider provider = new DiscordOnboardingProvider(environment);
         Map<String, Object> session = Map.of(
                 DiscordOnboardingProvider.SESSION_TOKEN, "session-token",
-                DiscordOnboardingProvider.SESSION_ALLOWED_USER, "123456789"
-        );
+                DiscordOnboardingProvider.SESSION_ALLOWED_USER, "123456789");
         Map<String, Object> model = new HashMap<>();
 
         provider.prepareModel(session, model);
@@ -95,24 +95,21 @@ class DiscordOnboardingProviderTest {
         DiscordOnboardingProvider provider = new DiscordOnboardingProvider(environment);
         Map<String, Object> session = Map.of(
                 DiscordOnboardingProvider.SESSION_TOKEN, "token",
-                DiscordOnboardingProvider.SESSION_ALLOWED_USER, "123456789"
-        );
+                DiscordOnboardingProvider.SESSION_ALLOWED_USER, "123456789");
 
         provider.saveConfiguration(session, configurationManager);
 
-        verify(configurationManager).updateProperties(Map.of(
-                "agent.channels.discord.token", "token",
-                "agent.channels.discord.allowed-user", "123456789"
-        ));
+        verify(configurationManager)
+                .updateProperties(Map.of(
+                        "agent.channels.discord.token", "token",
+                        "agent.channels.discord.allowed-user", "123456789"));
     }
 
     @Test
     void saveConfigurationDoesNothingWhenSessionIsIncomplete() throws IOException {
         DiscordOnboardingProvider provider = new DiscordOnboardingProvider(environment);
 
-        provider.saveConfiguration(Map.of(
-                DiscordOnboardingProvider.SESSION_TOKEN, "token"
-        ), configurationManager);
+        provider.saveConfiguration(Map.of(DiscordOnboardingProvider.SESSION_TOKEN, "token"), configurationManager);
 
         verifyNoInteractions(configurationManager);
     }

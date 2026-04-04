@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
  * with {@code agent.onboarding.completed=false} and implement proper provider credential entry
  * matching the actual onboarding step templates.
  */
-@Disabled("Onboarding E2E requires a dedicated Spring context with onboarding.completed=false; " +
-        "the shared E2E profile pre-configures OpenRouter, making the onboarding wizard redundant.")
+@Disabled("Onboarding E2E requires a dedicated Spring context with onboarding.completed=false; "
+        + "the shared E2E profile pre-configures OpenRouter, making the onboarding wizard redundant.")
 class OnboardingE2ETest extends E2ETestBase {
 
     @Test

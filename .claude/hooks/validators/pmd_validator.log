@@ -1,0 +1,162 @@
+2026-04-04 13:39:08,656 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/Task.java
+2026-04-04 13:39:08,657 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:16,388 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTask.java
+2026-04-04 13:39:16,389 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:22,434 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskRepository.java
+2026-04-04 13:39:22,434 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:26,985 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskRepository.java
+2026-04-04 13:39:26,985 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:34,801 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskIdGeneratorCallback.java
+2026-04-04 13:39:34,802 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:38,912 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:38,912 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:40,144 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskIdGeneratorCallback.java
+2026-04-04 13:39:40,145 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:43,290 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:43,290 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:55,359 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:39:55,359 - INFO - No pom.xml found, skipping
+2026-04-04 13:39:58,709 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:39:58,709 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:04,216 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:40:04,217 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:11,854 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskHandler.java
+2026-04-04 13:40:11,854 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:17,815 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskNotFoundException.java
+2026-04-04 13:40:17,816 - INFO - No pom.xml found, skipping
+2026-04-04 13:40:59,144 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:40:59,144 - INFO - No pom.xml found, skipping
+2026-04-04 13:41:06,786 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskManagerTest.java
+2026-04-04 13:41:06,786 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:32,691 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/channels/ChannelRegistry.java
+2026-04-04 13:45:32,692 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:41,260 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:41,260 - INFO - No pom.xml found, skipping
+2026-04-04 13:45:51,170 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:51,171 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:00,031 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:46:00,031 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:09,050 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:46:09,050 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:23,211 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:23,211 - INFO - No pom.xml found, skipping
+2026-04-04 13:46:32,033 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:32,033 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:32,524 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskTest.java
+2026-04-04 13:50:32,524 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:39,262 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/channels/ChannelRegistryTest.java
+2026-04-04 13:50:39,262 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:54,863 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 13:50:54,863 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:20,601 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 13:51:20,602 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:26,810 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 13:51:26,811 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:25,014 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 13:56:25,014 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:46,320 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 13:56:46,320 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:55,903 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 13:56:55,904 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:17,523 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 13:57:17,523 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:21,531 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 13:57:21,531 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:32,568 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/AgentLiveTest.java
+2026-04-04 13:57:32,568 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:35,451 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 13:57:35,451 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:45,609 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/TaskLiveTest.java
+2026-04-04 13:57:45,609 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:55,102 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 13:57:55,103 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:59,834 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 13:57:59,834 - INFO - No pom.xml found, skipping
+2026-04-04 13:58:14,629 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 13:58:14,630 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:13,566 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 14:15:13,567 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:24,530 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:24,531 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:30,659 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:30,659 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:35,878 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:35,879 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:40,781 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:40,784 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:24,355 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:24,355 - INFO - No pom.xml found, skipping
+2026-04-04 15:12:51,903 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:51,904 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:20,578 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:20,578 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:25,933 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:25,933 - INFO - No pom.xml found, skipping
+2026-04-04 15:25:06,419 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 15:25:06,419 - INFO - No pom.xml found, skipping
+2026-04-04 15:26:10,106 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/TestApplication.java
+2026-04-04 15:26:10,107 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:27,287 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:27:27,287 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:36,769 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:27:36,769 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:03,964 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:28:03,965 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:11,783 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:28:11,783 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:44,187 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:36:44,187 - INFO - No pom.xml found, skipping
+2026-04-04 15:36:51,618 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 15:36:51,619 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:04,883 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 15:37:04,884 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:30,365 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:37:30,365 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:51,932 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:37:51,933 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:09,548 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:38:09,548 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:23,626 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:38:23,626 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:37,056 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:41:37,056 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:55,591 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:41:55,592 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:19,052 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:42:19,053 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:32,550 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:42:32,550 - INFO - No pom.xml found, skipping
+2026-04-04 15:45:05,336 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/DiagnosticE2ETest.java
+2026-04-04 15:45:05,336 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:27,833 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:46:27,833 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:48,232 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:46:48,233 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:07,295 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:47:07,296 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:21,390 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:47:21,390 - INFO - No pom.xml found, skipping
+2026-04-04 15:52:11,813 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:52:11,814 - INFO - No pom.xml found, skipping
+2026-04-04 15:56:36,413 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:56:36,414 - INFO - No pom.xml found, skipping
+2026-04-04 16:09:02,620 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:09:02,620 - INFO - No pom.xml found, skipping
+2026-04-04 16:19:45,872 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:19:45,873 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:03,642 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:20:03,643 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:09,797 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:09,797 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:14,327 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:14,327 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:05,650 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatHtml.java
+2026-04-04 16:35:05,651 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:14,016 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatChannel.java
+2026-04-04 16:35:14,017 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:26,263 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ws/ChatWebSocketHandler.java
+2026-04-04 16:35:26,263 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:34,528 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:34,528 - INFO - No pom.xml found, skipping
+2026-04-04 16:35:43,159 - INFO - PMD validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:43,159 - INFO - No pom.xml found, skipping

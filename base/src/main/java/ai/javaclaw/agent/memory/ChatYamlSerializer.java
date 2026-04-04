@@ -1,5 +1,10 @@
 package ai.javaclaw.agent.memory;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
@@ -8,12 +13,6 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.util.ObjectUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Serialises and deserialises a list of Spring AI {@link Message} objects to/from
@@ -29,7 +28,8 @@ import java.util.stream.Collectors;
  */
 class ChatYamlSerializer {
 
-    private static final Set<MessageType> PERSISTABLE_MESSAGES = Set.of(MessageType.USER, MessageType.ASSISTANT, MessageType.SYSTEM);
+    private static final Set<MessageType> PERSISTABLE_MESSAGES =
+            Set.of(MessageType.USER, MessageType.ASSISTANT, MessageType.SYSTEM);
 
     private ChatYamlSerializer() {}
 
@@ -44,7 +44,8 @@ class ChatYamlSerializer {
         }
         return entries.stream()
                 .map(entry -> {
-                    Map.Entry<String, String> first = entry.entrySet().iterator().next();
+                    Map.Entry<String, String> first =
+                            entry.entrySet().iterator().next();
                     return toMessage(first.getKey(), first.getValue());
                 })
                 .collect(Collectors.toList());
@@ -52,7 +53,8 @@ class ChatYamlSerializer {
 
     static String serialize(List<Message> messages) {
         List<Map<String, String>> entries = messages.stream()
-                .filter(msg -> PERSISTABLE_MESSAGES.contains(msg.getMessageType()) && !ObjectUtils.isEmpty(msg.getText()))
+                .filter(msg ->
+                        PERSISTABLE_MESSAGES.contains(msg.getMessageType()) && !ObjectUtils.isEmpty(msg.getText()))
                 .map(msg -> {
                     Map<String, String> entry = new LinkedHashMap<>();
                     entry.put(msg.getMessageType().getValue(), msg.getText());

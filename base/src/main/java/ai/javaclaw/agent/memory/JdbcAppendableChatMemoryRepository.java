@@ -1,13 +1,12 @@
 package ai.javaclaw.agent.memory;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.ai.chat.memory.AppendableChatMemoryRepository;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * JDBC-backed {@link AppendableChatMemoryRepository} that wraps Spring AI's

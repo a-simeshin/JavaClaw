@@ -1,309 +1,313 @@
-# Change: <!-- название изменения -->
+# Change: <!-- change name -->
 
-> **Статус**: Черновик | На согласовании | Согласовано | В реализации | Реализовано | Архив
+> **Status**: Draft | Under Review | Approved | In Progress | Implemented | Archived
 >
-> **Дата создания**: <!-- YYYY-MM-DD -->
+> **Created**: <!-- YYYY-MM-DD -->
 >
-> **Автор**: <!-- ФИО аналитика -->
+> **Author**: <!-- analyst name -->
 >
-> **Версия**: 1.0
+> **Version**: 1.0
 >
-> **Целевая спецификация**: <!-- путь к основной спецификации, напр. openspec/specs/<service-name>/<service-name>.md -->
+> **Target specification**: <!-- path to main specification, e.g. openspec/specs/<service-name>/<service-name>.md -->
 
 ---
 
-## 1. Предложение
+## 1. Proposal
 
-### Цель изменения
-<!-- Зачем нужно это изменение? Какую проблему решаем? -->
+### Purpose of Change
 
-<!-- ПРИМЕР:
-Добавить систему промокодов в order-service, чтобы покупатели могли применять
-скидочные коды при оформлении заказа. Это позволит маркетингу запускать акции
-и увеличить конверсию оформления заказов на 15%.
+<!-- Why is this change needed? What problem are we solving? -->
+<!-- EXAMPLE:
+Add a promo code system to order-service so that customers can apply
+discount codes when placing orders. This will allow marketing to launch promotions
+and increase order completion conversion by 15%.
 -->
 
-### Инициатор
-<!-- Кто запросил изменение (команда, тикет, бизнес-требование) -->
+### Initiator
 
-<!-- ПРИМЕР:
-Команда маркетинга, тикет SHOP-1234. Проблема: нет механизма применения
-промокодов — акции приходится проводить вручную через изменение цен в каталоге.
+<!-- Who requested the change (team, ticket, business requirement) -->
+<!-- EXAMPLE:
+Marketing team, ticket SHOP-1234. Problem: no mechanism for applying
+promo codes — promotions have to be run manually by changing prices in the catalog.
 -->
 
-### Затронутые компоненты
-<!-- Список сервисов, API, схем данных, которые будут изменены.
-     Чекбокс отмечается при подтверждении влияния на компонент. -->
-- [ ] <!-- компонент 1 -->
-- [ ] <!-- компонент 2 -->
+### Affected Components
 
-<!-- ПРИМЕР:
-- [x] order-service — применение промокода при оформлении заказа, пересчёт суммы
-- [x] payment-service — передача итоговой суммы со скидкой при оплате
-- [ ] notification-service — отправка письма с деталями скидки (отдельный CR)
+<!-- List of services, APIs, data schemas that will be changed.
+Checkbox is checked when impact on the component is confirmed. -->
+- [ ] <!-- component 1 -->
+- [ ] <!-- component 2 -->
+
+<!-- EXAMPLE:
+- [x] order-service — applying promo code during order placement, recalculating total
+- [x] payment-service — passing the final amount with discount for payment
+- [ ] notification-service — sending email with discount details (separate CR)
 -->
 
-### Приоритет
-<!-- критичный / высокий / средний / низкий -->
+### Priority
 
-### Обратная совместимость
-<!-- да / нет — если нет, указать план миграции в разделе 9 -->
+<!-- critical / high / medium / low -->
+
+### Backward Compatibility
+
+<!-- yes / no — if no, specify migration plan in section 9 -->
 
 ---
 
-## 2. Бизнес-логика
+## 2. Business Logic
 
-<!-- Описание новой/изменённой логики обработки: условия, ветвления, правила
-     маршрутизации, трансформации данных. Именно этот раздел объясняет агенту-разработчику
-     КАК сервис должен себя вести, а не только КАКИЕ данные он принимает/отдаёт.
+<!-- Description of new/changed processing logic: routing conditions, branching rules,
+data transformation rules. This section explains to the developer agent
+HOW the service should behave, not just WHAT data it accepts/returns.
 
-     Формат: пронумерованные правила. Для условий использовать ЕСЛИ/ТОГДА/ИНАЧЕ.
-     Если нет изменений в логике, указать: "Нет изменений" -->
+Format: numbered rules. For conditions use IF/THEN/ELSE.
+If no logic changes, state: "No changes" -->
+<!-- EXAMPLE:
+### Promo Code Application Rules for Order Placement
 
-<!-- ПРИМЕР:
-### Правила применения промокода при оформлении заказа
+1. When placing an order, the customer MAY pass a `promoCode` field in the request.
 
-1. При оформлении заказа клиент МОЖЕТ передать поле `promoCode` в запросе.
+2. **IF** the `promoCode` field is not passed or is empty,
+**THEN** the order is placed at regular prices without a discount.
 
-2. **ЕСЛИ** поле `promoCode` не передано или пустое,
-   **ТОГДА** заказ оформляется по обычным ценам без скидки.
+3. **IF** `promoCode` is passed,
+**THEN** order-service validates the promo code in the `promo_codes` table:
+- **IF** the promo code is not found in the table,
+**THEN** return error 400 with message "Promo code not found".
+- **IF** the promo code is found but `valid_until < now()`,
+**THEN** return error 400 with message "Promo code has expired".
+- **IF** the promo code is found but `usage_count >= max_usages`,
+**THEN** return error 400 with message "Promo code is no longer active".
+- **IF** the promo code is found and valid,
+**THEN** apply discount to the order (see calculation rules below).
 
-3. **ЕСЛИ** `promoCode` передан,
-   **ТОГДА** order-service проверяет промокод в таблице `promo_codes`:
-   - **ЕСЛИ** промокод не найден в таблице,
-     **ТОГДА** вернуть ошибку 400 с сообщением "Промокод не найден".
-   - **ЕСЛИ** промокод найден, но `valid_until < now()`,
-     **ТОГДА** вернуть ошибку 400 с сообщением "Срок действия промокода истёк".
-   - **ЕСЛИ** промокод найден, но `usage_count >= max_usages`,
-     **ТОГДА** вернуть ошибку 400 с сообщением "Промокод больше не действует".
-   - **ЕСЛИ** промокод найден и валиден,
-     **ТОГДА** применить скидку к заказу (см. правила расчёта ниже).
+4. **IF** `discount_type = 'PERCENT'`,
+**THEN** discount = `total_amount * discount_value / 100`.
+**IF** `discount_type = 'FIXED'`,
+**THEN** discount = `discount_value` (in currency units).
 
-4. **ЕСЛИ** `discount_type = 'PERCENT'`,
-   **ТОГДА** скидка = `total_amount * discount_value / 100`.
-   **ЕСЛИ** `discount_type = 'FIXED'`,
-   **ТОГДА** скидка = `discount_value` (в рублях).
+5. **IF** the calculated discount exceeds the order amount,
+**THEN** the discount is capped at the order amount (total = 0, but not negative).
 
-5. **ЕСЛИ** рассчитанная скидка больше суммы заказа,
-   **ТОГДА** скидка ограничивается суммой заказа (итого = 0, но не отрицательное).
-
-6. После успешного применения промокода:
-   - `usage_count` в таблице `promo_codes` увеличивается на 1.
-   - В заказе сохраняется `promo_code_id` и `discount_amount`.
-   - Событие `ORDERS.CREATED` в Kafka содержит поля `promoCode` и `discountAmount`.
+6. After successful promo code application:
+- `usage_count` in the `promo_codes` table is incremented by 1.
+- The order saves `promo_code_id` and `discount_amount`.
+- The `ORDERS.CREATED` Kafka event contains `promoCode` and `discountAmount` fields.
 -->
 
 ---
 
-## 3. Изменения моделей данных
+## 3. Data Model Changes
 
-<!-- Описание изменений в любых моделях данных: JSON/API-схемы, таблицы БД (DDL),
-     Avro-схемы, Protobuf-определения, XML-схемы.
-     Если нет изменений, указать: "Нет изменений" -->
+<!-- Description of changes to any data models: JSON/API schemas, database tables (DDL),
+Avro schemas, Protobuf definitions, XML schemas.
+If no changes, state: "No changes" -->
 
 ### ADDED
-<!-- Новые поля, сущности, таблицы, колонки -->
 
-| Сущность / Поле | Тип данных | Обязательность | По умолчанию | Пример | Обоснование |
-|-----------------|-----------|---------------|-------------|--------|-------------|
-| <!-- path.to.field --> | <!-- string/int/... --> | <!-- required/optional --> | <!-- значение --> | <!-- пример --> | <!-- зачем --> |
+<!-- New fields, entities, tables, columns -->
 
-<!-- ПРИМЕР (API/JSON-схема):
-| Сущность / Поле | Тип данных | Обязательность | По умолчанию | Пример | Обоснование |
-|-----------------|-----------|---------------|-------------|--------|-------------|
-| Order.promoCode | string | optional | null | "SUMMER2026" | Промокод, применённый к заказу |
-| Order.discountAmount | decimal | optional | 0.00 | 150.00 | Сумма скидки по промокоду (в рублях) |
-| Order.finalAmount | decimal | required | — | 1350.00 | Итоговая сумма заказа после скидки |
+| Entity / Field | Data Type | Required | Default | Example | Rationale |
+|---|---|---|---|---|---|
+| <!-- path.to.field --> | <!-- string/int/... --> | <!-- required/optional --> | <!-- value --> | <!-- example --> | <!-- why --> |
+
+<!-- EXAMPLE (API/JSON schema):
+| Entity / Field | Data Type | Required | Default | Example | Rationale |
+|---|---|---|---|---|---|
+| Order.promoCode | string | optional | null | "SUMMER2026" | Promo code applied to the order |
+| Order.discountAmount | decimal | optional | 0.00 | 150.00 | Discount amount from the promo code (in currency units) |
+| Order.finalAmount | decimal | required | — | 1350.00 | Final order amount after discount |
 -->
-
-<!-- ПРИМЕР (Таблица БД — PostgreSQL DDL):
+<!-- EXAMPLE (Database table — PostgreSQL DDL):
 ```sql
 CREATE TABLE promo_codes (
-    id            BIGSERIAL PRIMARY KEY,
-    code          VARCHAR(50)  NOT NULL UNIQUE,
-    discount_type VARCHAR(10)  NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED')),
-    discount_value NUMERIC(10,2) NOT NULL,
-    valid_from    TIMESTAMP    NOT NULL DEFAULT now(),
-    valid_until   TIMESTAMP    NOT NULL,
-    max_usages    INT          NOT NULL DEFAULT 1000,
-    usage_count   INT          NOT NULL DEFAULT 0,
-    created_at    TIMESTAMP    NOT NULL DEFAULT now()
+id            BIGSERIAL PRIMARY KEY,
+code          VARCHAR(50)  NOT NULL UNIQUE,
+discount_type VARCHAR(10)  NOT NULL CHECK (discount_type IN ('PERCENT', 'FIXED')),
+discount_value NUMERIC(10,2) NOT NULL,
+valid_from    TIMESTAMP    NOT NULL DEFAULT now(),
+valid_until   TIMESTAMP    NOT NULL,
+max_usages    INT          NOT NULL DEFAULT 1000,
+usage_count   INT          NOT NULL DEFAULT 0,
+created_at    TIMESTAMP    NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_promo_codes_code ON promo_codes (code);
 ```
-| Таблица / Колонка | Тип | PK | Описание |
-|-------------------|-----|-----|----------|
-| promo_codes.id | BIGSERIAL | PK | Уникальный идентификатор промокода |
-| promo_codes.code | VARCHAR(50) | UNIQUE | Текстовый код промокода (например, "SUMMER2026") |
-| promo_codes.discount_type | VARCHAR(10) | — | Тип скидки: PERCENT или FIXED |
-| promo_codes.discount_value | NUMERIC(10,2) | — | Значение скидки (процент или сумма в рублях) |
-| promo_codes.valid_until | TIMESTAMP | — | Дата окончания действия промокода |
-| promo_codes.max_usages | INT | — | Максимальное количество использований |
-| promo_codes.usage_count | INT | — | Текущее количество использований |
+| Table / Column | Type | PK | Description |
+|---|---|---|---|
+| promo_codes.id | BIGSERIAL | PK | Unique promo code identifier |
+| promo_codes.code | VARCHAR(50) | UNIQUE | Text code of the promo (e.g., "SUMMER2026") |
+| promo_codes.discount_type | VARCHAR(10) | — | Discount type: PERCENT or FIXED |
+| promo_codes.discount_value | NUMERIC(10,2) | — | Discount value (percentage or amount in currency) |
+| promo_codes.valid_until | TIMESTAMP | — | Promo code expiration date |
+| promo_codes.max_usages | INT | — | Maximum number of uses |
+| promo_codes.usage_count | INT | — | Current number of uses |
 -->
-
-<!-- ПРИМЕР (Avro-схема):
+<!-- EXAMPLE (Avro schema):
 ```json
 {
-  "type": "record",
-  "name": "OrderCreatedEvent",
-  "namespace": "com.shop.orders",
-  "fields": [
-    {"name": "orderId", "type": "string"},
-    {"name": "userId", "type": "string"},
-    {"name": "totalAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2}},
-    {"name": "promoCode", "type": ["null", "string"], "default": null},
-    {"name": "discountAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2}},
-    {"name": "createdAt", "type": "long", "logicalType": "timestamp-millis"}
-  ]
+"type": "record",
+"name": "OrderCreatedEvent",
+"namespace": "com.shop.orders",
+"fields": [
+{"name": "orderId", "type": "string"},
+{"name": "userId", "type": "string"},
+{"name": "totalAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2}},
+{"name": "promoCode", "type": ["null", "string"], "default": null},
+{"name": "discountAmount", "type": {"type": "bytes", "logicalType": "decimal", "precision": 10, "scale": 2}},
+{"name": "createdAt", "type": "long", "logicalType": "timestamp-millis"}
+]
 }
 ```
 -->
-
-<!-- ПРИМЕР (Protobuf):
+<!-- EXAMPLE (Protobuf):
 ```protobuf
 message PromoCodeValidation {
-  string code = 1;
-  string discount_type = 2;
-  double discount_value = 3;
-  bool is_valid = 4;
-  optional string rejection_reason = 5;
+string code = 1;
+string discount_type = 2;
+double discount_value = 3;
+bool is_valid = 4;
+optional string rejection_reason = 5;
 }
 ```
 -->
 
 ### MODIFIED
-<!-- Изменённые поля/колонки/определения — ОБЯЗАТЕЛЬНО указывать ДО и ПОСЛЕ -->
 
-| Сущность / Поле | Было | Стало | Обоснование |
-|-----------------|------|-------|-------------|
-| <!-- path.to.field --> | <!-- тип, обязательность, default --> | <!-- тип, обязательность, default --> | <!-- зачем --> |
+<!-- Changed fields/columns/definitions — MUST specify BEFORE and AFTER -->
 
-<!-- ПРИМЕР (API):
-| Сущность / Поле | Было | Стало | Обоснование |
-|-----------------|------|-------|-------------|
-| CreateOrderRequest.items | array, required | array, required (без изменений) | — |
-| CreateOrderResponse.totalAmount | decimal, required | decimal, required (переименовано в originalAmount) | Различие между суммой до и после скидки |
+| Entity / Field | Before | After | Rationale |
+|---|---|---|---|
+| <!-- path.to.field --> | <!-- type, required, default --> | <!-- type, required, default --> | <!-- why --> |
+
+<!-- EXAMPLE (API):
+| Entity / Field | Before | After | Rationale |
+|---|---|---|---|
+| CreateOrderRequest.items | array, required | array, required (no change) | — |
+| CreateOrderResponse.totalAmount | decimal, required | decimal, required (renamed to originalAmount) | Distinguish between pre- and post-discount amounts |
 -->
-
-<!-- ПРИМЕР (DDL):
+<!-- EXAMPLE (DDL):
 ```sql
 ALTER TABLE orders ADD COLUMN promo_code_id BIGINT REFERENCES promo_codes(id);
 ALTER TABLE orders ADD COLUMN discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
 ```
-| Таблица / Колонка | Было | Стало | Обоснование |
-|-------------------|------|-------|-------------|
-| orders | без колонки promo_code_id | + promo_code_id BIGINT (FK → promo_codes) | Связь заказа с использованным промокодом |
-| orders | без колонки discount_amount | + discount_amount NUMERIC(10,2) DEFAULT 0 | Сумма скидки для отчётности |
+| Table / Column | Before | After | Rationale |
+|---|---|---|---|
+| orders | no promo_code_id column | + promo_code_id BIGINT (FK → promo_codes) | Link order to the used promo code |
+| orders | no discount_amount column | + discount_amount NUMERIC(10,2) DEFAULT 0 | Discount amount for reporting |
 -->
 
 ### REMOVED
-<!-- Удалённые поля/таблицы/колонки -->
 
-| Сущность / Поле | Причина удаления | Миграция |
-|-----------------|-----------------|----------|
-| <!-- path.to.field --> | <!-- причина --> | <!-- как мигрировать --> |
+<!-- Removed fields/tables/columns -->
 
-<!-- ПРИМЕР:
-| Сущность / Поле | Причина удаления | Миграция |
-|-----------------|-----------------|----------|
-| Order.manualDiscount | Заменено системой промокодов | Прекратить использование; существующие заказы с manualDiscount остаются в БД как есть |
-| orders.legacy_coupon_code (колонка) | Старая система купонов выведена из эксплуатации | DROP COLUMN после подтверждения, что отчёты не используют это поле |
+| Entity / Field | Removal Reason | Migration |
+|---|---|---|
+| <!-- path.to.field --> | <!-- reason --> | <!-- how to migrate --> |
+
+<!-- EXAMPLE:
+| Entity / Field | Removal Reason | Migration |
+|---|---|---|
+| Order.manualDiscount | Replaced by promo code system | Stop using; existing orders with manualDiscount remain in DB as-is |
+| orders.legacy_coupon_code (column) | Old coupon system decommissioned | DROP COLUMN after confirming reports don't use this field |
 -->
 
 ---
 
-## 4. Изменения интеграций
+## 4. Integration Changes
 
-<!-- Если нет изменений, указать: "Нет изменений" -->
+<!-- If no changes, state: "No changes" -->
 
 ### ADDED
-<!-- Новые эндпоинты / Kafka-топики / gRPC-методы / SSE-стримы / cron-задачи -->
 
-#### <!-- Тип: Метод PATH / Kafka топик / gRPC метод / SSE endpoint / Cron задача -->
-- **Описание**: <!-- что делает -->
+<!-- New endpoints / Kafka topics / gRPC methods / SSE streams / cron tasks -->
+
+#### <!-- Type: Method PATH / Kafka topic / gRPC method / SSE endpoint / Cron task -->
+
+- **Description**: <!-- what it does -->
 - **Request**:
+
 ```json
 {
 }
 ```
+
 - **Response**:
+
 ```json
 {
 }
 ```
-- **Таймаут**: <!-- мс -->
-- **Retry**: <!-- политика -->
 
-<!-- ПРИМЕР (REST):
-#### POST /api/v1/orders/{orderId}/apply-promo — Применение промокода к заказу
+- **Timeout**: <!-- ms -->
+- **Retry**: <!-- policy -->
 
-- **Описание**: Проверяет промокод и применяет скидку к указанному заказу
+<!-- EXAMPLE (REST):
+#### POST /api/v1/orders/{orderId}/apply-promo — Apply promo code to order
+
+- **Description**: Validates a promo code and applies a discount to the specified order
 - **Request**:
 ```json
 {
-  "promoCode": "SUMMER2026"
+"promoCode": "SUMMER2026"
 }
 ```
 - **Response (200)**:
 ```json
 {
-  "orderId": "ord-123",
-  "promoCode": "SUMMER2026",
-  "discountType": "PERCENT",
-  "discountValue": 10,
-  "discountAmount": 150.00,
-  "originalAmount": 1500.00,
-  "finalAmount": 1350.00
+"orderId": "ord-123",
+"promoCode": "SUMMER2026",
+"discountType": "PERCENT",
+"discountValue": 10,
+"discountAmount": 150.00,
+"originalAmount": 1500.00,
+"finalAmount": 1350.00
 }
 ```
-- **Таймаут**: 5000 мс
-- **Retry**: нет (клиент может повторить вручную)
+- **Timeout**: 5000 ms
+- **Retry**: none (client can retry manually)
 -->
+<!-- EXAMPLE (Kafka):
+#### Kafka: ORDERS.CREATED (updated producer)
 
-<!-- ПРИМЕР (Kafka):
-#### Kafka: ORDERS.CREATED (обновлённый producer)
-
-- **Описание**: Событие о создании заказа, теперь включает информацию о промокоде
-- **Направление**: producer
-- **Формат**: JSON (схема OrderCreatedEvent)
-- **Таймаут**: 5000 мс (delivery.timeout.ms)
-- **Retry**: Встроенный Kafka producer retry
+- **Description**: Order creation event, now includes promo code information
+- **Direction**: producer
+- **Format**: JSON (OrderCreatedEvent schema)
+- **Timeout**: 5000 ms (delivery.timeout.ms)
+- **Retry**: Built-in Kafka producer retry
 -->
-
-<!-- ПРИМЕР (gRPC):
+<!-- EXAMPLE (gRPC):
 #### gRPC: PaymentService.CreatePayment
 
-- **Описание**: Создание платежа на итоговую сумму заказа (после скидки)
+- **Description**: Create payment for the final order amount (after discount)
 - **Proto**:
 ```protobuf
 service PaymentService {
-  rpc CreatePayment (CreatePaymentRequest) returns (CreatePaymentResponse);
+rpc CreatePayment (CreatePaymentRequest) returns (CreatePaymentResponse);
 }
 
 message CreatePaymentRequest {
-  string order_id = 1;
-  double amount = 2;
-  string currency = 3;
+string order_id = 1;
+double amount = 2;
+string currency = 3;
 }
 
 message CreatePaymentResponse {
-  string payment_id = 1;
-  string status = 2;
-  string redirect_url = 3;
+string payment_id = 1;
+string status = 2;
+string redirect_url = 3;
 }
 ```
-- **Таймаут**: 10000 мс
-- **Retry**: 2 попытки с backoff 1s/3s
+- **Timeout**: 10000 ms
+- **Retry**: 2 attempts with backoff 1s/3s
 -->
+<!-- EXAMPLE (SSE):
+#### SSE: GET /api/v1/orders/{orderId}/status-stream — Order status streaming
 
-<!-- ПРИМЕР (SSE):
-#### SSE: GET /api/v1/orders/{orderId}/status-stream — Стриминг статуса заказа
-
-- **Описание**: Клиент подписывается на обновления статуса заказа в реальном времени
-- **Request**: `GET /api/v1/orders/{orderId}/status-stream` с `Accept: text/event-stream`
-- **Response**: Поток SSE-событий:
+- **Description**: Client subscribes to real-time order status updates
+- **Request**: `GET /api/v1/orders/{orderId}/status-stream` with `Accept: text/event-stream`
+- **Response**: Stream of SSE events:
 ```
 event: ORDER_STATUS_CHANGED
 id: evt-001
@@ -313,321 +317,322 @@ event: ORDER_STATUS_CHANGED
 id: evt-002
 data: {"orderId": "ord-123", "status": "SHIPPED", "updatedAt": "2026-04-03T14:30:00Z"}
 ```
-- **Таймаут**: 300000 мс (5 минут, потом переподключение)
-- **Reconnect**: Клиент переподключается с `Last-Event-ID`
+- **Timeout**: 300000 ms (5 minutes, then reconnect)
+- **Reconnect**: Client reconnects with `Last-Event-ID`
 -->
+<!-- EXAMPLE (Cron/Batch):
+#### Cron: Expired Promo Codes Cleanup — Deactivate expired promo codes
 
-<!-- ПРИМЕР (Cron/Batch):
-#### Cron: Expired Promo Codes Cleanup — Деактивация просроченных промокодов
-
-- **Описание**: Периодическая пометка просроченных промокодов как неактивных
-- **Расписание**: `0 0 1 * * *` (каждый день в 01:00)
-- **Длительность окна**: 60 сек
-- **Max retry**: 3 попытки на batch
-- **Backoff**: 5000 мс между попытками
+- **Description**: Periodic marking of expired promo codes as inactive
+- **Schedule**: `0 0 1 * * *` (every day at 01:00)
+- **Window duration**: 60 sec
+- **Max retry**: 3 attempts per batch
+- **Backoff**: 5000 ms between attempts
 -->
 
 ### MODIFIED
-<!-- Изменённые эндпоинты — ДО и ПОСЛЕ -->
 
-#### <!-- Метод PATH -->
-- **Что изменилось**: <!-- описание -->
-- **Request (было)**: <!-- схема или diff -->
-- **Request (стало)**: <!-- схема или diff -->
-- **Response (было)**: <!-- схема или diff -->
-- **Response (стало)**: <!-- схема или diff -->
+<!-- Changed endpoints — BEFORE and AFTER -->
 
-<!-- ПРИМЕР:
-#### POST /api/v1/orders — Создание заказа
+#### <!-- Method PATH -->
 
-- **Что изменилось**: В request добавлено опциональное поле promoCode, в response добавлены поля discountAmount и finalAmount
-- **Request (было)**: `{ "items": [...], "deliveryAddress": "..." }`
-- **Request (стало)**: `{ "items": [...], "deliveryAddress": "...", "promoCode": "SUMMER2026" }` — поле promoCode опциональное
-- **Response (было)**: `{ "orderId": "...", "totalAmount": 1500.00, "status": "CREATED" }`
-- **Response (стало)**: `{ "orderId": "...", "originalAmount": 1500.00, "discountAmount": 150.00, "finalAmount": 1350.00, "promoCode": "SUMMER2026", "status": "CREATED" }`
+- **What changed**: <!-- description -->
+- **Request (before)**: <!-- schema or diff -->
+- **Request (after)**: <!-- schema or diff -->
+- **Response (before)**: <!-- schema or diff -->
+- **Response (after)**: <!-- schema or diff -->
+
+<!-- EXAMPLE:
+#### POST /api/v1/orders — Create order
+
+- **What changed**: Added optional promoCode field to request, added discountAmount and finalAmount fields to response
+- **Request (before)**: `{ "items": [...], "deliveryAddress": "..." }`
+- **Request (after)**: `{ "items": [...], "deliveryAddress": "...", "promoCode": "SUMMER2026" }` — promoCode field is optional
+- **Response (before)**: `{ "orderId": "...", "totalAmount": 1500.00, "status": "CREATED" }`
+- **Response (after)**: `{ "orderId": "...", "originalAmount": 1500.00, "discountAmount": 150.00, "finalAmount": 1350.00, "promoCode": "SUMMER2026", "status": "CREATED" }`
 -->
 
 ### REMOVED
-<!-- Удалённые эндпоинты -->
 
-| Эндпоинт | Причина | Замена |
-|----------|---------|--------|
-| <!-- метод path --> | <!-- причина --> | <!-- альтернатива --> |
+<!-- Removed endpoints -->
+
+| Endpoint | Reason | Replacement |
+|---|---|---|
+| <!-- method path --> | <!-- reason --> | <!-- alternative --> |
 
 ---
 
-## 5. Обработка ошибок
+## 5. Error Handling
 
-<!-- Если нет изменений, указать: "Нет изменений"
-     Коды ошибок ДОЛЖНЫ соответствовать системе кодирования из common-requirements.md:
-     - Структура кода: X Y Z (X=тип события, Y=модуль, Z=идентификатор)
-     - Зарезервированные диапазоны: 0-Общие(1000-1099), 1-Аутентификация(1100-1199),
-       2-Авторизация(1200-1299), 3-Агенты(1300-1399), 4-Внешние интеграции(1400-1499)
-     - Формат ответа: RFC 7807 (application/problem+json)
+<!-- If no changes, state: "No changes"
+Error codes MUST follow the coding system from common-requirements.md:
+- Code structure: X Y Z (X=event type, Y=module, Z=identifier)
+- Reserved ranges: 0-General(1000-1099), 1-Authentication(1100-1199),
+2-Authorization(1200-1299), 3-Agents(1300-1399), 4-External integrations(1400-1499)
+- Response format: RFC 7807 (application/problem+json)
 -->
 
-| Код ошибки | HTTP-статус | errorCode | Ситуация | Действие клиента |
-|-----------|------------|-----------|----------|-----------------|
-| <!-- XXXX --> | <!-- 4xx/5xx --> | <!-- строковый код из common-requirements --> | <!-- когда возникает --> | <!-- что делать --> |
+| Error Code | HTTP Status | errorCode | Scenario | Client Action |
+|---|---|---|---|---|
+| <!-- XXXX --> | <!-- 4xx/5xx --> | <!-- string code from common-requirements --> | <!-- when it occurs --> | <!-- what to do --> |
 
-<!-- ПРИМЕР:
-| Код ошибки | HTTP-статус | errorCode | Ситуация | Действие клиента |
-|-----------|------------|-----------|----------|-----------------|
-| 1003 | 400 | INVALID_PROMO_CODE | Промокод не найден в базе | Проверить правильность введённого кода |
-| 1003 | 400 | PROMO_CODE_EXPIRED | Срок действия промокода истёк | Использовать другой промокод |
-| 1003 | 400 | PROMO_CODE_LIMIT_REACHED | Промокод использован максимальное количество раз | Использовать другой промокод |
-| 1003 | 400 | INVALID_INPUT | Некорректный формат запроса (например, пустой items) | Исправить тело запроса согласно схеме |
-| 1001 | 500 | INTERNAL_ERROR | Ошибка при обращении к БД или Kafka | Повторить запрос через несколько секунд |
+<!-- EXAMPLE:
+| Error Code | HTTP Status | errorCode | Scenario | Client Action |
+|---|---|---|---|---|
+| 1003 | 400 | INVALID_PROMO_CODE | Promo code not found in database | Verify the entered code is correct |
+| 1003 | 400 | PROMO_CODE_EXPIRED | Promo code validity period has ended | Use a different promo code |
+| 1003 | 400 | PROMO_CODE_LIMIT_REACHED | Promo code used the maximum number of times | Use a different promo code |
+| 1003 | 400 | INVALID_INPUT | Invalid request format (e.g., empty items) | Fix request body per schema |
+| 1001 | 500 | INTERNAL_ERROR | Error accessing DB or Kafka | Retry the request after a few seconds |
 
-Формат ответа об ошибке (RFC 7807):
+Error response format (RFC 7807):
 ```json
 {
-  "type": "https://api.shop.com/problems/bad-request",
-  "title": "Промокод не найден",
-  "detail": "Промокод WINTER2025 не существует или был удалён",
-  "errorCode": "INVALID_PROMO_CODE",
-  "status": 400,
-  "instance": "/api/v1/orders/ord-123/apply-promo"
+"type": "https://api.shop.com/problems/bad-request",
+"title": "Promo code not found",
+"detail": "Promo code WINTER2025 does not exist or has been removed",
+"errorCode": "INVALID_PROMO_CODE",
+"status": 400,
+"instance": "/api/v1/orders/ord-123/apply-promo"
 }
 ```
 -->
 
 ---
 
-## 6. Хедеры и метаданные
+## 6. Headers and Metadata
 
-<!-- Изменения в хедерах и метаданных любого транспорта:
-     HTTP-хедеры, Kafka-хедеры, gRPC metadata, SSE event fields, MCP protocol headers.
-     Если нет изменений, указать: "Нет изменений" -->
+<!-- Changes to headers and metadata for any transport:
+HTTP headers, Kafka headers, gRPC metadata, SSE event fields, MCP protocol headers.
+If no changes, state: "No changes" -->
 
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| <!-- ADDED/MODIFIED/REMOVED --> | <!-- HTTP/Kafka/gRPC/SSE/MCP --> | <!-- имя --> | <!-- request/response --> | <!-- required/optional --> | <!-- формат --> | <!-- пример --> | <!-- зачем --> |
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| <!-- ADDED/MODIFIED/REMOVED --> | <!-- HTTP/Kafka/gRPC/SSE/MCP --> | <!-- name --> | <!-- request/response --> | <!-- required/optional --> | <!-- format --> | <!-- example --> | <!-- why --> |
 
-<!-- ПРИМЕР (HTTP):
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| ADDED | HTTP | X-Promo-Applied | response | optional | boolean | true | Признак того, что к заказу применён промокод |
-| ADDED | HTTP | X-Discount-Amount | response | optional | decimal | 150.00 | Сумма скидки для логирования на стороне клиента |
-| MODIFIED | HTTP | X-Request-ID | request | required (было optional) | UUID | 550e8400-... | Трассировка запросов |
+<!-- EXAMPLE (HTTP):
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| ADDED | HTTP | X-Promo-Applied | response | optional | boolean | true | Indicates a promo code was applied to the order |
+| ADDED | HTTP | X-Discount-Amount | response | optional | decimal | 150.00 | Discount amount for client-side logging |
+| MODIFIED | HTTP | X-Request-ID | request | required (was optional) | UUID | 550e8400-... | Request tracing |
 -->
-
-<!-- ПРИМЕР (Kafka):
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| ADDED | Kafka | ORDER_SOURCE | producer header | optional | string | "WEB" / "MOBILE" / "API" | Канал, через который был оформлен заказ |
-| ADDED | Kafka | PROMO_APPLIED | producer header | optional | string | "true" / "false" | Был ли применён промокод |
+<!-- EXAMPLE (Kafka):
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| ADDED | Kafka | ORDER_SOURCE | producer header | optional | string | "WEB" / "MOBILE" / "API" | Channel through which the order was placed |
+| ADDED | Kafka | PROMO_APPLIED | producer header | optional | string | "true" / "false" | Whether a promo code was applied |
 -->
-
-<!-- ПРИМЕР (gRPC metadata):
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| ADDED | gRPC | x-order-id | request metadata | required | string | "ord-123" | Идентификатор заказа для платёжного сервиса |
+<!-- EXAMPLE (gRPC metadata):
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| ADDED | gRPC | x-order-id | request metadata | required | string | "ord-123" | Order identifier for the payment service |
 -->
-
-<!-- ПРИМЕР (SSE event fields):
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| ADDED | SSE | event: ORDER_STATUS_CHANGED | response | required | string | ORDER_STATUS_CHANGED | Событие изменения статуса заказа |
-| ADDED | SSE | retry: | response | optional | integer (ms) | 5000 | Интервал переподключения клиента |
+<!-- EXAMPLE (SSE event fields):
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| ADDED | SSE | event: ORDER_STATUS_CHANGED | response | required | string | ORDER_STATUS_CHANGED | Order status change event |
+| ADDED | SSE | retry: | response | optional | integer (ms) | 5000 | Client reconnection interval |
 -->
-
-<!-- ПРИМЕР (MCP):
-| Операция | Транспорт | Имя | Направление | Обязательность | Формат | Пример | Назначение |
-|----------|-----------|-----|-------------|---------------|--------|--------|-----------|
-| ADDED | MCP/HTTP | MCP-Protocol-Version | request | required | string | 2025-06-18 | Версия протокола MCP |
-| ADDED | MCP/HTTP | x-agent-id | request | required | string | "order-agent" | Идентификатор вызываемого агента |
+<!-- EXAMPLE (MCP):
+| Operation | Transport | Name | Direction | Required | Format | Example | Purpose |
+|---|---|---|---|---|---|---|---|
+| ADDED | MCP/HTTP | MCP-Protocol-Version | request | required | string | 2025-06-18 | MCP protocol version |
+| ADDED | MCP/HTTP | x-agent-id | request | required | string | "order-agent" | Identifier of the called agent |
 -->
 
 ---
 
-## 7. Валидация входящих значений
+## 7. Input Validation
 
-<!-- Если нет изменений, указать: "Нет изменений" -->
+<!-- If no changes, state: "No changes" -->
 
-| Поле (JSON path) | Тип валидации | Правило | Сообщение об ошибке | Код ошибки |
-|------------------|--------------|---------|--------------------|-----------|
-| <!-- $.field --> | <!-- format/range/regex/enum/length --> | <!-- правило --> | <!-- текст --> | <!-- код --> |
+| Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
+|---|---|---|---|---|
+| <!-- $.field --> | <!-- format/range/regex/enum/length --> | <!-- rule --> | <!-- text --> | <!-- code --> |
 
-<!-- ПРИМЕР:
-| Поле (JSON path) | Тип валидации | Правило | Сообщение об ошибке | Код ошибки |
-|------------------|--------------|---------|--------------------|-----------|
-| $.promoCode | length | От 3 до 50 символов | "Промокод должен содержать от 3 до 50 символов" | 1003 |
-| $.promoCode | regex | `^[A-Z0-9_-]+$` (только заглавные латинские буквы, цифры, дефис, подчёркивание) | "Промокод может содержать только заглавные буквы, цифры, дефис и подчёркивание" | 1003 |
-| $.items | length | Минимум 1 элемент, максимум 100 | "Заказ должен содержать от 1 до 100 товаров" | 1003 |
-| $.items[*].productId | format | UUID v4 | "productId должен быть в формате UUID v4" | 1003 |
-| $.items[*].quantity | range | От 1 до 999 | "Количество товара должно быть от 1 до 999" | 1003 |
-| $.deliveryAddress | length | От 10 до 500 символов | "Адрес доставки должен содержать от 10 до 500 символов" | 1003 |
+<!-- EXAMPLE:
+| Field (JSON path) | Validation Type | Rule | Error Message | Error Code |
+|---|---|---|---|---|
+| $.promoCode | length | 3 to 50 characters | "Promo code must be between 3 and 50 characters" | 1003 |
+| $.promoCode | regex | `^[A-Z0-9_-]+$` (uppercase Latin letters, digits, hyphen, underscore only) | "Promo code may only contain uppercase letters, digits, hyphens and underscores" | 1003 |
+| $.items | length | Minimum 1 element, maximum 100 | "Order must contain between 1 and 100 items" | 1003 |
+| $.items[*].productId | format | UUID v4 | "productId must be in UUID v4 format" | 1003 |
+| $.items[*].quantity | range | 1 to 999 | "Item quantity must be between 1 and 999" | 1003 |
+| $.deliveryAddress | length | 10 to 500 characters | "Delivery address must be between 10 and 500 characters" | 1003 |
 -->
 
 ---
 
-## 8. Влияние на безопасность
+## 8. Security Impact
 
-<!-- Если нет изменений, указать: "Нет изменений" -->
+<!-- If no changes, state: "No changes" -->
+- **Authentication/authorization**: <!-- changes -->
+- **New roles/permissions**: <!-- description -->
+- **Data masking**: <!-- which fields, masking rules -->
 
-- **Авторизация/аутентификация**: <!-- изменения -->
-- **Новые роли/права**: <!-- описание -->
-- **Маскирование данных**: <!-- какие поля, правила маскирования -->
-
-<!-- ПРИМЕР:
-- **Авторизация/аутентификация**: Без изменений — промокод применяется только для авторизованных пользователей (JWT-токен обязателен)
-- **Новые роли/права**: Роль `promo-manager` — право на создание и деактивацию промокодов через admin API
-- **Маскирование данных**: Промокоды не содержат персональных данных, маскирование не требуется. Адрес доставки `$.deliveryAddress` ДОЛЖЕН маскироваться в логах (первые 10 символов + `...`)
+<!-- EXAMPLE:
+- **Authentication/authorization**: No changes — promo code is applied only for authenticated users (JWT token required)
+- **New roles/permissions**: Role `promo-manager` — permission to create and deactivate promo codes via admin API
+- **Data masking**: Promo codes do not contain personal data, masking not required. Delivery address `$.deliveryAddress` MUST be masked in logs (first 10 characters + `...`)
 -->
 
 ---
 
-## 9. Миграция
+## 9. Migration
 
-<!-- Если обратная совместимость сохранена, указать: "Не требуется" -->
+<!-- If backward compatibility is maintained, state: "Not required" -->
 
-### Шаги миграции данных
-1. <!-- шаг -->
+### Data Migration Steps
 
-### Обратная совместимость API
-<!-- Описание переходного периода, версионирование -->
+1. <!-- step -->
 
-### План отката
-1. <!-- шаг -->
+### API Backward Compatibility
 
-<!-- ПРИМЕР (когда миграция нужна):
-### Шаги миграции данных
-1. Создать таблицу `promo_codes` (CREATE TABLE, см. раздел 3)
-2. Добавить колонки `promo_code_id` и `discount_amount` в таблицу `orders` (ALTER TABLE)
-3. Заполнить `discount_amount = 0` для всех существующих заказов (batch UPDATE)
-4. Загрузить начальный набор промокодов от команды маркетинга (INSERT)
+<!-- Description of transition period, versioning -->
 
-### Обратная совместимость API
-- Переходный период: 2 спринта (4 недели)
-- Поле `promoCode` в запросе — опциональное, старые клиенты продолжают работать без изменений
-- Поле `totalAmount` в ответе сохраняется для обратной совместимости (= finalAmount)
-- После окончания переходного периода поле `totalAmount` помечается deprecated
+### Rollback Plan
 
-### План отката
-1. Отключить feature flag `shop.promo.enabled=false`
-2. Перезапустить поды order-service
-3. Таблицу `promo_codes` и новые колонки в `orders` оставить (не мешают работе)
+1. <!-- step -->
+
+<!-- EXAMPLE (when migration is needed):
+### Data Migration Steps
+1. Create `promo_codes` table (CREATE TABLE, see section 3)
+2. Add `promo_code_id` and `discount_amount` columns to `orders` table (ALTER TABLE)
+3. Populate `discount_amount = 0` for all existing orders (batch UPDATE)
+4. Load initial promo code set from the marketing team (INSERT)
+
+### API Backward Compatibility
+- Transition period: 2 sprints (4 weeks)
+- The `promoCode` field in the request is optional — old clients continue to work without changes
+- The `totalAmount` field in the response is preserved for backward compatibility (= finalAmount)
+- After the transition period, the `totalAmount` field is marked deprecated
+
+### Rollback Plan
+1. Disable feature flag `shop.promo.enabled=false`
+2. Restart order-service pods
+3. Leave the `promo_codes` table and new columns in `orders` (they don't interfere with operation)
 -->
 
 ---
 
-## 10. Логирование (новые/изменённые события)
+## 10. Logging (new/changed events)
 
-<!-- Если нет новых событий логирования, указать: "Нет изменений"
-     Уровни логирования согласно common-requirements.md раздел 1. -->
+<!-- If no new logging events, state: "No changes"
+Logging levels per common-requirements.md section 1. -->
 
-| Уровень | Код | Событие | Формат сообщения |
-|---------|-----|---------|-----------------|
-| <!-- ERROR/WARN/INFO/DEBUG --> | <!-- код из common-requirements --> | <!-- описание --> | <!-- шаблон --> |
+| Level | Code | Event | Message Format |
+|---|---|---|---|
+| <!-- ERROR/WARN/INFO/DEBUG --> | <!-- code from common-requirements --> | <!-- description --> | <!-- template --> |
 
-<!-- ПРИМЕР:
-| Уровень | Код | Событие | Формат сообщения |
-|---------|-----|---------|-----------------|
-| ERROR | 1001 | Ошибка при записи использования промокода в БД | "Failed to increment promo usage for code={}: {}" |
-| WARN | — | Попытка использовать просроченный промокод | "Expired promo code used: code={}, validUntil={}" |
-| INFO | 3000 | Промокод успешно применён к заказу | "Promo code applied: orderId={}, code={}, discountAmount={}" |
-| DEBUG | — | Начало валидации промокода | "Validating promo code: code={}, orderId={}" |
+<!-- EXAMPLE:
+| Level | Code | Event | Message Format |
+|---|---|---|---|
+| ERROR | 1001 | Error writing promo code usage to DB | "Failed to increment promo usage for code={}: {}" |
+| WARN | — | Attempt to use an expired promo code | "Expired promo code used: code={}, validUntil={}" |
+| INFO | 3000 | Promo code successfully applied to order | "Promo code applied: orderId={}, code={}, discountAmount={}" |
+| DEBUG | — | Starting promo code validation | "Validating promo code: code={}, orderId={}" |
 -->
 
 ---
 
-## 11. Мониторинг (новые/изменённые метрики)
+## 11. Monitoring (new/changed metrics)
 
-<!-- Если нет новых метрик, указать: "Нет изменений" -->
+<!-- If no new metrics, state: "No changes" -->
 
-### Новые метрики
+### New Metrics
 
-#### <!-- имя_метрики -->
-- **Тип**: <!-- Counter / Gauge / Timer -->
-- **Описание**: <!-- что измеряет -->
+#### <!-- metric_name -->
 
-| Тег | Обязательность | Описание | Пример значения |
-|-----|---------------|----------|----------------|
-| <!-- тег --> | <!-- Обязательно/Условно --> | <!-- описание --> | <!-- пример --> |
+- **Type**: <!-- Counter / Gauge / Timer -->
+- **Description**: <!-- what it measures -->
 
-<!-- ПРИМЕР:
+| Tag | Required | Description | Example Value |
+|---|---|---|---|
+| <!-- tag --> | <!-- Required/Conditional --> | <!-- description --> | <!-- example --> |
+
+<!-- EXAMPLE:
 #### shop.orders.promo_applied
 
-- **Тип**: Counter
-- **Описание**: Счётчик заказов, к которым был успешно применён промокод
+- **Type**: Counter
+- **Description**: Counter of orders with a successfully applied promo code
 
-| Тег | Обязательность | Описание | Пример значения |
-|-----|---------------|----------|----------------|
-| promoCode | Обязательно | Текст промокода | "SUMMER2026" |
-| discountType | Обязательно | Тип скидки | "PERCENT" / "FIXED" |
+| Tag | Required | Description | Example Value |
+|---|---|---|---|
+| promoCode | Required | Promo code text | "SUMMER2026" |
+| discountType | Required | Discount type | "PERCENT" / "FIXED" |
 
-**Пример:**
+**Example:**
 ```
 shop_orders_promo_applied{promoCode="SUMMER2026", discountType="PERCENT"} 42
 ```
 -->
 
-### Новые вычисляемые метрики
+### New Calculated Metrics
 
-| Метрика | Описание | Формула (PromQL) |
-|---------|----------|-----------------|
-| <!-- имя --> | <!-- описание --> | <!-- формула --> |
+| Metric | Description | Formula (PromQL) |
+|---|---|---|
+| <!-- name --> | <!-- description --> | <!-- formula --> |
 
-<!-- ПРИМЕР:
-| Метрика | Описание | Формула (PromQL) |
-|---------|----------|-----------------|
-| shop_promo_usage_rate | % заказов с промокодом за 5 мин | `(sum(rate(shop_orders_promo_applied[5m])) / sum(rate(shop_orders_created_total[5m]))) * 100` |
+<!-- EXAMPLE:
+| Metric | Description | Formula (PromQL) |
+|---|---|---|
+| shop_promo_usage_rate | % of orders with promo code over 5 min | `(sum(rate(shop_orders_promo_applied[5m])) / sum(rate(shop_orders_created_total[5m]))) * 100` |
 -->
 
 ---
 
-## 12. Изменения конфигурации
+## 12. Configuration Changes
 
-<!-- Если нет новых/изменённых параметров конфигурации, указать: "Нет изменений" -->
+<!-- If no new/changed configuration parameters, state: "No changes" -->
 
 ### ADDED
 
-| Параметр | Обяз. | Тип | Значение по умолчанию | Описание |
-|----------|-------|-----|----------------------|----------|
-| <!-- имя параметра --> | <!-- да/нет --> | <!-- string/int/bool --> | <!-- значение --> | <!-- описание --> |
+| Parameter | Required | Type | Default | Description |
+|---|---|---|---|---|
+| <!-- parameter name --> | <!-- yes/no --> | <!-- string/int/bool --> | <!-- value --> | <!-- description --> |
 
-<!-- ПРИМЕР:
-| Параметр | Обяз. | Тип | Значение по умолчанию | Описание |
-|----------|-------|-----|----------------------|----------|
-| shop.promo.enabled | нет | bool | false | Feature flag: включить систему промокодов |
-| shop.promo.max-discount-percent | нет | int | 50 | Максимальный процент скидки (защита от ошибок ввода) |
-| shop.promo.cleanup-cron | нет | string | "0 0 1 * * *" | Расписание очистки просроченных промокодов |
+<!-- EXAMPLE:
+| Parameter | Required | Type | Default | Description |
+|---|---|---|---|---|
+| shop.promo.enabled | no | bool | false | Feature flag: enable promo code system |
+| shop.promo.max-discount-percent | no | int | 50 | Maximum discount percentage (protection against input errors) |
+| shop.promo.cleanup-cron | no | string | "0 0 1 * * *" | Schedule for cleaning up expired promo codes |
 -->
 
 ### MODIFIED
 
-| Параметр | Было | Стало | Обоснование |
-|----------|------|-------|-------------|
-| <!-- имя --> | <!-- тип, default --> | <!-- тип, default --> | <!-- зачем --> |
+| Parameter | Before | After | Rationale |
+|---|---|---|---|
+| <!-- name --> | <!-- type, default --> | <!-- type, default --> | <!-- why --> |
 
 ### REMOVED
 
-| Параметр | Причина | Миграция |
-|----------|---------|----------|
-| <!-- имя --> | <!-- причина --> | <!-- как мигрировать --> |
+| Parameter | Reason | Migration |
+|---|---|---|
+| <!-- name --> | <!-- reason --> | <!-- how to migrate --> |
 
 ---
 
-## 13. Рекомендации к критериям приёмки
+## 13. Acceptance Criteria Recommendations
 
-<!-- Верифицируемые условия, по которым агент-разработчик (или QA) определяет,
-     что изменение реализовано корректно. Формат: КОГДА/ТОГДА.
-     Каждый критерий должен быть проверяемым — через тест, запрос или наблюдение.
-     Покрывать: основной сценарий, граничные случаи, ошибочные сценарии. -->
+<!-- Verifiable conditions by which the developer agent (or QA) determines
+that the change is correctly implemented. Format: WHEN/THEN.
+Each criterion must be verifiable — through a test, request, or observation.
+Cover: main scenario, edge cases, error scenarios. -->
 
-| # | КОГДА | ТОГДА |
-|---|-------|-------|
-| <!-- номер --> | <!-- условие / действие --> | <!-- ожидаемый результат --> |
+| # | WHEN | THEN |
+|---|---|---|
+| <!-- number --> | <!-- condition / action --> | <!-- expected result --> |
 
-<!-- ПРИМЕР:
-| # | КОГДА | ТОГДА |
-|---|-------|-------|
-| 1 | Клиент оформляет заказ на 1500 руб. и передаёт валидный промокод "SUMMER2026" (скидка 10%) | Заказ создан, discountAmount = 150.00, finalAmount = 1350.00, в Kafka-событии ORDERS.CREATED есть promoCode и discountAmount |
-| 2 | Клиент оформляет заказ без промокода (поле promoCode отсутствует) | Заказ создан по полной стоимости, discountAmount = 0, finalAmount = totalAmount |
-| 3 | Клиент передаёт несуществующий промокод "FAKEPROMO" | Ответ 400, errorCode = INVALID_PROMO_CODE, заказ НЕ создан |
-| 4 | Клиент передаёт промокод с истёкшим сроком (valid_until < now()) | Ответ 400, errorCode = PROMO_CODE_EXPIRED, заказ НЕ создан |
-| 5 | Клиент передаёт промокод, у которого usage_count >= max_usages | Ответ 400, errorCode = PROMO_CODE_LIMIT_REACHED, заказ НЕ создан |
-| 6 | Скидка по промокоду (FIXED = 2000 руб.) больше суммы заказа (1500 руб.) | Скидка ограничена суммой заказа: discountAmount = 1500.00, finalAmount = 0.00 |
-| 7 | Feature flag `shop.promo.enabled=false` | Поле promoCode в запросе игнорируется, заказ создаётся без скидки |
+<!-- EXAMPLE:
+| # | WHEN | THEN |
+|---|---|---|
+| 1 | Customer places an order for 1500 and passes valid promo code "SUMMER2026" (10% discount) | Order created, discountAmount = 150.00, finalAmount = 1350.00, Kafka event ORDERS.CREATED contains promoCode and discountAmount |
+| 2 | Customer places an order without promo code (promoCode field absent) | Order created at full price, discountAmount = 0, finalAmount = totalAmount |
+| 3 | Customer passes non-existent promo code "FAKEPROMO" | Response 400, errorCode = INVALID_PROMO_CODE, order NOT created |
+| 4 | Customer passes promo code with expired validity (valid_until < now()) | Response 400, errorCode = PROMO_CODE_EXPIRED, order NOT created |
+| 5 | Customer passes promo code where usage_count >= max_usages | Response 400, errorCode = PROMO_CODE_LIMIT_REACHED, order NOT created |
+| 6 | Promo code discount (FIXED = 2000) exceeds order amount (1500) | Discount capped at order amount: discountAmount = 1500.00, finalAmount = 0.00 |
+| 7 | Feature flag `shop.promo.enabled=false` | promoCode field in request is ignored, order created without discount |
 -->

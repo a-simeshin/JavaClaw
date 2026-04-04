@@ -5,5 +5,4 @@ package ai.javaclaw.e2e;
  * The {@code application-e2e.yaml} profile sets {@code agent.onboarding.completed: true}
  * by default, so no additional configuration override is needed here.
  */
-abstract class ChatReadyE2ETestBase extends E2ETestBase {
-}
+abstract class ChatReadyE2ETestBase extends E2ETestBase {}

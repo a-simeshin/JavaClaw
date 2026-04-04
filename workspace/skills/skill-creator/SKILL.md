@@ -1,7 +1,8 @@
 ---
+
 name: skill-creator
 description: Create new skills, modify and improve existing skills for JavaClaw. Use when users want to create a skill from scratch, edit or improve an existing skill, or refine a skill's description so it triggers more reliably. Also use when a user asks to "turn this workflow into a skill", "save these instructions as a skill", or "make the agent better at X".
----
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Skill Creator
 
@@ -58,6 +59,7 @@ JavaClaw skills are single-file. The agent reads `SKILL.md` when the skill trigg
 Use imperative form. Explain reasoning where it matters.
 
 **Output format example:**
+
 ```markdown
 ## Report structure
 Use this template every time:
@@ -68,6 +70,7 @@ Use this template every time:
 ```
 
 **Example pattern:**
+
 ```markdown
 ## Commit message format
 User said: "Added login with Google"
@@ -133,3 +136,4 @@ If the user wants to improve an existing skill rather than create a new one:
 - Apply the same test → feedback → refine loop as above.
 
 ---
+

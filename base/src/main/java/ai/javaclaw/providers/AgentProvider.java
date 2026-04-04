@@ -1,11 +1,10 @@
 package ai.javaclaw.providers;
 
 import ai.javaclaw.onboarding.AgentOnboardingProvider;
+import java.util.SequencedCollection;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import java.util.SequencedCollection;
 
 @Component
 public class AgentProvider {
@@ -14,10 +13,14 @@ public class AgentProvider {
     private final SequencedCollection<AgentOnboardingProvider> agentOnboardingProviders;
     private final SequencedCollection<ChatModel> chatModelProviders;
 
-    public AgentProvider(Environment environment, SequencedCollection<AgentOnboardingProvider> agentOnboardingProviders, SequencedCollection<ChatModel> chatModelProviders) {
+    public AgentProvider(
+            Environment environment,
+            SequencedCollection<AgentOnboardingProvider> agentOnboardingProviders,
+            SequencedCollection<ChatModel> chatModelProviders) {
         this.environment = environment;
         this.agentOnboardingProviders = agentOnboardingProviders;
-        this.chatModelProviders = chatModelProviders.stream().filter(this::isConfigured).toList();
+        this.chatModelProviders =
+                chatModelProviders.stream().filter(this::isConfigured).toList();
     }
 
     private boolean isConfigured(ChatModel chatModel) {

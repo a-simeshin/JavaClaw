@@ -2,7 +2,6 @@ package ai.javaclaw.tasks;
 
 import java.time.Instant;
 import java.util.List;
-
 import org.springframework.data.repository.ListCrudRepository;
 
 public interface TaskRepository extends ListCrudRepository<Task, String> {

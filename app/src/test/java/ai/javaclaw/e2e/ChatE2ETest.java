@@ -1,10 +1,10 @@
 package ai.javaclaw.e2e;
 
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.Test;
-
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * E2E tests for the chat interface.
@@ -24,8 +24,7 @@ class ChatE2ETest extends ChatReadyE2ETestBase {
         navigateTo("/chat");
 
         // Wait for welcome bubble (proves WebSocket is connected and OOB swap worked)
-        page.waitForSelector("article.ar-msg--agent",
-                new Page.WaitForSelectorOptions().setTimeout(30_000));
+        page.waitForSelector("article.ar-msg--agent", new Page.WaitForSelectorOptions().setTimeout(30_000));
 
         // Count current agent bubbles before sending (there may be history from previous tests)
         int agentBubblesBefore = page.locator("article.ar-msg--agent").count();
@@ -65,8 +64,7 @@ class ChatE2ETest extends ChatReadyE2ETestBase {
         navigateTo("/chat");
 
         // Wait for welcome bubble or history (proves WebSocket is connected)
-        page.waitForSelector("article.ar-msg--agent",
-                new Page.WaitForSelectorOptions().setTimeout(30_000));
+        page.waitForSelector("article.ar-msg--agent", new Page.WaitForSelectorOptions().setTimeout(30_000));
 
         int agentBubblesBefore = page.locator("article.ar-msg--agent").count();
 
@@ -98,7 +96,6 @@ class ChatE2ETest extends ChatReadyE2ETestBase {
                 new Page.WaitForFunctionOptions().setTimeout(30_000));
 
         // Verify at least one agent bubble is present (the LLM response from history)
-        page.waitForSelector("article.ar-msg--agent",
-                new Page.WaitForSelectorOptions().setTimeout(10_000));
+        page.waitForSelector("article.ar-msg--agent", new Page.WaitForSelectorOptions().setTimeout(10_000));
     }
 }

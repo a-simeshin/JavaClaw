@@ -1,5 +1,8 @@
 package ai.javaclaw.channels.discord;
 
+import static java.util.Optional.ofNullable;
+import static java.util.regex.Pattern.quote;
+
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelMessageReceivedEvent;
@@ -14,9 +17,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Optional.ofNullable;
-import static java.util.regex.Pattern.quote;
 
 public class DiscordChannel extends ListenerAdapter implements Channel {
 
@@ -94,7 +94,8 @@ public class DiscordChannel extends ListenerAdapter implements Channel {
             return null;
         }
         if (guildMessage) {
-            String mention = ofNullable(jda.getSelfUser()).map(User::getAsMention).orElse("");
+            String mention =
+                    ofNullable(jda.getSelfUser()).map(User::getAsMention).orElse("");
             content = content.replaceFirst("^\\s*" + quote(mention) + "\\s*", "");
         }
         content = content.trim();

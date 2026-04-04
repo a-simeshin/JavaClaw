@@ -2,12 +2,11 @@ package ai.javaclaw.channels.discord;
 
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.OnboardingProvider;
+import java.io.IOException;
+import java.util.Map;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Map;
 
 @Component
 @Order(53)
@@ -26,21 +25,31 @@ public class DiscordOnboardingProvider implements OnboardingProvider {
     }
 
     @Override
-    public boolean isOptional() {return true;}
+    public boolean isOptional() {
+        return true;
+    }
 
     @Override
-    public String getStepId() {return "discord";}
+    public String getStepId() {
+        return "discord";
+    }
 
     @Override
-    public String getStepTitle() {return "Discord";}
+    public String getStepTitle() {
+        return "Discord";
+    }
 
     @Override
-    public String getTemplatePath() {return "onboarding/steps/discord";}
+    public String getTemplatePath() {
+        return "onboarding/steps/discord";
+    }
 
     @Override
     public void prepareModel(Map<String, Object> session, Map<String, Object> model) {
         model.put("discordToken", session.getOrDefault(SESSION_TOKEN, env.getProperty(TOKEN_PROPERTY, "")));
-        model.put("discordAllowedUser", session.getOrDefault(SESSION_ALLOWED_USER, env.getProperty(ALLOWED_USER_PROPERTY, "")));
+        model.put(
+                "discordAllowedUser",
+                session.getOrDefault(SESSION_ALLOWED_USER, env.getProperty(ALLOWED_USER_PROPERTY, "")));
     }
 
     @Override
@@ -61,15 +70,15 @@ public class DiscordOnboardingProvider implements OnboardingProvider {
     }
 
     @Override
-    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws IOException {
+    public void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws IOException {
         String token = (String) session.get(SESSION_TOKEN);
         String allowedUser = (String) session.get(SESSION_ALLOWED_USER);
 
         if (token != null && allowedUser != null) {
             configurationManager.updateProperties(Map.of(
                     TOKEN_PROPERTY, token,
-                    ALLOWED_USER_PROPERTY, allowedUser
-            ));
+                    ALLOWED_USER_PROPERTY, allowedUser));
         }
     }
 

@@ -1,11 +1,10 @@
 package org.springframework.ai.chat.memory;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A copy of Spring's MessageWindowChatMemory that:
@@ -55,12 +54,10 @@ public class MessageWindowChatMemory implements ChatMemory {
             return messages;
         }
 
-        List<Message> systemMessages = messages.stream()
-                .filter(SystemMessage.class::isInstance)
-                .toList();
-        List<Message> nonSystemMessages = messages.stream()
-                .filter(m -> !(m instanceof SystemMessage))
-                .toList();
+        List<Message> systemMessages =
+                messages.stream().filter(SystemMessage.class::isInstance).toList();
+        List<Message> nonSystemMessages =
+                messages.stream().filter(m -> !(m instanceof SystemMessage)).toList();
 
         int maxNonSystem = Math.max(0, this.maxMessages - systemMessages.size());
         List<Message> windowedNonSystem = nonSystemMessages.subList(
@@ -81,8 +78,7 @@ public class MessageWindowChatMemory implements ChatMemory {
 
         private int maxMessages = DEFAULT_MAX_MESSAGES;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder chatMemoryRepository(ChatMemoryRepository chatMemoryRepository) {
             this.chatMemoryRepository = chatMemoryRepository;
@@ -95,9 +91,9 @@ public class MessageWindowChatMemory implements ChatMemory {
         }
 
         public MessageWindowChatMemory build() {
-            return new MessageWindowChatMemory(new DelegatingAppendableChatMemoryRepository(this.chatMemoryRepository), this.maxMessages);
+            return new MessageWindowChatMemory(
+                    new DelegatingAppendableChatMemoryRepository(this.chatMemoryRepository), this.maxMessages);
         }
-
     }
 
     private static class DelegatingAppendableChatMemoryRepository implements AppendableChatMemoryRepository {
@@ -136,6 +132,8 @@ public class MessageWindowChatMemory implements ChatMemory {
         }
 
         @Override
-        public void deleteByConversationId(String conversationId) {chatMemoryRepository.deleteByConversationId(conversationId);}
+        public void deleteByConversationId(String conversationId) {
+            chatMemoryRepository.deleteByConversationId(conversationId);
+        }
     }
 }

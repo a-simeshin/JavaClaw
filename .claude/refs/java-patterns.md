@@ -95,6 +95,7 @@ public Order createOrder(final String userId, final List<Item> items) {
 ```
 
 **Spring Assert методы:**
+
 ```java
 Assert.notNull(obj, "obj cannot be null");           // != null
 Assert.hasText(str, "str cannot be blank");          // not null, not empty, not whitespace
@@ -189,6 +190,7 @@ processResponse(response.get());
 ```
 
 **Параметры методов — ВСЕГДА final:**
+
 ```java
 // BAD: Параметр можно случайно переопределить
 public void process(Order order) {
@@ -297,6 +299,7 @@ public class OrderService {
 ```
 
 **Для Lombok @Data/@Value классов — тоже:**
+
 ```java
 /** Данные пользователя для REST API. */
 @Data
@@ -548,7 +551,6 @@ String json = """
 ```
 
 <!-- /section:java17 -->
-
 <!-- section:errors -->
 
 ## 13. Обработка ошибок в Spring Boot
@@ -645,7 +647,6 @@ public Order getById(@PathVariable final String id) {
 ```
 
 <!-- /section:errors -->
-
 <!-- section:java17 -->
 
 ## 14. Named Constants

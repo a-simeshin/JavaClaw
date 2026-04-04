@@ -1,11 +1,11 @@
 package ai.javaclaw.e2e;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * E2E test that verifies chat messages are persisted to the shared database
@@ -28,8 +28,7 @@ class MultiInstanceE2ETest extends ChatReadyE2ETestBase {
         navigateTo("/chat");
 
         // Wait for welcome bubble or history (proves WebSocket connected)
-        page.waitForSelector("article.ar-msg--agent",
-                new Page.WaitForSelectorOptions().setTimeout(30_000));
+        page.waitForSelector("article.ar-msg--agent", new Page.WaitForSelectorOptions().setTimeout(30_000));
 
         int agentBubblesBefore = page.locator("article.ar-msg--agent").count();
 
@@ -53,7 +52,7 @@ class MultiInstanceE2ETest extends ChatReadyE2ETestBase {
         // Verify the message was persisted to the shared PostgreSQL database.
         // Spring AI JDBC chat memory stores messages in the spring_ai_chat_memory table.
         boolean messageExists = false;
-        for (String table : new String[]{"spring_ai_chat_memory", "chat_memory", "messages", "ai_chat_memory"}) {
+        for (String table : new String[] {"spring_ai_chat_memory", "chat_memory", "messages", "ai_chat_memory"}) {
             try {
                 int count = jdbcClient
                         .sql("SELECT COUNT(*) FROM " + table + " WHERE content LIKE :content")
@@ -68,7 +67,7 @@ class MultiInstanceE2ETest extends ChatReadyE2ETestBase {
                 // Table does not exist, try next
             }
         }
-        assertTrue(messageExists,
-                "User message should be persisted in the shared database for multi-instance support.");
+        assertTrue(
+                messageExists, "User message should be persisted in the shared database for multi-instance support.");
     }
 }

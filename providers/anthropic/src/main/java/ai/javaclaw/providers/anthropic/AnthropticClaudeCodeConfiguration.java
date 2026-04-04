@@ -19,17 +19,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(name = "spring.ai.anthropic.api-key", havingValue = AnthropticClaudeCodeConfiguration.CLAUDE_CODE_OATH_TOKEN_PLACEHOLDER)
+@ConditionalOnProperty(
+        name = "spring.ai.anthropic.api-key",
+        havingValue = AnthropticClaudeCodeConfiguration.CLAUDE_CODE_OATH_TOKEN_PLACEHOLDER)
 public class AnthropticClaudeCodeConfiguration {
 
     public static final String CLAUDE_CODE_OATH_TOKEN_PLACEHOLDER = "<claude-code-bearer-token>";
 
     @Bean
-    public AnthropicChatModel anthropicChatModel(AnthropicConnectionProperties connectionProperties,
-                                                 AnthropicChatProperties chatProperties, ToolCallingManager toolCallingManager,
-                                                 ObjectProvider<ObservationRegistry> observationRegistry,
-                                                 ObjectProvider<ChatModelObservationConvention> observationConvention,
-                                                 ObjectProvider<ToolExecutionEligibilityPredicate> anthropicToolExecutionEligibilityPredicate) {
+    public AnthropicChatModel anthropicChatModel(
+            AnthropicConnectionProperties connectionProperties,
+            AnthropicChatProperties chatProperties,
+            ToolCallingManager toolCallingManager,
+            ObjectProvider<ObservationRegistry> observationRegistry,
+            ObjectProvider<ChatModelObservationConvention> observationConvention,
+            ObjectProvider<ToolExecutionEligibilityPredicate> anthropicToolExecutionEligibilityPredicate) {
 
         AnthropicChatOptions options = getAnthropicChatOptions(connectionProperties, chatProperties);
 
@@ -40,8 +44,8 @@ public class AnthropticClaudeCodeConfiguration {
                 .options(options)
                 .toolCallingManager(toolCallingManager)
                 .observationRegistry(observationRegistry.getIfUnique(() -> ObservationRegistry.NOOP))
-                .toolExecutionEligibilityPredicate(anthropicToolExecutionEligibilityPredicate
-                        .getIfUnique(DefaultToolExecutionEligibilityPredicate::new))
+                .toolExecutionEligibilityPredicate(anthropicToolExecutionEligibilityPredicate.getIfUnique(
+                        DefaultToolExecutionEligibilityPredicate::new))
                 .build();
 
         observationConvention.ifAvailable(chatModel::setObservationConvention);
@@ -49,14 +53,16 @@ public class AnthropticClaudeCodeConfiguration {
         return chatModel;
     }
 
-    private static AnthropicChatOptions getAnthropicChatOptions(AnthropicConnectionProperties connectionProperties, AnthropicChatProperties chatProperties) {
+    private static AnthropicChatOptions getAnthropicChatOptions(
+            AnthropicConnectionProperties connectionProperties, AnthropicChatProperties chatProperties) {
         AnthropicChatOptions options = chatProperties.getOptions();
         if (connectionProperties.getApiKey() != null) options.setApiKey(connectionProperties.getApiKey());
         if (connectionProperties.getBaseUrl() != null) options.setBaseUrl(connectionProperties.getBaseUrl());
         if (connectionProperties.getTimeout() != null) options.setTimeout(connectionProperties.getTimeout());
         if (connectionProperties.getMaxRetries() != null) options.setMaxRetries(connectionProperties.getMaxRetries());
         if (connectionProperties.getProxy() != null) options.setProxy(connectionProperties.getProxy());
-        if (!connectionProperties.getCustomHeaders().isEmpty()) options.setCustomHeaders(connectionProperties.getCustomHeaders());
+        if (!connectionProperties.getCustomHeaders().isEmpty())
+            options.setCustomHeaders(connectionProperties.getCustomHeaders());
         return options;
     }
 
@@ -68,12 +74,12 @@ public class AnthropticClaudeCodeConfiguration {
         return clientBuilder.build();
     }
 
-    private static AnthropicClientAsync anthropicClientAsync(AnthropicChatOptions options, AnthropicClaudeCodeBackend backend) {
+    private static AnthropicClientAsync anthropicClientAsync(
+            AnthropicChatOptions options, AnthropicClaudeCodeBackend backend) {
         var asyncClientBuilder = AnthropicOkHttpClientAsync.builder().backend(backend);
         if (options.getTimeout() != null) asyncClientBuilder.timeout(options.getTimeout());
         if (options.getMaxRetries() != null) asyncClientBuilder.maxRetries(options.getMaxRetries());
         if (options.getProxy() != null) asyncClientBuilder.proxy(options.getProxy());
         return asyncClientBuilder.build();
     }
-
 }

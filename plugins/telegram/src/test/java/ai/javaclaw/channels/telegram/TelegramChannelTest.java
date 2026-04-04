@@ -1,5 +1,14 @@
 package ai.javaclaw.channels.telegram;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelRegistry;
 import org.junit.jupiter.api.Test;
@@ -12,15 +21,6 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TelegramChannelTest {
@@ -150,8 +150,8 @@ class TelegramChannelTest {
 
         channel.consume(updateFrom("allowed_user", "hello", 42L, null));
 
-        verify(telegramClient).execute(argThat((SendMessage msg) ->
-                "42".equals(msg.getChatId()) && "hi".equals(msg.getText())));
+        verify(telegramClient)
+                .execute(argThat((SendMessage msg) -> "42".equals(msg.getChatId()) && "hi".equals(msg.getText())));
     }
 
     @Test
@@ -161,8 +161,8 @@ class TelegramChannelTest {
 
         channel.consume(updateFrom("allowed_user", "hello", 42L, 567));
 
-        verify(telegramClient).execute(argThat((SendMessage msg) ->
-                Integer.valueOf(567).equals(msg.getMessageThreadId())));
+        verify(telegramClient)
+                .execute(argThat((SendMessage msg) -> Integer.valueOf(567).equals(msg.getMessageThreadId())));
     }
 
     @Test
@@ -172,8 +172,7 @@ class TelegramChannelTest {
 
         channel.consume(updateFrom("allowed_user", "hello", 42L, null));
 
-        verify(telegramClient).execute(argThat((SendMessage msg) ->
-                msg.getMessageThreadId() == null));
+        verify(telegramClient).execute(argThat((SendMessage msg) -> msg.getMessageThreadId() == null));
     }
 
     // -----------------------------------------------------------------------

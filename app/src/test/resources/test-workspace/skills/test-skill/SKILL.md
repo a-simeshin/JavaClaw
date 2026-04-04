@@ -1,7 +1,8 @@
 ---
+
 name: test-skill
 description: A placeholder skill used only in integration tests.
----
+----------------------------------------------------------------
 
 # Test Skill
 

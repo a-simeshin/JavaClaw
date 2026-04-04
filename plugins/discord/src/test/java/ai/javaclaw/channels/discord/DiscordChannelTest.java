@@ -1,19 +1,5 @@
 package ai.javaclaw.channels.discord;
 
-import ai.javaclaw.agent.Agent;
-import ai.javaclaw.channels.ChannelRegistry;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Mentions;
-import net.dv8tion.jda.api.entities.SelfUser;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
-import org.junit.jupiter.api.Test;
-
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -21,6 +7,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelRegistry;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Mentions;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.SelfUser;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import org.junit.jupiter.api.Test;
 
 class DiscordChannelTest {
 
@@ -103,22 +102,24 @@ class DiscordChannelTest {
         return new DiscordChannel(allowedUser, agent, new ChannelRegistry());
     }
 
-    private MessageReceivedEvent event(boolean authorIsBot,
-                                       boolean directMessage,
-                                       boolean mentioned,
-                                       String authorId,
-                                       String channelId,
-                                       String content) {
+    private MessageReceivedEvent event(
+            boolean authorIsBot,
+            boolean directMessage,
+            boolean mentioned,
+            String authorId,
+            String channelId,
+            String content) {
         return event(authorIsBot, directMessage, mentioned, authorId, channelId, content, messageChannel(channelId));
     }
 
-    private MessageReceivedEvent event(boolean authorIsBot,
-                                       boolean directMessage,
-                                       boolean mentioned,
-                                       String authorId,
-                                       String channelId,
-                                       String content,
-                                       MessageChannelUnion channelUnion) {
+    private MessageReceivedEvent event(
+            boolean authorIsBot,
+            boolean directMessage,
+            boolean mentioned,
+            String authorId,
+            String channelId,
+            String content,
+            MessageChannelUnion channelUnion) {
         MessageReceivedEvent event = mock(MessageReceivedEvent.class);
         User author = mock(User.class);
         Message message = mock(Message.class);

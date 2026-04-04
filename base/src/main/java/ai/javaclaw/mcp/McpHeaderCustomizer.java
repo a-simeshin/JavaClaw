@@ -17,7 +17,8 @@ public class McpHeaderCustomizer implements McpClientCustomizer<HttpClientStream
 
     @Override
     public void customize(String name, HttpClientStreamableHttpTransport.Builder builder) {
-        McpConnectionsProperties.Connection connection = properties.connections().get(name);
+        McpConnectionsProperties.Connection connection =
+                properties.connections().get(name);
         if (connection != null && !connection.headers().isEmpty()) {
             builder.customizeRequest(r -> connection.headers().forEach(r::header));
         }

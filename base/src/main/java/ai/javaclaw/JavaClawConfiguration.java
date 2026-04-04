@@ -7,6 +7,12 @@ import ai.javaclaw.tools.AutoDiscoveredTool;
 import ai.javaclaw.tools.CheckListTool;
 import ai.javaclaw.tools.McpTool;
 import ai.javaclaw.tools.TaskTool;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import org.springaicommunity.agent.tools.FileSystemTools;
 import org.springaicommunity.agent.tools.SkillsTool;
 import org.springaicommunity.agent.tools.SmartWebFetchTool;
@@ -31,13 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-
 @Configuration
 public class JavaClawConfiguration {
 
@@ -46,12 +45,18 @@ public class JavaClawConfiguration {
     @Bean
     @ConditionalOnProperty(name = SpringAIModelProperties.CHAT_MODEL, havingValue = "unknown", matchIfMissing = true)
     public ChatModel chatModel() {
-        return prompt -> new ChatResponse(List.of(new Generation(new AssistantMessage("No AI model has been configured. If you did configure a model recently, restart JavaClaw manually for the changes to take effect."))));
+        return prompt -> new ChatResponse(
+                List.of(
+                        new Generation(
+                                new AssistantMessage(
+                                        "No AI model has been configured. If you did configure a model recently, restart JavaClaw manually for the changes to take effect."))));
     }
 
     @Bean
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
-        return MessageWindowChatMemory.builder().chatMemoryRepository(chatMemoryRepository).build();
+        return MessageWindowChatMemory.builder()
+                .chatMemoryRepository(chatMemoryRepository)
+                .build();
     }
 
     @Bean
@@ -61,47 +66,60 @@ public class JavaClawConfiguration {
 
     @Bean
     public ChatClient.Builder chatClientBuilder(ObjectProvider<ChatModel> chatModelProvider) {
-        ChatModel chatModel = chatModelProvider.getIfUnique(() -> prompt -> new ChatResponse(List.of(new Generation(new AssistantMessage("No AI model has been configured. If you did configure a model recently, restart JavaClaw manually for the changes to take effect.")))));
+        ChatModel chatModel = chatModelProvider.getIfUnique(
+                () -> prompt -> new ChatResponse(
+                        List.of(
+                                new Generation(
+                                        new AssistantMessage(
+                                                "No AI model has been configured. If you did configure a model recently, restart JavaClaw manually for the changes to take effect.")))));
         return ChatClient.builder(chatModel);
     }
 
     @Bean
     @DependsOn({"mcpHeaderCustomizer"})
-    public ChatClient chatClient(ChatClient.Builder chatClientBuilder,
-                                 ChatMemory chatMemory,
-                                 SyncMcpToolCallbackProvider mcpToolProvider,
-                                 TaskManager taskManager,
-                                 ConfigurationManager configurationManager,
-                                 @Value("${agent.workspace:Unknown}") Resource workspace,
-                                 Set<AutoDiscoveredTool<?>> autoDiscoveredTools
-    ) throws IOException {
+    public ChatClient chatClient(
+            ChatClient.Builder chatClientBuilder,
+            ChatMemory chatMemory,
+            SyncMcpToolCallbackProvider mcpToolProvider,
+            TaskManager taskManager,
+            ConfigurationManager configurationManager,
+            @Value("${agent.workspace:Unknown}") Resource workspace,
+            Set<AutoDiscoveredTool<?>> autoDiscoveredTools)
+            throws IOException {
 
         Resource agentMd = workspace.createRelative(AGENT_MD);
         if (!agentMd.exists()) {
             agentMd = workspace.createRelative("AGENT.md");
         }
-        String agentPrompt = agentMd.getContentAsString(StandardCharsets.UTF_8) + System.lineSeparator()
-                + workspace.createRelative("INFO.md").getContentAsString(StandardCharsets.UTF_8) + System.lineSeparator();
+        String agentPrompt = agentMd.getContentAsString(StandardCharsets.UTF_8)
+                + System.lineSeparator()
+                + workspace.createRelative("INFO.md").getContentAsString(StandardCharsets.UTF_8)
+                + System.lineSeparator();
 
         chatClientBuilder
                 .defaultAdvisors(new SimpleLoggerAdvisor())
-                .defaultSystem(p -> p.text(agentPrompt).param(AgentEnvironment.ENVIRONMENT_INFO_KEY, AgentEnvironment.info()))
+                .defaultSystem(
+                        p -> p.text(agentPrompt).param(AgentEnvironment.ENVIRONMENT_INFO_KEY, AgentEnvironment.info()))
                 .defaultToolCallbacks(mcpToolProvider.getToolCallbacks())
-                .defaultToolCallbacks(SkillsTool.builder().addSkillsDirectory(skillsDir(workspace).toString()).build())
+                .defaultToolCallbacks(SkillsTool.builder()
+                        .addSkillsDirectory(skillsDir(workspace).toString())
+                        .build())
                 .defaultTools(
                         TaskTool.builder().taskManager(taskManager).build(),
                         CheckListTool.builder().build(),
-                        McpTool.builder().configurationManager(configurationManager).build(),
-                        //Bash execution tool
-                        //ShellTools.builder().build(),// built-in shell tools
+                        McpTool.builder()
+                                .configurationManager(configurationManager)
+                                .build(),
+                        // Bash execution tool
+                        // ShellTools.builder().build(),// built-in shell tools
                         // Read, Write and Edit files tool
-                        FileSystemTools.builder().build(),// built-in file system tools
+                        FileSystemTools.builder().build(), // built-in file system tools
                         // Smart web fetch tool
-                        SmartWebFetchTool.builder(chatClientBuilder.clone().build()).build())
+                        SmartWebFetchTool.builder(chatClientBuilder.clone().build())
+                                .build())
                 .defaultAdvisors(
                         ToolCallAdvisor.builder().build(),
-                        MessageChatMemoryAdvisor.builder(chatMemory).build()
-                );
+                        MessageChatMemoryAdvisor.builder(chatMemory).build());
 
         autoDiscoveredTools.forEach(autoDiscoveredTool -> chatClientBuilder.defaultTools(autoDiscoveredTool.tool()));
         return chatClientBuilder.build();

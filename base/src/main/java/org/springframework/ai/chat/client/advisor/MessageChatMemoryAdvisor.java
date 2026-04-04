@@ -1,5 +1,9 @@
 package org.springframework.ai.chat.client.advisor;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.SequencedSet;
 import org.springframework.ai.chat.client.ChatClientMessageAggregator;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -16,11 +20,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.SequencedSet;
-
 /**
  * A copy of Springs MessageChatMemoryAdvisor that does not add duplicate messages from memory if they are contained in the chatClientRequest.prompt().getInstructions()
  */
@@ -34,7 +33,8 @@ public final class MessageChatMemoryAdvisor implements BaseChatMemoryAdvisor {
 
     private final Scheduler scheduler;
 
-    private MessageChatMemoryAdvisor(ChatMemory chatMemory, String defaultConversationId, int order, Scheduler scheduler) {
+    private MessageChatMemoryAdvisor(
+            ChatMemory chatMemory, String defaultConversationId, int order, Scheduler scheduler) {
         Assert.notNull(chatMemory, "chatMemory cannot be null");
         Assert.hasText(defaultConversationId, "defaultConversationId cannot be null or empty");
         Assert.notNull(scheduler, "scheduler cannot be null");
@@ -75,8 +75,13 @@ public final class MessageChatMemoryAdvisor implements BaseChatMemoryAdvisor {
         }
 
         // 3. Create a new request with the advised messages.
-        ChatClientRequest processedChatClientRequest = chatClientRequest.mutate()
-                .prompt(chatClientRequest.prompt().mutate().messages(processedMessages).build())
+        ChatClientRequest processedChatClientRequest = chatClientRequest
+                .mutate()
+                .prompt(chatClientRequest
+                        .prompt()
+                        .mutate()
+                        .messages(processedMessages)
+                        .build())
                 .build();
 
         // 4. Add the new user message to the conversation memory.
@@ -90,20 +95,18 @@ public final class MessageChatMemoryAdvisor implements BaseChatMemoryAdvisor {
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
         List<Message> assistantMessages = new ArrayList<>();
         if (chatClientResponse.chatResponse() != null) {
-            assistantMessages = chatClientResponse.chatResponse()
-                    .getResults()
-                    .stream()
+            assistantMessages = chatClientResponse.chatResponse().getResults().stream()
                     .map(g -> (Message) g.getOutput())
                     .toList();
         }
-        this.chatMemory.add(this.getConversationId(chatClientResponse.context(), this.defaultConversationId),
-                assistantMessages);
+        this.chatMemory.add(
+                this.getConversationId(chatClientResponse.context(), this.defaultConversationId), assistantMessages);
         return chatClientResponse;
     }
 
     @Override
-    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest,
-                                                 StreamAdvisorChain streamAdvisorChain) {
+    public Flux<ChatClientResponse> adviseStream(
+            ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {
         // Get the scheduler from BaseAdvisor
         Scheduler scheduler = this.getScheduler();
 
@@ -112,8 +115,8 @@ public final class MessageChatMemoryAdvisor implements BaseChatMemoryAdvisor {
                 .publishOn(scheduler)
                 .map(request -> this.before(request, streamAdvisorChain))
                 .flatMapMany(streamAdvisorChain::nextStream)
-                .transform(flux -> new ChatClientMessageAggregator().aggregateChatClientResponse(flux,
-                        response -> this.after(response, streamAdvisorChain)));
+                .transform(flux -> new ChatClientMessageAggregator()
+                        .aggregateChatClientResponse(flux, response -> this.after(response, streamAdvisorChain)));
     }
 
     public static Builder builder(ChatMemory chatMemory) {
@@ -169,6 +172,5 @@ public final class MessageChatMemoryAdvisor implements BaseChatMemoryAdvisor {
         public MessageChatMemoryAdvisor build() {
             return new MessageChatMemoryAdvisor(this.chatMemory, this.conversationId, this.order, this.scheduler);
         }
-
     }
 }

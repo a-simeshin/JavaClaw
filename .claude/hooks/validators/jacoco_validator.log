@@ -1,0 +1,88 @@
+2026-04-04 13:41:06,749 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskManagerTest.java
+2026-04-04 13:41:06,750 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:32,491 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskTest.java
+2026-04-04 13:50:32,491 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:39,228 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/channels/ChannelRegistryTest.java
+2026-04-04 13:50:39,228 - INFO - No pom.xml found, skipping
+2026-04-04 13:50:54,829 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 13:50:54,829 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:20,565 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 13:51:20,566 - INFO - No pom.xml found, skipping
+2026-04-04 13:51:26,777 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 13:51:26,777 - INFO - No pom.xml found, skipping
+2026-04-04 13:56:46,285 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 13:56:46,286 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:17,489 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 13:57:17,490 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:32,536 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/AgentLiveTest.java
+2026-04-04 13:57:32,537 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:35,420 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 13:57:35,420 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:45,575 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/TaskLiveTest.java
+2026-04-04 13:57:45,575 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:55,072 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 13:57:55,072 - INFO - No pom.xml found, skipping
+2026-04-04 13:57:59,804 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 13:57:59,804 - INFO - No pom.xml found, skipping
+2026-04-04 13:58:14,595 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 13:58:14,595 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:13,537 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 14:15:13,537 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:24,502 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:24,502 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:30,631 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:30,631 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:35,850 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:35,850 - INFO - No pom.xml found, skipping
+2026-04-04 14:15:40,750 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:40,750 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:20,541 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:20,541 - INFO - No pom.xml found, skipping
+2026-04-04 15:22:25,901 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:25,901 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:27,255 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:27:27,256 - INFO - No pom.xml found, skipping
+2026-04-04 15:27:36,735 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:27:36,735 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:03,932 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:28:03,932 - INFO - No pom.xml found, skipping
+2026-04-04 15:28:11,752 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:28:11,753 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:04,849 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 15:37:04,850 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:30,330 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:37:30,330 - INFO - No pom.xml found, skipping
+2026-04-04 15:37:51,897 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:37:51,897 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:09,516 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:38:09,516 - INFO - No pom.xml found, skipping
+2026-04-04 15:38:23,584 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:38:23,584 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:37,024 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:41:37,024 - INFO - No pom.xml found, skipping
+2026-04-04 15:41:55,558 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:41:55,558 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:19,022 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:42:19,022 - INFO - No pom.xml found, skipping
+2026-04-04 15:42:32,516 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:42:32,516 - INFO - No pom.xml found, skipping
+2026-04-04 15:45:05,304 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/DiagnosticE2ETest.java
+2026-04-04 15:45:05,304 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:27,800 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:46:27,801 - INFO - No pom.xml found, skipping
+2026-04-04 15:46:48,201 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:46:48,201 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:07,262 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:47:07,263 - INFO - No pom.xml found, skipping
+2026-04-04 15:47:21,359 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:47:21,359 - INFO - No pom.xml found, skipping
+2026-04-04 15:56:36,384 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:56:36,384 - INFO - No pom.xml found, skipping
+2026-04-04 16:09:02,587 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:09:02,587 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:03,609 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:20:03,610 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:09,763 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:09,763 - INFO - No pom.xml found, skipping
+2026-04-04 16:20:14,292 - INFO - JaCoCo validator called for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:14,292 - INFO - No pom.xml found, skipping

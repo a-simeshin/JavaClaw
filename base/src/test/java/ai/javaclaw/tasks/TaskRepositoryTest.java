@@ -1,23 +1,22 @@
 package ai.javaclaw.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration;
 import org.springframework.boot.data.jdbc.test.autoconfigure.DataJdbcTest;
+import org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJdbcTest
 @Testcontainers
@@ -70,8 +69,7 @@ class TaskRepositoryTest {
         Instant tomorrow = now.plus(1, ChronoUnit.DAYS);
 
         taskRepository.save(Task.newTask("task-a", "Task A"));
-        taskRepository.save(
-                Task.newTask("task-b", "Task B").withStatus(Task.Status.in_progress));
+        taskRepository.save(Task.newTask("task-b", "Task B").withStatus(Task.Status.in_progress));
 
         List<Task> all = taskRepository.findByCreatedAtBetween(yesterday, tomorrow);
 

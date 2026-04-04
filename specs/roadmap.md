@@ -5,6 +5,8 @@
 > Каждый этап: **Спека → Тесты → Разработка → Тестирование → Фиксация спеки**
 >
 > Правило: слона едим по частям. Каждая часть — самодостаточный инкремент, который можно запустить и пр��верить.
+>
+> **Референсные репозитории:** [reference-repos.md](reference-repos.md) — карта аналогов OpenClaw/NullClaw/PicoClaw по каждой фазе
 
 ---
 
@@ -22,31 +24,31 @@
 ## Граф зависимостей (что от чего зависит)
 
 ```
-                        ┌─────────────┐
-                        │  React SPA  │
-                        │   (1.1-1.5) │
-                        └──────┬──────┘
-                               │ зависит от
-                        ┌──────▼──────┐
-                        │   REST API  │
-                        │  + SSE/AG-UI│
-                        └──────┬──────┘
-                               │ зависит от
-                 ┌─────────────┼─────────────┐
-                 │             │             │
-          ┌──────▼──────┐ ┌───▼────┐ ┌──────▼──────┐
-          │  Basic Auth │ │ Agent  │ │  Virtual FS │
-          │  (10.0)     │ │  Core  │ │   in DB     │
-          └──────┬──────┘ │(3.1-3.4)│ │  (4.2)      │
-                 │        └───┬────┘ └──────┬──────┘
-                 │            │             │
-                 └────────────┼─────────────┘
-                              │ всё зависит от
-                       ┌──────▼──────┐
-                       │  DB Schema  │
-                       │  + Flyway   │
-                       │  + Domain   │
-                       └─────────────┘
+              ┌─────────────┐
+              │  React SPA  │
+              │   (1.1-1.5) │
+              └──────┬──────┘
+                     │ зависит от
+              ┌──────▼──────┐
+              │   REST API  │
+              │  + SSE/AG-UI│
+              └──────┬──────┘
+                     │ зависит от
+       ┌─────────────┼─────────────┐
+       │             │             │
+┌──────▼──────┐ ┌───▼────┐ ┌──────▼──────┐
+│  Basic Auth │ │ Agent  │ │  Virtual FS │
+│  (10.0)     │ │  Core  │ │   in DB     │
+└──────┬──────┘ │(3.1-3.4)│ │  (4.2)      │
+       │        └───┬────┘ └──────┬──────┘
+       │            │             │
+       └────────────┼─────────────┘
+                    │ всё зависит от
+             ┌──────▼──────┐
+             │  DB Schema  │
+             │  + Flyway   │
+             │  + Domain   │
+             └─────────────┘
 ```
 
 ---
@@ -54,6 +56,7 @@
 ## PHASE 0: Подготовка (до к��да)
 
 ### 0.1 Архитектурные решения
+
 - [ ] Спека: выбор стека фронтенда (React 19 + Vite + TanStack Router vs альтернативы)
 - [ ] Спека: AG-UI vs SSE vs WebSocket — протокол streaming
 - [ ] Спека: структура модулей Gradle (что остаётся, что выкидываем, что добавляем)
@@ -62,6 +65,7 @@
 - [ ] Решение: что делаем с текущим htmx/Pebble кодом (удаляем сразу или параллельно)
 
 ### 0.2 Чистка текущей кодовой базы
+
 - [ ] Удалить onboarding wizard (заменяется config generator CLI позже)
 - [ ] Удалить FileSystem chat memory (заменяется JDBC)
 - [ ] Удалить Playwright plugin (переедет в MCP P4)
@@ -71,56 +75,69 @@
 ---
 
 ## PHASE 1: Фундамент данных
+
 > Цель: всё состояние в PostgreSQL, Flyway-миграции, домен-модель
 
 ### 1.1 DB Schema + Flyway миграции (11.12)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Таблицы: users (минимальная), conversations, messages, virtual_files, skills, mcp_servers, tasks, recurring_tasks, config
 - Flyway V1__initial_schema.sql
 - **Выход:** пустая БД с правильной схемой поднимается при старте
 
 ### 1.2 Virtual filesystem в DB (4.2, 13.10)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
-- VirtualFileRepository (JDBC)
+
+- VirtualFileRepository (Spring Data JDBC — работает с любой БД через коннекторы)
 - VirtualFile entity: id, user_id, path, content, content_type, created_at, updated_at
 - FileOperationsTool переписать на DB-backed
 - **Выход:** агент читает/пишет файлы в БД, не на диск
 
 ### 1.3 JDBC Chat Memory (6.1)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - JdbcAppendableChatMemoryRepository — уже есть, валидировать и дописать тесты
 - Conversation ownership: conversation_id содержит user_id
 - Message window (6.3) — уже есть
 - **Выход:** история чатов в PostgreSQL, работает с текущим агентом
 
 ### 1.4 Skills в DB (4.9)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - SkillRepository (JDBC)
 - Skill entity: id, name, content, owner_id (nullable = global), active, created_at
 - SkillsTool переписать: загрузка из БД вместо filesystem
 - **Выход:** скиллы хранятся в БД, агент читает их оттуда
 
 ### 1.5 MCP-серверы в DB (4.8, 5.3)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - McpServerRepository (JDBC)
 - McpServer entity: id, name, type (stdio/http), config_json, active, created_at
 - McpTool переписать: dynamic registration сохраняет в БД, загружает при старте
 - **Выход:** MCP-серверы персистентны, переживают рестарт
 
 ### 1.6 Tasks в DB (4.1, 8.1-8.4)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - TaskRepository, RecurringTaskRepository — уже в процессе миграции на JDBC
 - Валидация, дописать тесты
 - **Выход:** задачи и расписания в PostgreSQL
@@ -128,20 +145,25 @@
 ---
 
 ## PHASE 2: Агентное ядро
+
 > Цель: агент стримит ответы, вызывает инструменты, читает AGENT.md/SOUL.md из DB
 
 ### 2.1 Agent loop + streaming (3.1, 3.3)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Валидация текущего DefaultAgent
 - Streaming через Spring AI ChatClient → SSE endpoint
 - **Выход:** агент отвечает, ответ стримится через HTTP SSE
 
 ### 2.2 System prompt из DB (3.4, 3.4a, 3.4b)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - AGENT.md → глобальный, загружается из virtual_files (owner_id = null, path = 'AGENT.md')
 - SOUL.md → глобальный, аналогично
 - USER_AGENT.md → per-user, загружается из virtual_files (owner_id = user_id)
@@ -149,45 +171,56 @@
 - **Выход:** system prompt собирается из DB, разный для разных пользователей
 
 ### 2.3 Agent environment (3.9)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Переработка AgentEnvironment: дата/время, timezone (пока серверный), имя пользователя, роль
 - Инъекция в промпт
 - **Выход:** агент знает дату и с кем разговаривает
 
 ### 2.4 Tool calling + auto-discovery (3.2, 4.18)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Валидация текущего @Tool механизма
 - Проверить: TaskTool, CheckListTool, McpTool, FileOperationsTool (DB-backed), SkillsTool (DB-backed)
 - **Выход:** все P0 инструменты работают, agent loop вызывает их корректно
 
 ### 2.5 Skill management tool (4.9a)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Новый @Tool: addSkill, removeSkill, listSkills
 - Сохраняет в SkillRepository
 - **Выход:** агент может добавлять/удалять скиллы через чат
 
 ### 2.6 Web fetch tool (4.4)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Переписать SmartWebFetchTool на Jsoup
 - **Выход:** агент парсит веб-ст��аницы серверно
 
 ---
 
 ## PHASE 3: REST API
+
 > Цель: полный API для фронтенда, задокументированный в OpenAPI
 
 ### 3.1 API contract (спека)
+
 ```
 Спека (OpenAPI YAML)
 ```
+
 - POST /api/chat/send — отправить сообщение
 - GET /api/chat/stream/{conversationId} — SSE поток ответа
 - GET /api/conversations — список диалогов пользователя
@@ -201,39 +234,49 @@
 - **Выход:** OpenAPI-спека, по которой пишутся тесты
 
 ### 3.2 Chat API + SSE streaming (1.5, 3.3)
+
 ```
 Тесты → Разработка → Тест → Фиксация спеки
 ```
+
 - ChatController: send message, stream response (SSE)
 - AG-UI протокол или plain SSE (по результатам спеки 0.1)
 - Conversation CRUD
 - **Выход:** curl может отправить сообщение и получить streaming ответ
 
 ### 3.3 Files API (4.2)
+
 ```
 Тесты → Разработка → Тест → Фиксация спеки
 ```
+
 - VirtualFileController: CRUD + tree listing
 - **Выход:** REST API для работы с виртуальными файлами
 
 ### 3.4 Skills API (4.9)
+
 ```
 Тесты → Разработка → Тест → Фиксация спеки
 ```
+
 - SkillController: CRUD
 - **Выход:** REST API для управления скиллами
 
 ### 3.5 MCP Servers API (5.1-5.3)
+
 ```
 Тесты → Разработка → Тест → Фиксация спеки
 ```
+
 - McpServerController: CRUD + status
 - **Выход:** REST API для управления MCP-серверами
 
 ### 3.6 Actuator + health (12.0, 11.2)
+
 ```
 Разработка → Тест
 ```
+
 - Подключить spring-boot-actuator
 - /health, /info, /metrics
 - Spring AI Observability (12.0a)
@@ -242,12 +285,15 @@
 ---
 
 ## PHASE 4: Basic Auth
+
 > Цель: минимальная авторизация — admin/user из конфига, Spring Security
 
 ### 4.1 Spring Security + Basic Auth (10.0, 15.1.0)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - Spring Security filter chain
 - Два пользователя из application.yaml: admin/admin, user/user
 - AuthService interface (заглушка для будущего RBAC)
@@ -257,18 +303,22 @@
 - **Выход:** без логина ничего не работает, admin и user имеют разный доступ
 
 ### 4.2 Per-user conversation isolation (базовая)
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - conversationId = "user-{username}-{seq}"
 - Пользователь видит только свои диалоги
 - Admin видит все (пока не реализуем, но не ломаем)
 - **Выход:** admin и user имеют изолированные диалоги
 
 ### 4.3 Per-user virtual filesystem isolation
+
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
+
 - virtual_files фильтруются по user_id
 - Глобальные файлы (AGENT.md, SOUL.md): owner_id = null, доступны всем на чтение
 - Пользовательские файлы: owner_id = user_id
@@ -277,29 +327,36 @@
 ---
 
 ## PHASE 5: React SPA
+
 > Цель: полностью новый фронтенд, заменяющий htmx/Pebble
 
 ### 5.1 Scaffold проекта (1.1, 1.2)
+
 ```
 Разработка
 ```
+
 - Vite + React 19 + TypeScript + TanStack Router
 - Подключение к Spring Boot: proxy в vite.config → /api/**
 - Spring Boot раздаёт статику из resources/static
 - **Выход:** пустая React-страница открывается на localhost:8080
 
 ### 5.2 Login page
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - Форма логина (Basic Auth)
 - Редирект на /chat после успешного входа
 - **Выход:** можно залогиниться в браузере
 
 ### 5.3 Chat UI — базовый (1.3, 1.8, 1.10)
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - Чат с пузырьками сообщений
 - Markdown rendering (react-markdown + rehype-highlight)
 - Typing indicator
@@ -308,34 +365,42 @@
 - **Выход:** рабочий чат с агентом в браузере
 
 ### 5.4 Streaming display (1.5)
+
 ```
 Разработка → Тест
 ```
+
 - Токен-по-токену отображение ответа
 - AG-UI или SSE клиент
 - **Выход:** ответ появляется плавно, не целиком
 
 ### 5.5 Tool call visualization (1.10a)
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - Карточки вызовов инструментов: название, параметры, статус, результат (сворачиваемый)
 - Рендеринг в потоке сообщений между текстовыми блоками
 - **Выход:** видно что агент делает в реальном времени
 
 ### 5.6 Conversation switcher (1.4)
+
 ```
 Разработка → Тест
 ```
+
 - Sidebar или dropdown с списком диалогов
 - Создание нового диалога
 - Загрузка истории при переключении
 - **Выход:** можно вести несколько диалогов
 
 ### 5.7 File manager UI (1.7c)
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - Дерево файлов (из /api/files)
 - Встроенный редактор (Monaco Editor или CodeMirror)
 - Создание/удаление/переименование
@@ -343,9 +408,11 @@
 - **Выход:** полноценный файловый менеджер в браузере
 
 ### 5.8 Admin UI — базовый (1.7a)
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - Страница MCP-серверов: список, добавить, удалить, вкл/выкл
 - Страница скиллов: список, добавить, удалить, вкл/выкл
 - Страница AGENT.md / SOUL.md: редактор глобальных промптов
@@ -353,18 +420,22 @@
 - **Выход:** admin управляет системой через UI
 
 ### 5.9 User workspace UI (1.7b)
+
 ```
 Спека (wireframe) → Разработка → Тест
 ```
+
 - USER_AGENT.md / USER_SOUL.md: редактор пользовательских промптов
 - Список доступных скиллов (вкл/выкл для себ��)
 - Список доступных MCP-серверов
 - **Выход:** пользователь настраивает своё пространство
 
 ### 5.10 Удаление htmx/Pebble
+
 ```
 Разработка
 ```
+
 - Удалить templates/, Pebble dependency, ChatHtml, OnboardingController
 - Оставить только REST API + SPA
 - **Выход:** чистый проект без легаси фронтенда
@@ -372,29 +443,36 @@
 ---
 
 ## PHASE 6: Docker + Deploy
+
 > Цель: production-ready Docker-образ
 
 ### 6.1 Docker image (11.1, 11.6)
+
 ```
 Спека → Разработка → Тест
 ```
+
 - Jib: собрать образ с React SPA внутри (multi-stage: vite build → spring boot)
 - Docker Compose: app + PostgreSQL
 - Environment config (11.4): DB_HOST, DB_PORT, etc.
 - **Выход:** docker compose up → работающий JavaClaw
 
 ### 6.2 Graceful shutdown (11.3)
+
 ```
 Разработка → Тест
 ```
+
 - Spring Boot graceful shutdown
 - Дождаться завершения текущих SSE-стримов и JobRunr задач
 - **Выход:** контейнер останавливается без потери данных
 
 ### 6.3 Health checks (11.2)
+
 ```
 Разработка → Тест
 ```
+
 - Actuator /health: DB, MCP-серверы (если есть)
 - Readiness + Liveness probes
 - **Выход:** load balancer знает жив ли инстанс
@@ -402,24 +480,29 @@
 ---
 
 ## === P0 COMPLETE ===
+
 > После Phase 6 имеем: работающий enterprise JavaClaw с React SPA, Basic Auth (admin/user), streaming чатом, виртуальной FS в DB, скиллами, MCP, Docker-образ.
 
 ---
 
 ## PHASE 7: P1 — User management
+
 > Цель: пользователи в БД, нормальные роли
 
 ### 7.1 User entity в DB (15.1.1)
+
 - Flyway миграция: таблица users
 - UserRepository, UserService
 - Миграция с hardcoded users на DB-backed
 
 ### 7.2 Роли ADMIN/USER в DB (15.2.1)
+
 - Таблицы roles, user_roles
 - Замена Spring Security hardcoded ролей на DB-backed
 - AuthService: реальная реализация вместо заглушки
 
 ### 7.3 Conversation ownership в DB (15.5.1, 15.5.2)
+
 - Таблица conversation_access
 - Полная изоляция диалогов per-user
 
@@ -428,25 +511,31 @@
 ## PHASE 8: P1 — Расширение агента
 
 ### 8.1 SOUL.md per-user (3.4c)
+
 - USER_SOUL.md в virtual filesystem
 
 ### 8.2 Steering / interruption (3.8)
+
 - Механизм инъекции сообщений между tool calls
 - Cancel кнопка в UI
 
 ### 8.3 Context window management (3.5)
+
 - Auto-compaction при превышении окна
 - Суммаризация старых сообщений
 
 ### 8.4 FewShotExamples (3.2a)
+
 - Per-tool примеры в конфиге
 - Инъекция в промпт при вызове tool calling
 
 ### 8.5 Thinking/reasoning mode (2.11)
+
 - Поддержка extended thinking в streaming
 - Отображение в UI (1.10b)
 
 ### 8.6 Model fallback chain (2.7)
+
 - Fallback при недоступности основной модели
 - Конфигурация цепочки в application.yaml
 
@@ -455,19 +544,24 @@
 ## PHASE 9: P1 — MCP и интеграции
 
 ### 9.1 MCP health check (5.4)
+
 - Периодическая проверка доступности
 - Auto-reconnect
 
 ### 9.2 Tool discovery caching (5.5)
+
 - Кэш списка инструментов
 
 ### 9.3 MCP as server (5.7)
+
 - JavaClaw выставляет свои инструменты по Streamable HTTP MCP
 
 ### 9.4 A2A — server (5.8)
+
 - JavaClaw принимает задачи от внешних агентов
 
 ### 9.5 MCP admin management UI (15.4.4)
+
 - Расширение Admin UI: полное управление MCP-серверами
 
 ---
@@ -475,20 +569,25 @@
 ## PHASE 10: P1 — Memory и Tools
 
 ### 10.1 Dreamin — long-term memory (6.7)
+
 - Memory tools: store/recall/forget/list (4.11)
 - Автоматическое извлечение фактов
 - UI для просмотра/редактирования памяти
 
 ### 10.2 Auto-summarization (6.6)
+
 - Сжатие длинных историй
 
 ### 10.3 Message tool (4.12)
+
 - Отправка сообщений из фоновых задач
 
 ### 10.4 Tool deny patterns (4.17)
+
 - Чёрный список опасных команд
 
 ### 10.5 Cron tool (4.14)
+
 - Управление расписаниями через чат
 
 ---
@@ -496,11 +595,17 @@
 ## PHASE 11: P1 — UI расширение
 
 ### 11.1 Dark/light theme (1.6)
+
 ### 11.2 Settings UI (1.7)
+
 ### 11.3 File upload/download (1.9)
+
 ### 11.4 Agent thinking display (1.10b)
+
 ### 11.5 Execution timeline (1.10c)
+
 ### 11.6 Config generator CLI (13.8)
+
 ### 11.7 SQLite backend (6.1a)
 
 ---
@@ -508,12 +613,15 @@
 ## PHASE 12: P1 — Security basics
 
 ### 12.1 Compliance audit trail (16.6)
+
 ### 12.2 Agent quota per user (15.6.3)
+
 ### 12.3 Sub-agent / delegation (3.6)
 
 ---
 
 ## === P1 COMPLETE ===
+
 > Имеем: users в DB, нормальные роли, steering, Dreamin, MCP as server, A2A, FewShot, dark theme, audit trail.
 
 ---
@@ -521,6 +629,7 @@
 ## PHASE 13-16: P2 — Полноценный RBAC + Scale
 
 ### Phase 13: RBAC
+
 - 15.2.2 Гранулярные permissions
 - 15.2.3 Role hierarchy (ADMIN > POWER_USER > USER)
 - 15.2.4 Custom roles
@@ -532,12 +641,14 @@
 - 15.6.4 Model access per role
 
 ### Phase 14: Память и поиск
+
 - 6.4 Vector memory
 - 6.5 Hybrid retrieval (BM25 + vector + RRF)
 - 6.8 Conversation archival
 - 2.10 Cost tracking
 
 ### Phase 15: Инфраструктура
+
 - 11.7 Horizontal scaling (stateless + shared DB)
 - 13.5 Spring Cloud Config
 - 13.6 Feature flags
@@ -545,6 +656,7 @@
 - 16.5 Multi-tenancy
 
 ### Phase 16: Прочее P2
+
 - 3.10 Autonomy levels
 - 4.13 Git tool
 - 4.15 Spawn tool
@@ -563,6 +675,7 @@
 ## PHASE 17+: P3-P5
 
 ### P3
+
 - 3.7 Multi-agent routing
 - 15.5.4 Team conversations
 - 15.1.6 Service accounts
@@ -572,6 +685,7 @@
 - 4.16 Reaction tool
 
 ### P4
+
 - Все внешние каналы (7.2-7.17)
 - Все LLM-пров��йдеры (2.2-2.5, 2.8-2.9, 2.12-2.13)
 - Voice/multimedia (14.1-14.7)
@@ -582,6 +696,7 @@
 - WebChat widget (7.20)
 
 ### P5
+
 - 11.13 Startup optimization
 - 11.14 GraalVM native
 
@@ -640,3 +755,4 @@ Phase 13-16: RBAC + Scale      ░░░░░░░░░░░░░░░░�
      - Обновить API contract если изменился
      - Обновить capabilities-catalog.md если статус изменился
 ```
+

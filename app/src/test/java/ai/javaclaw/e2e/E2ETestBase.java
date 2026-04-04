@@ -47,12 +47,11 @@ abstract class E2ETestBase {
     // --- Singleton PostgreSQL container (shared across all E2E test classes) ---
 
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:17-alpine")
-                    .withDatabaseName("javaclaw_e2e")
-                    .withUsername("javaclaw")
-                    .withPassword("javaclaw")
-                    .withReuse(true);
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
+            .withDatabaseName("javaclaw_e2e")
+            .withUsername("javaclaw")
+            .withPassword("javaclaw")
+            .withReuse(true);
 
     // --- Singleton Playwright browser (shared across all E2E test classes) ---
 
@@ -62,14 +61,12 @@ abstract class E2ETestBase {
     static {
         postgres.start();
         PLAYWRIGHT = Playwright.create();
-        BROWSER = PLAYWRIGHT.chromium().launch(new BrowserType.LaunchOptions()
-                .setHeadless(true)
-                .setArgs(java.util.List.of(
-                        "--disable-gpu",
-                        "--disable-dev-shm-usage",
-                        "--disable-extensions",
-                        "--no-sandbox"
-                )));
+        BROWSER = PLAYWRIGHT
+                .chromium()
+                .launch(new BrowserType.LaunchOptions()
+                        .setHeadless(true)
+                        .setArgs(java.util.List.of(
+                                "--disable-gpu", "--disable-dev-shm-usage", "--disable-extensions", "--no-sandbox")));
 
         // Shut down Playwright when the JVM exits
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -91,7 +88,7 @@ abstract class E2ETestBase {
     void cleanDatabase() {
         // Clean chat memory so previous test messages (especially those with null content)
         // don't cause crashes when WebSocket reconnects and loads history.
-        for (String table : new String[]{"spring_ai_chat_memory", "tasks"}) {
+        for (String table : new String[] {"spring_ai_chat_memory", "tasks"}) {
             try {
                 jdbcClient.sql("DELETE FROM " + table).update();
             } catch (Exception ignored) {

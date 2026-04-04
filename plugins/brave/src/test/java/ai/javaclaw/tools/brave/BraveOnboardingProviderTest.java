@@ -1,21 +1,20 @@
 package ai.javaclaw.tools.brave;
 
-import ai.javaclaw.configuration.ConfigurationManager;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import static ai.javaclaw.tools.brave.BraveOnboardingProvider.AGENT_BROWSER_BRAVE_API_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import ai.javaclaw.configuration.ConfigurationManager;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 
 @ExtendWith(MockitoExtension.class)
 class BraveOnboardingProviderTest {

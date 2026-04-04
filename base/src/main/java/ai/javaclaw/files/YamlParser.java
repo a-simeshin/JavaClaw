@@ -63,8 +63,8 @@ public class YamlParser {
 
         if (hasFrontmatter) {
             sb.append(FRONTMATTER_MARKER).append(System.lineSeparator());
-            doc.frontmatter().forEach((k, v) ->
-                    sb.append(k).append(": ").append(v).append(System.lineSeparator()));
+            doc.frontmatter()
+                    .forEach((k, v) -> sb.append(k).append(": ").append(v).append(System.lineSeparator()));
         }
 
         if (hasBody) {

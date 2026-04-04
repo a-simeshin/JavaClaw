@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RecurringTaskHandler {
 
-    private static final Logger LOGGER = new JobRunrDashboardLogger(LoggerFactory.getLogger(RecurringTaskHandler.class));
+    private static final Logger LOGGER =
+            new JobRunrDashboardLogger(LoggerFactory.getLogger(RecurringTaskHandler.class));
 
     private final TaskManager taskManager;
     private final RecurringTaskRepository recurringTaskRepository;
@@ -21,7 +22,8 @@ public class RecurringTaskHandler {
 
     @Job(name = "Recurring task '%0'", retries = 3)
     public void executeTask(String recurringTaskId) {
-        RecurringTask recurringTask = recurringTaskRepository.findById(recurringTaskId)
+        RecurringTask recurringTask = recurringTaskRepository
+                .findById(recurringTaskId)
                 .orElseThrow(() -> new TaskNotFoundException(recurringTaskId));
         taskManager.createTaskFromRecurringTask(recurringTask);
     }

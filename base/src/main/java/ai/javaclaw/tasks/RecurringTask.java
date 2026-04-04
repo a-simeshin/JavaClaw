@@ -1,7 +1,6 @@
 package ai.javaclaw.tasks;
 
 import java.time.Instant;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -10,14 +9,15 @@ public class RecurringTask {
 
     @Id
     private final String id;
+
     private final String name;
     private final String description;
     private final String cronExpression;
     private final String jobId;
     private final Instant createdAt;
 
-    public RecurringTask(String id, String name, String description, String cronExpression,
-                         String jobId, Instant createdAt) {
+    public RecurringTask(
+            String id, String name, String description, String cronExpression, String jobId, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.description = description;

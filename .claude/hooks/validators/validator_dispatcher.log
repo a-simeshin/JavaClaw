@@ -1,0 +1,909 @@
+2026-04-04 13:35:00 | INFO | ============================================================
+2026-04-04 13:35:00 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:00 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/build.gradle
+2026-04-04 13:35:01 | INFO | ============================================================
+2026-04-04 13:35:01 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:01 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/build.gradle
+2026-04-04 13:35:03 | INFO | ============================================================
+2026-04-04 13:35:03 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:03 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/resources/application.yaml
+2026-04-04 13:35:05 | INFO | ============================================================
+2026-04-04 13:35:05 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:05 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/resources/application.yaml
+2026-04-04 13:35:16 | INFO | ============================================================
+2026-04-04 13:35:16 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:16 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/docker-compose.dev.yml
+2026-04-04 13:35:24 | INFO | ============================================================
+2026-04-04 13:35:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:35:24 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/resources/db/migration/V1__init_tasks.sql
+2026-04-04 13:39:08 | INFO | ============================================================
+2026-04-04 13:39:08 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:08 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/Task.java
+2026-04-04 13:39:08 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:08 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:08 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:08 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:08 | INFO | All validators passed
+2026-04-04 13:39:16 | INFO | ============================================================
+2026-04-04 13:39:16 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:16 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTask.java
+2026-04-04 13:39:16 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:16 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:16 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:16 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:16 | INFO | All validators passed
+2026-04-04 13:39:17 | INFO | ============================================================
+2026-04-04 13:39:17 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:17 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/build.gradle
+2026-04-04 13:39:21 | INFO | ============================================================
+2026-04-04 13:39:21 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:21 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/resources/application.yaml
+2026-04-04 13:39:22 | INFO | ============================================================
+2026-04-04 13:39:22 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:22 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskRepository.java
+2026-04-04 13:39:22 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:22 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:22 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:22 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:22 | INFO | All validators passed
+2026-04-04 13:39:26 | INFO | ============================================================
+2026-04-04 13:39:26 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:26 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskRepository.java
+2026-04-04 13:39:26 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:26 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:26 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:26 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:26 | INFO | All validators passed
+2026-04-04 13:39:33 | INFO | ============================================================
+2026-04-04 13:39:33 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:33 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/resources/db/migration/V2__init_chat_memory.sql
+2026-04-04 13:39:34 | INFO | ============================================================
+2026-04-04 13:39:34 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:34 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskIdGeneratorCallback.java
+2026-04-04 13:39:34 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:34 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:34 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:34 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:34 | INFO | All validators passed
+2026-04-04 13:39:38 | INFO | ============================================================
+2026-04-04 13:39:38 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:38 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:38 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:38 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:38 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:38 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:38 | INFO | All validators passed
+2026-04-04 13:39:40 | INFO | ============================================================
+2026-04-04 13:39:40 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:40 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskIdGeneratorCallback.java
+2026-04-04 13:39:40 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:40 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:40 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:40 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:40 | INFO | All validators passed
+2026-04-04 13:39:43 | INFO | ============================================================
+2026-04-04 13:39:43 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:43 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java
+2026-04-04 13:39:43 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:43 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:43 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:43 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:43 | INFO | All validators passed
+2026-04-04 13:39:55 | INFO | ============================================================
+2026-04-04 13:39:55 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:55 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:39:55 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:55 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:55 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:55 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:55 | INFO | All validators passed
+2026-04-04 13:39:58 | INFO | ============================================================
+2026-04-04 13:39:58 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:39:58 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:39:58 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:39:58 | INFO | Running: spotless_validator.py
+2026-04-04 13:39:58 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:39:58 | INFO | Running: pmd_validator.py
+2026-04-04 13:39:58 | INFO | All validators passed
+2026-04-04 13:40:04 | INFO | ============================================================
+2026-04-04 13:40:04 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:40:04 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:40:04 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:40:04 | INFO | Running: spotless_validator.py
+2026-04-04 13:40:04 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:40:04 | INFO | Running: pmd_validator.py
+2026-04-04 13:40:04 | INFO | All validators passed
+2026-04-04 13:40:11 | INFO | ============================================================
+2026-04-04 13:40:11 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:40:11 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/RecurringTaskHandler.java
+2026-04-04 13:40:11 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:40:11 | INFO | Running: spotless_validator.py
+2026-04-04 13:40:11 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:40:11 | INFO | Running: pmd_validator.py
+2026-04-04 13:40:11 | INFO | All validators passed
+2026-04-04 13:40:17 | INFO | ============================================================
+2026-04-04 13:40:17 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:40:17 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskNotFoundException.java
+2026-04-04 13:40:17 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:40:17 | INFO | Running: spotless_validator.py
+2026-04-04 13:40:17 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:40:17 | INFO | Running: pmd_validator.py
+2026-04-04 13:40:17 | INFO | All validators passed
+2026-04-04 13:40:59 | INFO | ============================================================
+2026-04-04 13:40:59 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:40:59 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java
+2026-04-04 13:40:59 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:40:59 | INFO | Running: spotless_validator.py
+2026-04-04 13:40:59 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:40:59 | INFO | Running: pmd_validator.py
+2026-04-04 13:40:59 | INFO | All validators passed
+2026-04-04 13:41:06 | INFO | ============================================================
+2026-04-04 13:41:06 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:41:06 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskManagerTest.java
+2026-04-04 13:41:06 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:41:06 | INFO | Running: spotless_validator.py
+2026-04-04 13:41:06 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:41:06 | INFO | Running: jacoco_validator.py
+2026-04-04 13:41:06 | INFO | Running: pmd_validator.py
+2026-04-04 13:41:06 | INFO | All validators passed
+2026-04-04 13:45:32 | INFO | ============================================================
+2026-04-04 13:45:32 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:45:32 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/channels/ChannelRegistry.java
+2026-04-04 13:45:32 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:45:32 | INFO | Running: spotless_validator.py
+2026-04-04 13:45:32 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:45:32 | INFO | Running: pmd_validator.py
+2026-04-04 13:45:32 | INFO | All validators passed
+2026-04-04 13:45:41 | INFO | ============================================================
+2026-04-04 13:45:41 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:45:41 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:41 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:45:41 | INFO | Running: spotless_validator.py
+2026-04-04 13:45:41 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:45:41 | INFO | Running: pmd_validator.py
+2026-04-04 13:45:41 | INFO | All validators passed
+2026-04-04 13:45:51 | INFO | ============================================================
+2026-04-04 13:45:51 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:45:51 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:51 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:45:51 | INFO | Running: spotless_validator.py
+2026-04-04 13:45:51 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:45:51 | INFO | Running: pmd_validator.py
+2026-04-04 13:45:51 | INFO | All validators passed
+2026-04-04 13:45:59 | INFO | ============================================================
+2026-04-04 13:45:59 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:45:59 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskHandler.java
+2026-04-04 13:45:59 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:45:59 | INFO | Running: spotless_validator.py
+2026-04-04 13:45:59 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:45:59 | INFO | Running: pmd_validator.py
+2026-04-04 13:46:00 | INFO | All validators passed
+2026-04-04 13:46:08 | INFO | ============================================================
+2026-04-04 13:46:08 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:46:08 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tasks/TaskManager.java
+2026-04-04 13:46:08 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:46:08 | INFO | Running: spotless_validator.py
+2026-04-04 13:46:08 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:46:09 | INFO | Running: pmd_validator.py
+2026-04-04 13:46:09 | INFO | All validators passed
+2026-04-04 13:46:23 | INFO | ============================================================
+2026-04-04 13:46:23 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:46:23 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:23 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:46:23 | INFO | Running: spotless_validator.py
+2026-04-04 13:46:23 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:46:23 | INFO | Running: pmd_validator.py
+2026-04-04 13:46:23 | INFO | All validators passed
+2026-04-04 13:46:31 | INFO | ============================================================
+2026-04-04 13:46:31 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:46:31 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/main/java/ai/javaclaw/tools/TaskTool.java
+2026-04-04 13:46:31 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:46:31 | INFO | Running: spotless_validator.py
+2026-04-04 13:46:31 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:46:32 | INFO | Running: pmd_validator.py
+2026-04-04 13:46:32 | INFO | All validators passed
+2026-04-04 13:50:20 | INFO | ============================================================
+2026-04-04 13:50:20 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:50:20 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/build.gradle
+2026-04-04 13:50:32 | INFO | ============================================================
+2026-04-04 13:50:32 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:50:32 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskTest.java
+2026-04-04 13:50:32 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:50:32 | INFO | Running: spotless_validator.py
+2026-04-04 13:50:32 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:50:32 | INFO | Running: jacoco_validator.py
+2026-04-04 13:50:32 | INFO | Running: pmd_validator.py
+2026-04-04 13:50:32 | INFO | All validators passed
+2026-04-04 13:50:39 | INFO | ============================================================
+2026-04-04 13:50:39 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:50:39 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/channels/ChannelRegistryTest.java
+2026-04-04 13:50:39 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:50:39 | INFO | Running: spotless_validator.py
+2026-04-04 13:50:39 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:50:39 | INFO | Running: jacoco_validator.py
+2026-04-04 13:50:39 | INFO | Running: pmd_validator.py
+2026-04-04 13:50:39 | INFO | All validators passed
+2026-04-04 13:50:54 | INFO | ============================================================
+2026-04-04 13:50:54 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:50:54 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 13:50:54 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:50:54 | INFO | Running: spotless_validator.py
+2026-04-04 13:50:54 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:50:54 | INFO | Running: jacoco_validator.py
+2026-04-04 13:50:54 | INFO | Running: pmd_validator.py
+2026-04-04 13:50:54 | INFO | All validators passed
+2026-04-04 13:51:09 | INFO | ============================================================
+2026-04-04 13:51:09 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:51:09 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/resources/application-test.yaml
+2026-04-04 13:51:20 | INFO | ============================================================
+2026-04-04 13:51:20 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:51:20 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 13:51:20 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:51:20 | INFO | Running: spotless_validator.py
+2026-04-04 13:51:20 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:51:20 | INFO | Running: jacoco_validator.py
+2026-04-04 13:51:20 | INFO | Running: pmd_validator.py
+2026-04-04 13:51:20 | INFO | All validators passed
+2026-04-04 13:51:26 | INFO | ============================================================
+2026-04-04 13:51:26 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:51:26 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 13:51:26 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:51:26 | INFO | Running: spotless_validator.py
+2026-04-04 13:51:26 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:51:26 | INFO | Running: jacoco_validator.py
+2026-04-04 13:51:26 | INFO | Running: pmd_validator.py
+2026-04-04 13:51:26 | INFO | All validators passed
+2026-04-04 13:56:00 | INFO | ============================================================
+2026-04-04 13:56:00 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:56:00 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/build.gradle
+2026-04-04 13:56:24 | INFO | ============================================================
+2026-04-04 13:56:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:56:24 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 13:56:24 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:56:24 | INFO | Running: spotless_validator.py
+2026-04-04 13:56:24 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:56:24 | INFO | Running: pmd_validator.py
+2026-04-04 13:56:25 | INFO | All validators passed
+2026-04-04 13:56:36 | INFO | ============================================================
+2026-04-04 13:56:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:56:36 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/build.gradle
+2026-04-04 13:56:46 | INFO | ============================================================
+2026-04-04 13:56:46 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:56:46 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 13:56:46 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:56:46 | INFO | Running: spotless_validator.py
+2026-04-04 13:56:46 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:56:46 | INFO | Running: jacoco_validator.py
+2026-04-04 13:56:46 | INFO | Running: pmd_validator.py
+2026-04-04 13:56:46 | INFO | All validators passed
+2026-04-04 13:56:55 | INFO | ============================================================
+2026-04-04 13:56:55 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:56:55 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 13:56:55 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:56:55 | INFO | Running: spotless_validator.py
+2026-04-04 13:56:55 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:56:55 | INFO | Running: pmd_validator.py
+2026-04-04 13:56:55 | INFO | All validators passed
+2026-04-04 13:57:02 | INFO | ============================================================
+2026-04-04 13:57:02 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:02 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 13:57:17 | INFO | ============================================================
+2026-04-04 13:57:17 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:17 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 13:57:17 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:17 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:17 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:17 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:17 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:17 | INFO | All validators passed
+2026-04-04 13:57:21 | INFO | ============================================================
+2026-04-04 13:57:21 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:21 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 13:57:21 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:21 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:21 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:21 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:21 | INFO | All validators passed
+2026-04-04 13:57:32 | INFO | ============================================================
+2026-04-04 13:57:32 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:32 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/AgentLiveTest.java
+2026-04-04 13:57:32 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:32 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:32 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:32 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:32 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:32 | INFO | All validators passed
+2026-04-04 13:57:35 | INFO | ============================================================
+2026-04-04 13:57:35 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:35 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 13:57:35 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:35 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:35 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:35 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:35 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:35 | INFO | All validators passed
+2026-04-04 13:57:45 | INFO | ============================================================
+2026-04-04 13:57:45 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:45 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/TaskLiveTest.java
+2026-04-04 13:57:45 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:45 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:45 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:45 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:45 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:45 | INFO | All validators passed
+2026-04-04 13:57:54 | INFO | ============================================================
+2026-04-04 13:57:54 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:54 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 13:57:54 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:54 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:55 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:55 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:55 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:55 | INFO | All validators passed
+2026-04-04 13:57:59 | INFO | ============================================================
+2026-04-04 13:57:59 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:57:59 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 13:57:59 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:57:59 | INFO | Running: spotless_validator.py
+2026-04-04 13:57:59 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:57:59 | INFO | Running: jacoco_validator.py
+2026-04-04 13:57:59 | INFO | Running: pmd_validator.py
+2026-04-04 13:57:59 | INFO | All validators passed
+2026-04-04 13:58:14 | INFO | ============================================================
+2026-04-04 13:58:14 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:58:14 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 13:58:14 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 13:58:14 | INFO | Running: spotless_validator.py
+2026-04-04 13:58:14 | INFO | Running: maven_compile_validator.py
+2026-04-04 13:58:14 | INFO | Running: jacoco_validator.py
+2026-04-04 13:58:14 | INFO | Running: pmd_validator.py
+2026-04-04 13:58:14 | INFO | All validators passed
+2026-04-04 13:58:26 | INFO | ============================================================
+2026-04-04 13:58:26 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 13:58:26 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-e2e.yaml
+2026-04-04 14:15:13 | INFO | ============================================================
+2026-04-04 14:15:13 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 14:15:13 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepositoryTest.java
+2026-04-04 14:15:13 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 14:15:13 | INFO | Running: spotless_validator.py
+2026-04-04 14:15:13 | INFO | Running: maven_compile_validator.py
+2026-04-04 14:15:13 | INFO | Running: jacoco_validator.py
+2026-04-04 14:15:13 | INFO | Running: pmd_validator.py
+2026-04-04 14:15:13 | INFO | All validators passed
+2026-04-04 14:15:24 | INFO | ============================================================
+2026-04-04 14:15:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 14:15:24 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:24 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 14:15:24 | INFO | Running: spotless_validator.py
+2026-04-04 14:15:24 | INFO | Running: maven_compile_validator.py
+2026-04-04 14:15:24 | INFO | Running: jacoco_validator.py
+2026-04-04 14:15:24 | INFO | Running: pmd_validator.py
+2026-04-04 14:15:24 | INFO | All validators passed
+2026-04-04 14:15:30 | INFO | ============================================================
+2026-04-04 14:15:30 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 14:15:30 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 14:15:30 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 14:15:30 | INFO | Running: spotless_validator.py
+2026-04-04 14:15:30 | INFO | Running: maven_compile_validator.py
+2026-04-04 14:15:30 | INFO | Running: jacoco_validator.py
+2026-04-04 14:15:30 | INFO | Running: pmd_validator.py
+2026-04-04 14:15:30 | INFO | All validators passed
+2026-04-04 14:15:35 | INFO | ============================================================
+2026-04-04 14:15:35 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 14:15:35 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:35 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 14:15:35 | INFO | Running: spotless_validator.py
+2026-04-04 14:15:35 | INFO | Running: maven_compile_validator.py
+2026-04-04 14:15:35 | INFO | Running: jacoco_validator.py
+2026-04-04 14:15:35 | INFO | Running: pmd_validator.py
+2026-04-04 14:15:35 | INFO | All validators passed
+2026-04-04 14:15:40 | INFO | ============================================================
+2026-04-04 14:15:40 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 14:15:40 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 14:15:40 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 14:15:40 | INFO | Running: spotless_validator.py
+2026-04-04 14:15:40 | INFO | Running: maven_compile_validator.py
+2026-04-04 14:15:40 | INFO | Running: jacoco_validator.py
+2026-04-04 14:15:40 | INFO | Running: pmd_validator.py
+2026-04-04 14:15:40 | INFO | All validators passed
+2026-04-04 15:11:22 | INFO | ============================================================
+2026-04-04 15:11:22 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:11:22 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/test-workspace/AGENT.md
+2026-04-04 15:11:24 | INFO | ============================================================
+2026-04-04 15:11:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:11:24 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/test-workspace/INFO.md
+2026-04-04 15:11:33 | INFO | ============================================================
+2026-04-04 15:11:33 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:11:33 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 15:12:24 | INFO | ============================================================
+2026-04-04 15:12:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:12:24 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:24 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:12:24 | INFO | Running: spotless_validator.py
+2026-04-04 15:12:24 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:12:24 | INFO | Running: pmd_validator.py
+2026-04-04 15:12:24 | INFO | All validators passed
+2026-04-04 15:12:51 | INFO | ============================================================
+2026-04-04 15:12:51 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:12:51 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestConfiguration.java
+2026-04-04 15:12:51 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:12:51 | INFO | Running: spotless_validator.py
+2026-04-04 15:12:51 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:12:51 | INFO | Running: pmd_validator.py
+2026-04-04 15:12:51 | INFO | All validators passed
+2026-04-04 15:14:31 | INFO | ============================================================
+2026-04-04 15:14:31 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:14:31 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 15:15:54 | INFO | ============================================================
+2026-04-04 15:15:54 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:15:54 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/test-workspace/skills/test-skill/SKILL.md
+2026-04-04 15:17:31 | INFO | ============================================================
+2026-04-04 15:17:31 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:17:31 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 15:17:38 | INFO | ============================================================
+2026-04-04 15:17:38 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:17:38 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 15:18:58 | INFO | ============================================================
+2026-04-04 15:18:58 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:18:58 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-openrouter.yaml
+2026-04-04 15:21:18 | INFO | ============================================================
+2026-04-04 15:21:18 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:21:18 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/build.gradle
+2026-04-04 15:22:20 | INFO | ============================================================
+2026-04-04 15:22:20 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:22:20 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:20 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:22:20 | INFO | Running: spotless_validator.py
+2026-04-04 15:22:20 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:22:20 | INFO | Running: jacoco_validator.py
+2026-04-04 15:22:20 | INFO | Running: pmd_validator.py
+2026-04-04 15:22:20 | INFO | All validators passed
+2026-04-04 15:22:25 | INFO | ============================================================
+2026-04-04 15:22:25 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:22:25 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/ChatMemoryLiveTest.java
+2026-04-04 15:22:25 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:22:25 | INFO | Running: spotless_validator.py
+2026-04-04 15:22:25 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:22:25 | INFO | Running: jacoco_validator.py
+2026-04-04 15:22:25 | INFO | Running: pmd_validator.py
+2026-04-04 15:22:25 | INFO | All validators passed
+2026-04-04 15:25:06 | INFO | ============================================================
+2026-04-04 15:25:06 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:25:06 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/live/LiveTestBase.java
+2026-04-04 15:25:06 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:25:06 | INFO | Running: spotless_validator.py
+2026-04-04 15:25:06 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:25:06 | INFO | Running: pmd_validator.py
+2026-04-04 15:25:06 | INFO | All validators passed
+2026-04-04 15:26:10 | INFO | ============================================================
+2026-04-04 15:26:10 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:26:10 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/TestApplication.java
+2026-04-04 15:26:10 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:26:10 | INFO | Running: spotless_validator.py
+2026-04-04 15:26:10 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:26:10 | INFO | Running: pmd_validator.py
+2026-04-04 15:26:10 | INFO | All validators passed
+2026-04-04 15:27:27 | INFO | ============================================================
+2026-04-04 15:27:27 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:27:27 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:27:27 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:27:27 | INFO | Running: spotless_validator.py
+2026-04-04 15:27:27 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:27:27 | INFO | Running: jacoco_validator.py
+2026-04-04 15:27:27 | INFO | Running: pmd_validator.py
+2026-04-04 15:27:27 | INFO | All validators passed
+2026-04-04 15:27:36 | INFO | ============================================================
+2026-04-04 15:27:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:27:36 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:27:36 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:27:36 | INFO | Running: spotless_validator.py
+2026-04-04 15:27:36 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:27:36 | INFO | Running: jacoco_validator.py
+2026-04-04 15:27:36 | INFO | Running: pmd_validator.py
+2026-04-04 15:27:36 | INFO | All validators passed
+2026-04-04 15:28:03 | INFO | ============================================================
+2026-04-04 15:28:03 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:28:03 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/TaskRepositoryTest.java
+2026-04-04 15:28:03 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:28:03 | INFO | Running: spotless_validator.py
+2026-04-04 15:28:03 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:28:03 | INFO | Running: jacoco_validator.py
+2026-04-04 15:28:03 | INFO | Running: pmd_validator.py
+2026-04-04 15:28:03 | INFO | All validators passed
+2026-04-04 15:28:11 | INFO | ============================================================
+2026-04-04 15:28:11 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:28:11 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/src/test/java/ai/javaclaw/tasks/RecurringTaskRepositoryTest.java
+2026-04-04 15:28:11 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:28:11 | INFO | Running: spotless_validator.py
+2026-04-04 15:28:11 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:28:11 | INFO | Running: jacoco_validator.py
+2026-04-04 15:28:11 | INFO | Running: pmd_validator.py
+2026-04-04 15:28:11 | INFO | All validators passed
+2026-04-04 15:28:16 | INFO | ============================================================
+2026-04-04 15:28:16 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:28:16 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/build.gradle
+2026-04-04 15:36:21 | INFO | ============================================================
+2026-04-04 15:36:21 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:36:21 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-e2e.yaml
+2026-04-04 15:36:44 | INFO | ============================================================
+2026-04-04 15:36:44 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:36:44 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:36:44 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:36:44 | INFO | Running: spotless_validator.py
+2026-04-04 15:36:44 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:36:44 | INFO | Running: pmd_validator.py
+2026-04-04 15:36:44 | INFO | All validators passed
+2026-04-04 15:36:51 | INFO | ============================================================
+2026-04-04 15:36:51 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:36:51 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatReadyE2ETestBase.java
+2026-04-04 15:36:51 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:36:51 | INFO | Running: spotless_validator.py
+2026-04-04 15:36:51 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:36:51 | INFO | Running: pmd_validator.py
+2026-04-04 15:36:51 | INFO | All validators passed
+2026-04-04 15:37:04 | INFO | ============================================================
+2026-04-04 15:37:04 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:37:04 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/OnboardingE2ETest.java
+2026-04-04 15:37:04 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:37:04 | INFO | Running: spotless_validator.py
+2026-04-04 15:37:04 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:37:04 | INFO | Running: jacoco_validator.py
+2026-04-04 15:37:04 | INFO | Running: pmd_validator.py
+2026-04-04 15:37:04 | INFO | All validators passed
+2026-04-04 15:37:30 | INFO | ============================================================
+2026-04-04 15:37:30 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:37:30 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:37:30 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:37:30 | INFO | Running: spotless_validator.py
+2026-04-04 15:37:30 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:37:30 | INFO | Running: jacoco_validator.py
+2026-04-04 15:37:30 | INFO | Running: pmd_validator.py
+2026-04-04 15:37:30 | INFO | All validators passed
+2026-04-04 15:37:51 | INFO | ============================================================
+2026-04-04 15:37:51 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:37:51 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:37:51 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:37:51 | INFO | Running: spotless_validator.py
+2026-04-04 15:37:51 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:37:51 | INFO | Running: jacoco_validator.py
+2026-04-04 15:37:51 | INFO | Running: pmd_validator.py
+2026-04-04 15:37:51 | INFO | All validators passed
+2026-04-04 15:38:09 | INFO | ============================================================
+2026-04-04 15:38:09 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:38:09 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:38:09 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:38:09 | INFO | Running: spotless_validator.py
+2026-04-04 15:38:09 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:38:09 | INFO | Running: jacoco_validator.py
+2026-04-04 15:38:09 | INFO | Running: pmd_validator.py
+2026-04-04 15:38:09 | INFO | All validators passed
+2026-04-04 15:38:23 | INFO | ============================================================
+2026-04-04 15:38:23 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:38:23 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:38:23 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:38:23 | INFO | Running: spotless_validator.py
+2026-04-04 15:38:23 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:38:23 | INFO | Running: jacoco_validator.py
+2026-04-04 15:38:23 | INFO | Running: pmd_validator.py
+2026-04-04 15:38:23 | INFO | All validators passed
+2026-04-04 15:41:36 | INFO | ============================================================
+2026-04-04 15:41:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:41:36 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:41:36 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:41:36 | INFO | Running: spotless_validator.py
+2026-04-04 15:41:36 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:41:36 | INFO | Running: jacoco_validator.py
+2026-04-04 15:41:37 | INFO | Running: pmd_validator.py
+2026-04-04 15:41:37 | INFO | All validators passed
+2026-04-04 15:41:55 | INFO | ============================================================
+2026-04-04 15:41:55 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:41:55 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:41:55 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:41:55 | INFO | Running: spotless_validator.py
+2026-04-04 15:41:55 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:41:55 | INFO | Running: jacoco_validator.py
+2026-04-04 15:41:55 | INFO | Running: pmd_validator.py
+2026-04-04 15:41:55 | INFO | All validators passed
+2026-04-04 15:42:18 | INFO | ============================================================
+2026-04-04 15:42:18 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:42:18 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:42:18 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:42:18 | INFO | Running: spotless_validator.py
+2026-04-04 15:42:18 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:42:18 | INFO | Running: jacoco_validator.py
+2026-04-04 15:42:19 | INFO | Running: pmd_validator.py
+2026-04-04 15:42:19 | INFO | All validators passed
+2026-04-04 15:42:32 | INFO | ============================================================
+2026-04-04 15:42:32 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:42:32 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:42:32 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:42:32 | INFO | Running: spotless_validator.py
+2026-04-04 15:42:32 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:42:32 | INFO | Running: jacoco_validator.py
+2026-04-04 15:42:32 | INFO | Running: pmd_validator.py
+2026-04-04 15:42:32 | INFO | All validators passed
+2026-04-04 15:45:05 | INFO | ============================================================
+2026-04-04 15:45:05 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:45:05 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/DiagnosticE2ETest.java
+2026-04-04 15:45:05 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:45:05 | INFO | Running: spotless_validator.py
+2026-04-04 15:45:05 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:45:05 | INFO | Running: jacoco_validator.py
+2026-04-04 15:45:05 | INFO | Running: pmd_validator.py
+2026-04-04 15:45:05 | INFO | All validators passed
+2026-04-04 15:46:27 | INFO | ============================================================
+2026-04-04 15:46:27 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:46:27 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:46:27 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:46:27 | INFO | Running: spotless_validator.py
+2026-04-04 15:46:27 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:46:27 | INFO | Running: jacoco_validator.py
+2026-04-04 15:46:27 | INFO | Running: pmd_validator.py
+2026-04-04 15:46:27 | INFO | All validators passed
+2026-04-04 15:46:48 | INFO | ============================================================
+2026-04-04 15:46:48 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:46:48 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 15:46:48 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:46:48 | INFO | Running: spotless_validator.py
+2026-04-04 15:46:48 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:46:48 | INFO | Running: jacoco_validator.py
+2026-04-04 15:46:48 | INFO | Running: pmd_validator.py
+2026-04-04 15:46:48 | INFO | All validators passed
+2026-04-04 15:47:07 | INFO | ============================================================
+2026-04-04 15:47:07 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:47:07 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/TaskCreationE2ETest.java
+2026-04-04 15:47:07 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:47:07 | INFO | Running: spotless_validator.py
+2026-04-04 15:47:07 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:47:07 | INFO | Running: jacoco_validator.py
+2026-04-04 15:47:07 | INFO | Running: pmd_validator.py
+2026-04-04 15:47:07 | INFO | All validators passed
+2026-04-04 15:47:21 | INFO | ============================================================
+2026-04-04 15:47:21 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:47:21 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java
+2026-04-04 15:47:21 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:47:21 | INFO | Running: spotless_validator.py
+2026-04-04 15:47:21 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:47:21 | INFO | Running: jacoco_validator.py
+2026-04-04 15:47:21 | INFO | Running: pmd_validator.py
+2026-04-04 15:47:21 | INFO | All validators passed
+2026-04-04 15:52:11 | INFO | ============================================================
+2026-04-04 15:52:11 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:52:11 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 15:52:11 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 15:52:11 | INFO | Running: spotless_validator.py
+2026-04-04 15:52:11 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:52:11 | INFO | Running: pmd_validator.py
+2026-04-04 15:52:11 | INFO | All validators passed
+2026-04-04 15:56:36 | INFO | ============================================================
+2026-04-04 15:56:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 15:56:36 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 15:56:36 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 15:56:36 | INFO | Running: spotless_validator.py
+2026-04-04 15:56:36 | INFO | Running: maven_compile_validator.py
+2026-04-04 15:56:36 | INFO | Running: jacoco_validator.py
+2026-04-04 15:56:36 | INFO | Running: pmd_validator.py
+2026-04-04 15:56:36 | INFO | All validators passed
+2026-04-04 16:09:02 | INFO | ============================================================
+2026-04-04 16:09:02 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:09:02 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:09:02 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 16:09:02 | INFO | Running: spotless_validator.py
+2026-04-04 16:09:02 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:09:02 | INFO | Running: jacoco_validator.py
+2026-04-04 16:09:02 | INFO | Running: pmd_validator.py
+2026-04-04 16:09:02 | INFO | All validators passed
+2026-04-04 16:19:45 | INFO | ============================================================
+2026-04-04 16:19:45 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:19:45 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:19:45 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:19:45 | INFO | Running: spotless_validator.py
+2026-04-04 16:19:45 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:19:45 | INFO | Running: pmd_validator.py
+2026-04-04 16:19:45 | INFO | All validators passed
+2026-04-04 16:19:53 | INFO | ============================================================
+2026-04-04 16:19:53 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:19:53 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/build.gradle
+2026-04-04 16:20:03 | INFO | ============================================================
+2026-04-04 16:20:03 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:20:03 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ChatE2ETest.java
+2026-04-04 16:20:03 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 16:20:03 | INFO | Running: spotless_validator.py
+2026-04-04 16:20:03 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:20:03 | INFO | Running: jacoco_validator.py
+2026-04-04 16:20:03 | INFO | Running: pmd_validator.py
+2026-04-04 16:20:03 | INFO | All validators passed
+2026-04-04 16:20:09 | INFO | ============================================================
+2026-04-04 16:20:09 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:20:09 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:09 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 16:20:09 | INFO | Running: spotless_validator.py
+2026-04-04 16:20:09 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:20:09 | INFO | Running: jacoco_validator.py
+2026-04-04 16:20:09 | INFO | Running: pmd_validator.py
+2026-04-04 16:20:09 | INFO | All validators passed
+2026-04-04 16:20:14 | INFO | ============================================================
+2026-04-04 16:20:14 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:20:14 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/ConversationSwitchingE2ETest.java
+2026-04-04 16:20:14 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'jacoco_validator.py', 'pmd_validator.py']
+2026-04-04 16:20:14 | INFO | Running: spotless_validator.py
+2026-04-04 16:20:14 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:20:14 | INFO | Running: jacoco_validator.py
+2026-04-04 16:20:14 | INFO | Running: pmd_validator.py
+2026-04-04 16:20:14 | INFO | All validators passed
+2026-04-04 16:20:21 | INFO | ============================================================
+2026-04-04 16:20:21 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:20:21 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/build.gradle
+2026-04-04 16:35:05 | INFO | ============================================================
+2026-04-04 16:35:05 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:35:05 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatHtml.java
+2026-04-04 16:35:05 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:35:05 | INFO | Running: spotless_validator.py
+2026-04-04 16:35:05 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:35:05 | INFO | Running: pmd_validator.py
+2026-04-04 16:35:05 | INFO | All validators passed
+2026-04-04 16:35:13 | INFO | ============================================================
+2026-04-04 16:35:13 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:35:13 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ChatChannel.java
+2026-04-04 16:35:13 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:35:13 | INFO | Running: spotless_validator.py
+2026-04-04 16:35:13 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:35:13 | INFO | Running: pmd_validator.py
+2026-04-04 16:35:14 | INFO | All validators passed
+2026-04-04 16:35:26 | INFO | ============================================================
+2026-04-04 16:35:26 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:35:26 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/main/java/ai/javaclaw/chat/ws/ChatWebSocketHandler.java
+2026-04-04 16:35:26 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:35:26 | INFO | Running: spotless_validator.py
+2026-04-04 16:35:26 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:35:26 | INFO | Running: pmd_validator.py
+2026-04-04 16:35:26 | INFO | All validators passed
+2026-04-04 16:35:34 | INFO | ============================================================
+2026-04-04 16:35:34 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:35:34 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:34 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:35:34 | INFO | Running: spotless_validator.py
+2026-04-04 16:35:34 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:35:34 | INFO | Running: pmd_validator.py
+2026-04-04 16:35:34 | INFO | All validators passed
+2026-04-04 16:35:43 | INFO | ============================================================
+2026-04-04 16:35:43 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:35:43 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/java/ai/javaclaw/e2e/E2ETestBase.java
+2026-04-04 16:35:43 | INFO | Dispatching to: ['spotless_validator.py', 'maven_compile_validator.py', 'pmd_validator.py']
+2026-04-04 16:35:43 | INFO | Running: spotless_validator.py
+2026-04-04 16:35:43 | INFO | Running: maven_compile_validator.py
+2026-04-04 16:35:43 | INFO | Running: pmd_validator.py
+2026-04-04 16:35:43 | INFO | All validators passed
+2026-04-04 16:37:03 | INFO | ============================================================
+2026-04-04 16:37:03 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:37:03 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/src/test/resources/application-e2e.yaml
+2026-04-04 16:38:36 | INFO | ============================================================
+2026-04-04 16:38:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 16:38:36 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/build.gradle
+2026-04-04 19:28:46 | INFO | ============================================================
+2026-04-04 19:28:46 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:28:46 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:28:46 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:28:46 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:28:46 | INFO | Running: ossindex_validator.py
+2026-04-04 19:28:46 | INFO | All validators passed
+2026-04-04 19:29:22 | INFO | ============================================================
+2026-04-04 19:29:22 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:29:22 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/.mvn/wrapper/maven-wrapper.properties
+2026-04-04 19:30:00 | INFO | ============================================================
+2026-04-04 19:30:00 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:00 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/base/pom.xml
+2026-04-04 19:30:00 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:00 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:00 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:00 | INFO | All validators passed
+2026-04-04 19:30:04 | INFO | ============================================================
+2026-04-04 19:30:04 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:04 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/anthropic/pom.xml
+2026-04-04 19:30:04 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:04 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:04 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:04 | INFO | All validators passed
+2026-04-04 19:30:07 | INFO | ============================================================
+2026-04-04 19:30:07 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:07 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/google/pom.xml
+2026-04-04 19:30:07 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:07 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:07 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:07 | INFO | All validators passed
+2026-04-04 19:30:12 | INFO | ============================================================
+2026-04-04 19:30:12 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:12 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/ollama/pom.xml
+2026-04-04 19:30:12 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:12 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:12 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:12 | INFO | All validators passed
+2026-04-04 19:30:15 | INFO | ============================================================
+2026-04-04 19:30:15 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:15 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/providers/openai/pom.xml
+2026-04-04 19:30:15 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:15 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:15 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:15 | INFO | All validators passed
+2026-04-04 19:30:19 | INFO | ============================================================
+2026-04-04 19:30:19 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:19 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/discord/pom.xml
+2026-04-04 19:30:19 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:19 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:19 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:19 | INFO | All validators passed
+2026-04-04 19:30:19 | INFO | ============================================================
+2026-04-04 19:30:19 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:19 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/mvnw
+2026-04-04 19:30:24 | INFO | ============================================================
+2026-04-04 19:30:24 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:24 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/telegram/pom.xml
+2026-04-04 19:30:24 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:24 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:24 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:24 | INFO | All validators passed
+2026-04-04 19:30:28 | INFO | ============================================================
+2026-04-04 19:30:28 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:28 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/playwright/pom.xml
+2026-04-04 19:30:28 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:28 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:28 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:28 | INFO | All validators passed
+2026-04-04 19:30:33 | INFO | ============================================================
+2026-04-04 19:30:33 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:33 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/plugins/brave/pom.xml
+2026-04-04 19:30:33 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:30:33 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:30:33 | INFO | Running: ossindex_validator.py
+2026-04-04 19:30:33 | INFO | All validators passed
+2026-04-04 19:30:43 | INFO | ============================================================
+2026-04-04 19:30:43 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:30:43 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/mvnw.cmd
+2026-04-04 19:37:49 | INFO | ============================================================
+2026-04-04 19:37:49 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:37:49 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:37:49 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:37:49 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:37:49 | INFO | Running: ossindex_validator.py
+2026-04-04 19:37:49 | INFO | All validators passed
+2026-04-04 19:37:57 | INFO | ============================================================
+2026-04-04 19:37:57 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:37:57 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:37:57 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:37:57 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:37:57 | INFO | Running: ossindex_validator.py
+2026-04-04 19:37:57 | INFO | All validators passed
+2026-04-04 19:39:43 | INFO | ============================================================
+2026-04-04 19:39:43 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:39:43 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/app/pom.xml
+2026-04-04 19:39:43 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:39:43 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:39:43 | INFO | Running: ossindex_validator.py
+2026-04-04 19:39:43 | INFO | All validators passed
+2026-04-04 19:41:08 | INFO | ============================================================
+2026-04-04 19:41:08 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:41:08 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/.gitignore
+2026-04-04 19:41:14 | INFO | ============================================================
+2026-04-04 19:41:14 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:41:14 | INFO | No validators for: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/.gitignore
+2026-04-04 19:47:36 | INFO | ============================================================
+2026-04-04 19:47:36 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:47:36 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:36 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:47:36 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:47:36 | INFO | Running: ossindex_validator.py
+2026-04-04 19:47:36 | INFO | All validators passed
+2026-04-04 19:47:51 | INFO | ============================================================
+2026-04-04 19:47:51 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:47:51 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:51 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:47:51 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:47:51 | INFO | Running: ossindex_validator.py
+2026-04-04 19:47:51 | INFO | All validators passed
+2026-04-04 19:47:57 | INFO | ============================================================
+2026-04-04 19:47:57 | INFO | VALIDATOR DISPATCHER TRIGGERED
+2026-04-04 19:47:57 | INFO | File: /Users/artemsimeisn/IdeaProjects/sber/aihub/JavaClaw/pom.xml
+2026-04-04 19:47:57 | INFO | Dispatching to: ['maven_compile_validator.py', 'ossindex_validator.py']
+2026-04-04 19:47:57 | INFO | Running: maven_compile_validator.py
+2026-04-04 19:47:57 | INFO | Running: ossindex_validator.py
+2026-04-04 19:47:57 | INFO | All validators passed

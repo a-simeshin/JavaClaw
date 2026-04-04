@@ -1,16 +1,15 @@
 package ai.javaclaw.tools;
 
 import ai.javaclaw.configuration.ConfigurationManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.ai.tool.annotation.Tool;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.tool.annotation.Tool;
 
 /**
  * Allows the agent to register new MCP servers at runtime by persisting them
@@ -26,9 +25,11 @@ public class McpTool {
         this.configurationManager = configurationManager;
     }
 
-    @Tool(description = """
+    @Tool(
+            description =
+                    """
             Adds a new streamable-HTTP MCP server to the application configuration.
-            
+
             Parameters:
             - name: Unique identifier for the server (letters, numbers, hyphens, underscores only).
             - url: The MCP endpoint URL (e.g., http://localhost:8000/mcp).
@@ -41,7 +42,9 @@ public class McpTool {
         try {
             Map<String, Object> props = new LinkedHashMap<>();
             URI uri = new URI(url);
-            props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".url", uri.getScheme() + "://" + uri.getAuthority());
+            props.put(
+                    "spring.ai.mcp.client.streamable-http.connections." + name + ".url",
+                    uri.getScheme() + "://" + uri.getAuthority());
             props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".endpoint", uri.getPath());
             props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".url", url);
             if (headers != null && !headers.isBlank()) {
@@ -51,21 +54,25 @@ public class McpTool {
                     if (sep > 0) {
                         String key = line.substring(0, sep).trim();
                         String value = line.substring(sep + 1).trim();
-                        props.put("spring.ai.mcp.client.streamable-http.connections." + name + ".headers." + key, value);
+                        props.put(
+                                "spring.ai.mcp.client.streamable-http.connections." + name + ".headers." + key, value);
                     }
                 }
             }
             configurationManager.updateProperties(props);
-            return "MCP server '" + name + "' (streamable-http) added successfully. Restart the application for it to take effect.";
+            return "MCP server '" + name
+                    + "' (streamable-http) added successfully. Restart the application for it to take effect.";
         } catch (Exception e) {
             logger.error("Failed to add streamable-http MCP server '{}'", name, e);
             return "Error: Could not add MCP server. " + e.getMessage();
         }
     }
 
-    @Tool(description = """
+    @Tool(
+            description =
+                    """
             Adds a new stdio MCP server to the application configuration.
-            
+
             Parameters:
             - name: Unique identifier for the server (letters, numbers, hyphens, underscores only).
             - command: The executable command to launch the MCP server process with the arguments
@@ -96,7 +103,8 @@ public class McpTool {
                 }
             }
             configurationManager.updateProperties(props);
-            return "MCP server '" + name + "' (stdio) added successfully. Restart the application for it to take effect.";
+            return "MCP server '" + name
+                    + "' (stdio) added successfully. Restart the application for it to take effect.";
         } catch (Exception e) {
             logger.error("Failed to add stdio MCP server '{}'", name, e);
             return "Error: Could not add MCP server. " + e.getMessage();

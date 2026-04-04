@@ -1,11 +1,10 @@
 package ai.javaclaw.files;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class YamlParserTest {
 
@@ -15,7 +14,8 @@ class YamlParserTest {
 
     @Test
     void parseFrontmatterOnlyWithoutClosingDelimiter() {
-        String content = """
+        String content =
+                """
                 ---
                 task: handle-email
                 createdAt: 2026-03-21T10:00:00Z
@@ -35,7 +35,8 @@ class YamlParserTest {
 
     @Test
     void parseFrontmatterPreservesInsertionOrder() {
-        String content = """
+        String content =
+                """
                 ---
                 alpha: 1
                 beta: 2
@@ -44,22 +45,16 @@ class YamlParserTest {
 
         YamlDocument doc = YamlParser.parse(content);
 
-        assertThat(doc.frontmatter().keySet())
-                .containsExactly("alpha", "beta", "gamma");
+        assertThat(doc.frontmatter().keySet()).containsExactly("alpha", "beta", "gamma");
     }
 
     @Test
     void parseMultiLineFrontmatterValue() {
-        String content = "---\n" +
-                "task: my-task\n" +
-                "description: First line\n" +
-                "second line\n" +
-                "third line\n";
+        String content = "---\n" + "task: my-task\n" + "description: First line\n" + "second line\n" + "third line\n";
 
         YamlDocument doc = YamlParser.parse(content);
 
-        assertThat(doc.frontmatter().get("description"))
-                .isEqualTo("First line\nsecond line\nthird line");
+        assertThat(doc.frontmatter().get("description")).isEqualTo("First line\nsecond line\nthird line");
     }
 
     // -----------------------------------------------------------------------
@@ -82,7 +77,8 @@ class YamlParserTest {
 
     @Test
     void parseFrontmatterAndBody() {
-        String content = """
+        String content =
+                """
                 ---
                 key: value
                 ---

@@ -1,20 +1,19 @@
 package ai.javaclaw.providers.anthropic;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.anthropic.core.http.HttpMethod;
 import com.anthropic.core.http.HttpRequest;
 import com.anthropic.core.http.HttpRequestBody;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AnthropicClaudeCodeBackendTest {
 
@@ -43,7 +42,8 @@ class AnthropicClaudeCodeBackendTest {
 
         JsonNode prefixBlock = system.get(0);
         assertThat(prefixBlock.get("type").asString()).isEqualTo("text");
-        assertThat(prefixBlock.get("text").asString()).isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
+        assertThat(prefixBlock.get("text").asString())
+                .isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
         assertThat(prefixBlock.get("cache_control").get("type").asString()).isEqualTo("ephemeral");
     }
 
@@ -62,7 +62,8 @@ class AnthropicClaudeCodeBackendTest {
 
         JsonNode prefixBlock = system.get(0);
         assertThat(prefixBlock.get("type").asString()).isEqualTo("text");
-        assertThat(prefixBlock.get("text").asString()).isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
+        assertThat(prefixBlock.get("text").asString())
+                .isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
         assertThat(prefixBlock.get("cache_control").get("type").asString()).isEqualTo("ephemeral");
 
         JsonNode originalBlock = system.get(1);
@@ -93,7 +94,8 @@ class AnthropicClaudeCodeBackendTest {
         assertThat(system.isArray()).isTrue();
         assertThat(system.size()).isEqualTo(3);
 
-        assertThat(system.get(0).get("text").asString()).isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
+        assertThat(system.get(0).get("text").asString())
+                .isEqualTo("You are Claude Code, Anthropic's official CLI for Claude.");
         assertThat(system.get(0).get("cache_control").get("type").asString()).isEqualTo("ephemeral");
         assertThat(system.get(1).get("text").asString()).isEqualTo("Block one.");
         assertThat(system.get(2).get("text").asString()).isEqualTo("Block two.");
@@ -127,8 +129,7 @@ class AnthropicClaudeCodeBackendTest {
             }
 
             @Override
-            public void close() {
-            }
+            public void close() {}
         };
 
         return HttpRequest.builder()

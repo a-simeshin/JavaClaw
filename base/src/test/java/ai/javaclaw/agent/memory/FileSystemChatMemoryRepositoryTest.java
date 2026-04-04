@@ -1,5 +1,11 @@
 package ai.javaclaw.agent.memory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -8,17 +14,11 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.core.io.FileSystemResource;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 class FileSystemChatMemoryRepositoryTest {
 
     @TempDir
     Path workspaceDir;
+
     FileSystemChatMemoryRepository repository;
 
     @BeforeEach
@@ -32,10 +32,7 @@ class FileSystemChatMemoryRepositoryTest {
 
     @Test
     void saveAndReloadConversation() throws IOException {
-        List<Message> messages = List.of(
-                new UserMessage("Hello!"),
-                new AssistantMessage("Hi there, how can I help?")
-        );
+        List<Message> messages = List.of(new UserMessage("Hello!"), new AssistantMessage("Hi there, how can I help?"));
 
         repository.saveAll("2026-03-21/web", messages);
 
@@ -52,10 +49,7 @@ class FileSystemChatMemoryRepositoryTest {
         Path expectedFile = workspaceDir.resolve("conversations/chat-web.yaml");
         assertThat(expectedFile).exists();
         String content = Files.readString(expectedFile);
-        assertThat(content)
-                .contains("createdAt:")
-                .contains("updatedAt:")
-                .contains("user: Hi");
+        assertThat(content).contains("createdAt:").contains("updatedAt:").contains("user: Hi");
     }
 
     @Test
@@ -108,16 +102,16 @@ class FileSystemChatMemoryRepositoryTest {
                 new UserMessage("Question 1"),
                 new AssistantMessage("Answer 1"),
                 new UserMessage("Question 2"),
-                new AssistantMessage("Answer 2")
-        );
+                new AssistantMessage("Answer 2"));
 
         repository.saveAll("web", messages);
 
         List<Message> loaded = repository.findByConversationId("web");
-        assertThat(loaded).extracting(Message::getText)
+        assertThat(loaded)
+                .extracting(Message::getText)
                 .containsExactly("Question 1", "Answer 1", "Question 2", "Answer 2");
     }
-    
+
     @Test
     void appendAllAddsMessagesToExistingConversation() {
         repository.saveAll("web", List.of(new UserMessage("Hello!")));
@@ -153,19 +147,12 @@ class FileSystemChatMemoryRepositoryTest {
 
     @Test
     void appendAllPreservesMessageOrder() {
-        repository.saveAll("web", List.of(
-                new UserMessage("Q1"),
-                new AssistantMessage("A1")
-        ));
+        repository.saveAll("web", List.of(new UserMessage("Q1"), new AssistantMessage("A1")));
 
-        repository.appendAll("web", List.of(
-                new UserMessage("Q2"),
-                new AssistantMessage("A2")
-        ));
+        repository.appendAll("web", List.of(new UserMessage("Q2"), new AssistantMessage("A2")));
 
         List<Message> loaded = repository.findByConversationId("web");
-        assertThat(loaded).extracting(Message::getText)
-                .containsExactly("Q1", "A1", "Q2", "A2");
+        assertThat(loaded).extracting(Message::getText).containsExactly("Q1", "A1", "Q2", "A2");
     }
 
     // -----------------------------------------------------------------------
@@ -198,10 +185,7 @@ class FileSystemChatMemoryRepositoryTest {
 
         List<String> ids = repository.findConversationIds();
 
-        assertThat(ids).containsExactlyInAnyOrder(
-                "web",
-                "telegram-111"
-        );
+        assertThat(ids).containsExactlyInAnyOrder("web", "telegram-111");
     }
 
     @Test
@@ -235,7 +219,8 @@ class FileSystemChatMemoryRepositoryTest {
     // -----------------------------------------------------------------------
 
     private static String extractFrontmatterValue(String fileContent, String key) {
-        return fileContent.lines()
+        return fileContent
+                .lines()
                 .filter(line -> line.startsWith(key + ": "))
                 .map(line -> line.substring((key + ": ").length()).strip())
                 .findFirst()

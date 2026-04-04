@@ -1,7 +1,17 @@
 package ai.javaclaw.chat;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelRegistry;
+import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,22 +23,14 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class ChatChannelTest {
 
-    @Mock Agent agent;
-    @Mock ChatMemoryRepository chatMemoryRepository;
+    @Mock
+    Agent agent;
+
+    @Mock
+    ChatMemoryRepository chatMemoryRepository;
 
     ChatChannel chatChannel;
 
@@ -93,10 +95,8 @@ class ChatChannelTest {
 
     @Test
     void loadHistoryRendersUserAndAgentBubbles() {
-        when(chatMemoryRepository.findByConversationId("web")).thenReturn(List.of(
-                new UserMessage("Hello"),
-                new AssistantMessage("Hi there")
-        ));
+        when(chatMemoryRepository.findByConversationId("web"))
+                .thenReturn(List.of(new UserMessage("Hello"), new AssistantMessage("Hi there")));
 
         List<String> bubbles = chatChannel.loadHistoryAsHtml("web");
 
@@ -107,9 +107,8 @@ class ChatChannelTest {
 
     @Test
     void loadHistoryEscapesHtmlInMessages() {
-        when(chatMemoryRepository.findByConversationId("web")).thenReturn(List.of(
-                new UserMessage("<script>alert('xss')</script>")
-        ));
+        when(chatMemoryRepository.findByConversationId("web"))
+                .thenReturn(List.of(new UserMessage("<script>alert('xss')</script>")));
 
         List<String> bubbles = chatChannel.loadHistoryAsHtml("web");
 

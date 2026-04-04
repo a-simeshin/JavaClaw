@@ -40,6 +40,7 @@
 ```
 
 **Пример: интеграция с Kafka**
+
 ```bash
 # Нетипичный код → ищем как правильно тестировать в Context7
 mcp__context7__resolve-library-id(libraryName="spring-kafka", query="testing")
@@ -465,7 +466,6 @@ logging:
 ```
 
 <!-- /section:integration -->
-
 <!-- section:http -->
 
 ## 8. HTTP Integration Tests
@@ -572,7 +572,6 @@ class OrderControllerIntegrationTest extends BaseIntegrationTest {
 ```
 
 <!-- /section:http -->
-
 <!-- section:kafka -->
 
 ## 9. Kafka Integration Tests
@@ -637,7 +636,6 @@ class OrderKafkaIntegrationTest extends BaseIntegrationTest {
 ```
 
 <!-- /section:kafka -->
-
 <!-- section:jdbc -->
 
 ## 10. JDBC Integration Tests
@@ -726,7 +724,6 @@ class OrderRepositoryIntegrationTest extends BaseIntegrationTest {
 ```
 
 <!-- /section:jdbc -->
-
 <!-- section:wiremock -->
 
 ## 11. External API Tests (WireMock)
@@ -1020,12 +1017,12 @@ public abstract class BaseE2ETest {
 
 ### Важные моменты
 
-| Аспект | Решение |
-|--------|---------|
+|    Аспект     |                               Решение                               |
+|---------------|---------------------------------------------------------------------|
 | **ARM64 Mac** | `seleniarm/standalone-chromium` вместо `selenium/standalone-chrome` |
-| **Podman** | `host.containers.internal` вместо `localhost` |
-| **Headless** | `--no-sandbox`, `--disable-gpu`, `--disable-dev-shm-usage` |
-| **Allure** | `AllureSelenide` для скриншотов и page source |
+| **Podman**    | `host.containers.internal` вместо `localhost`                       |
+| **Headless**  | `--no-sandbox`, `--disable-gpu`, `--disable-dev-shm-usage`          |
+| **Allure**    | `AllureSelenide` для скриншотов и page source                       |
 
 ## 14. E2E Test Example
 
@@ -1198,6 +1195,7 @@ public class CatalogPage {
 ```
 
 Использование:
+
 ```java
 @Test
 void searchProduct_findsItems() {
@@ -1356,6 +1354,7 @@ public final class TestDataBuilders {
 ```
 
 Использование в тестах:
+
 ```java
 import static com.example.TestDataBuilders.*;
 

@@ -1,11 +1,12 @@
 ---
+
 name: validator
 description: Universal read-only validation agent for Java, React, and Python. Verifies task completion against acceptance criteria without modifying files.
 model: sonnet
 disallowedTools: Write, Edit, NotebookEdit
 tools: Read, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__find_referencing_code_snippets, mcp__serena__search_for_pattern, mcp__serena__read_memory, mcp__serena__list_memories
 color: yellow
----
+-------------
 
 # Validator
 
@@ -26,6 +27,7 @@ query-docs(libraryId="/facebook/react", query="testing library")
 ## Verification Commands by Stack
 
 ### Java (Maven)
+
 ```bash
 # Code style
 mvn spotless:check
@@ -47,6 +49,7 @@ mvn ossindex:audit
 ```
 
 ### React/TypeScript (npm)
+
 ```bash
 # Type checking
 npx tsc --noEmit
@@ -65,6 +68,7 @@ npm audit
 ```
 
 ### Python (uv)
+
 ```bash
 # Linting
 uvx ruff check .
@@ -149,3 +153,4 @@ After validating, provide a clear pass/fail report:
 - [issue 1]
 - [issue 2]
 ```
+

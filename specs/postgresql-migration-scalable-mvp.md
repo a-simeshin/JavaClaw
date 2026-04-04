@@ -1,12 +1,15 @@
 # Plan: PostgreSQL Migration — Scalable MVP
 
 ## Task Description
+
 Перевести JavaClaw с embedded H2 + файловой системы на PostgreSQL, чтобы обеспечить горизонтальное масштабирование (N инстансов за load balancer'ом). Включает: замену H2 на PostgreSQL, миграцию Chat Memory на JDBC, миграцию Tasks на Spring Data JDBC, рефакторинг Channel Routing (убрать JVM-local state), настройку JobRunr worker-count и docker-compose для локальной разработки.
 
 ## Objective
+
 После выполнения плана JavaClaw может работать как N идентичных инстансов с общей PostgreSQL. Все state (чаты, задачи, фоновые джобы) хранится в БД, нет зависимостей от локальной файловой системы для persistence.
 
 ## Problem Statement
+
 Текущая архитектура single-instance:
 - **H2 embedded** — один инстанс может подключиться к файлу БД
 - **FileSystemChatMemoryRepository** — YAML-файлы в `./workspace/conversations/`
@@ -16,6 +19,7 @@
 Всё это блокирует горизонтальное масштабирование.
 
 ## Solution Approach
+
 1. **Flyway** для версионированных миграций — безопасно при N инстансах (DB locking)
 2. **Spring Data JDBC** для Tasks (уже в `app/build.gradle` как `spring-boot-starter-data-jdbc`)
 3. **JdbcAppendableChatMemoryRepository** — кастомная реализация `AppendableChatMemoryRepository` поверх Spring AI JDBC starter, с нативным INSERT (без перезаписи всех сообщений)
@@ -24,21 +28,26 @@
 6. **Исследование thread-safety** ChannelRegistry в контексте JobRunr — отдельная задача
 
 ## Relevant Files
+
 Используй эти файлы для выполнения задач:
 
 ### Gradle (зависимости)
+
 - `app/build.gradle` — заменить `runtimeOnly 'com.h2database:h2'` на PostgreSQL, добавить Flyway
 - `base/build.gradle` — убрать `runtimeOnly 'com.h2database:h2'`, добавить `spring-ai-starter-model-chat-memory-repository-jdbc`, добавить `spring-boot-starter-data-jdbc`
 
 ### Configuration
+
 - `app/src/main/resources/application.yaml` — datasource → PostgreSQL, jobrunr worker-count, flyway config
 
 ### Chat Memory (Этап 2)
+
 - `base/src/main/java/ai/javaclaw/agent/memory/FileSystemChatMemoryRepository.java` — убрать `@Component` (будет заменён)
 - `base/src/main/java/org/springframework/ai/chat/memory/AppendableChatMemoryRepository.java` — интерфейс, остаётся
 - `base/src/main/java/org/springframework/ai/chat/memory/MessageWindowChatMemory.java` — НЕ ТРОГАТЬ: `DelegatingAppendableChatMemoryRepository` уже корректно обрабатывает `AppendableChatMemoryRepository` через `instanceof` проверку в `appendAll()`. Наш JDBC-репозиторий будет распознан автоматически.
 
 ### Tasks (Этап 3)
+
 - `base/src/main/java/ai/javaclaw/tasks/Task.java` — добавить `@Table`, `@Id`, поле `sourceChannelName`
 - `base/src/main/java/ai/javaclaw/tasks/RecurringTask.java` — добавить `@Table`, `@Id`
 - `base/src/main/java/ai/javaclaw/tasks/TaskRepository.java` — разделить на два Spring Data JDBC интерфейса
@@ -47,6 +56,7 @@
 - `base/src/main/java/ai/javaclaw/tasks/TaskManager.java` — пробрасывать `channelName` при создании Task
 
 ### Channel Routing (Этап 4)
+
 - `base/src/main/java/ai/javaclaw/tools/TaskTool.java` — при создании задачи передавать текущий channelName
 - `base/src/main/java/ai/javaclaw/channels/ChannelRegistry.java` — добавить `getChannel(String name)`, deprecated `publishMessageReceivedEvent()`, убрать `AtomicReference` и `getLatestChannel()`
 - `base/src/main/java/ai/javaclaw/tasks/RecurringTaskHandler.java` — адаптировать под `RecurringTaskRepository`
@@ -55,6 +65,7 @@
 - `plugins/telegram/src/main/java/ai/javaclaw/channels/telegram/TelegramChannel.java` — вызывает `publishMessageReceivedEvent()` (останется deprecated)
 
 ### New Files
+
 - `base/src/main/resources/db/migration/V1__init_tasks.sql` — Flyway: таблицы tasks, recurring_tasks
 - `base/src/main/resources/db/migration/V2__init_chat_memory.sql` — Flyway: таблица ai_chat_memory (если не создаётся автоматически Spring AI JDBC starter'ом)
 - `base/src/main/java/ai/javaclaw/agent/memory/JdbcAppendableChatMemoryRepository.java` — кастомная реализация AppendableChatMemoryRepository поверх JdbcChatMemoryRepository
@@ -76,19 +87,23 @@
 - `app/src/test/java/ai/javaclaw/e2e/MultiInstanceE2ETest.java` — E2E: 2 инстанса, общая БД, распределение задач
 
 ## Implementation Phases
+
 ### Phase 1: Foundation (Этапы 1 + 5 из ТЗ)
+
 - PostgreSQL вместо H2 в Gradle и application.yaml
 - Flyway для миграций
 - Docker Compose для PostgreSQL
 - JobRunr worker-count через env var
 
 ### Phase 2: Core Implementation (Этапы 2 + 3 + 4)
+
 - JdbcAppendableChatMemoryRepository
 - Spring Data JDBC для Tasks и RecurringTask
 - Channel name в Task payload
 - Рефакторинг ChannelRegistry
 
 ### Phase 3: Integration & Polish
+
 - Тесты (unit + integration с Testcontainers)
 - Исследование thread-safety ChannelRegistry + JobRunr
 - Финальная валидация с 2 инстансами
@@ -111,43 +126,36 @@
   - Role: Настройка PostgreSQL, Flyway, docker-compose, build.gradle и application.yaml
   - Agent Type: builder
   - Resume: true
-
 - Builder
   - Name: builder-chat-memory
   - Role: Реализация JdbcAppendableChatMemoryRepository и миграция Chat Memory
   - Agent Type: builder
   - Resume: true
-
 - Builder
   - Name: builder-tasks-jdbc
   - Role: Миграция Tasks/RecurringTask на Spring Data JDBC + Channel Routing
   - Agent Type: builder
   - Resume: true
-
 - Builder
   - Name: builder-tests
   - Role: Написание unit и интеграционных тестов
   - Agent Type: builder
   - Resume: true
-
 - Builder
   - Name: researcher-jobrunr
   - Role: Исследование thread-safety ChannelRegistry в контексте JobRunr worker threads
   - Agent Type: general-purpose
   - Resume: false
-
 - Builder
   - Name: builder-live-tests
   - Role: Интеграционные тесты с реальной LLM через OpenRouter (AgentLiveTest, TaskLiveTest, ChatMemoryLiveTest)
   - Agent Type: builder
   - Resume: true
-
 - Builder
   - Name: builder-e2e-tests
   - Role: Acceptance E2E тесты через Playwright (OnboardingE2ETest, ChatE2ETest, TaskCreationE2ETest, MultiInstanceE2ETest)
   - Agent Type: builder
   - Resume: true
-
 - Validator
   - Name: validator-final
   - Role: Финальная валидация — компиляция, все тесты (unit + integration + live + e2e), проверка критериев приёмки
@@ -159,18 +167,21 @@
 Test pyramid ratio: **80% unit / 15% integration-API / 5% UI e2e**
 
 ### Unit Tests (80%)
+
 - `TaskManagerTest` — create(), schedule(), scheduleRecurrently(), cancelRecurring(), getRecentTasks()
 - `ChannelRegistryTest` — registerChannel(), unregisterChannel(), getChannel(name), fallback to default
 - `TaskTest` — newTask(), withStatus(), withFeedback(), withSourceChannelName()
 - `RecurringTaskTest` — newRecurringTask(), getters
 
 ### Integration / API Tests (15%)
+
 - `TaskRepositoryTest` — CRUD с Testcontainers PostgreSQL, findByCreatedAtBetweenAndStatus()
 - `RecurringTaskRepositoryTest` — CRUD с Testcontainers PostgreSQL
 - `JdbcAppendableChatMemoryRepositoryTest` — appendAll(), findByConversationId(), saveAll(), deleteByConversationId() с Testcontainers PostgreSQL
 - `FlywayMigrationTest` — проверка что все миграции применяются корректно на чистую БД
 
 ### Integration Tests с реальной LLM (OpenRouter)
+
 Требуют env var `OPENROUTER_API_KEY` (уже в zshrc). Помечаются `@EnabledIfEnvironmentVariable(named = "OPENROUTER_API_KEY")`.
 OpenRouter подключается через OpenAI provider с `spring.ai.openai.base-url=https://openrouter.ai/api/v1`.
 
@@ -190,6 +201,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
   - Несколько conversationId — сообщения из разных каналов не пересекаются
 
 ### UI E2E / Acceptance Tests (Playwright)
+
 Полные end-to-end тесты через браузер. Требуют запущенное приложение + PostgreSQL + `OPENROUTER_API_KEY`.
 
 - `OnboardingE2ETest` (Playwright + @SpringBootTest):
@@ -223,6 +235,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Before you start, run `TaskCreate` to create the initial task list that all team members can see and execute.
 
 ### 1. Setup PostgreSQL + Flyway + Docker Compose
+
 - **Task ID**: setup-postgresql
 - **Depends On**: none
 - **Assigned To**: builder-foundation
@@ -239,6 +252,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Проверить компиляцию: `./gradlew compileJava`
 
 ### 2. Implement JdbcAppendableChatMemoryRepository
+
 - **Task ID**: chat-memory-jdbc
 - **Depends On**: setup-postgresql
 - **Assigned To**: builder-chat-memory
@@ -259,6 +273,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Проверить компиляцию: `./gradlew compileJava`
 
 ### 3. Migrate Tasks to Spring Data JDBC
+
 - **Task ID**: tasks-spring-data
 - **Depends On**: setup-postgresql
 - **Assigned To**: builder-tasks-jdbc
@@ -297,6 +312,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Проверить компиляцию: `./gradlew compileJava`
 
 ### 4. Implement Channel Routing via Task Payload
+
 - **Task ID**: channel-routing
 - **Depends On**: tasks-spring-data
 - **Assigned To**: builder-tasks-jdbc
@@ -322,6 +338,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Проверить компиляцию: `./gradlew compileJava`
 
 ### 5. Research JobRunr Thread-Safety for ChannelRegistry
+
 - **Task ID**: research-thread-safety
 - **Depends On**: none
 - **Assigned To**: researcher-jobrunr
@@ -339,6 +356,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Записать результат в файл `specs/research-jobrunr-thread-safety.md`
 
 ### 6. Write Tests
+
 - **Task ID**: write-tests
 - **Depends On**: chat-memory-jdbc, tasks-spring-data, channel-routing
 - **Assigned To**: builder-tests
@@ -358,6 +376,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Запустить тесты: `./gradlew test`
 
 ### 7. Write Live Integration Tests (OpenRouter)
+
 - **Task ID**: write-live-tests
 - **Depends On**: write-tests
 - **Assigned To**: builder-live-tests
@@ -367,6 +386,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - **Tests**: Сами тес��ы являются результатом этой задач��.
 - Настроить тестовый профиль для OpenRouter:
   - Создать `app/src/test/resources/application-openrouter.yaml` с:
+
     ```yaml
     spring.ai.openai.base-url: https://openrouter.ai/api/v1
     spring.ai.openai.api-key: ${OPENROUTER_API_KEY}
@@ -389,6 +409,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Запустить: `OPENROUTER_API_KEY=$OPENROUTER_API_KEY ./gradlew test`
 
 ### 8. Write E2E Acceptance Tests (Playwright)
+
 - **Task ID**: write-e2e-tests
 - **Depends On**: write-live-tests
 - **Assigned To**: builder-e2e-tests
@@ -421,6 +442,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Запустить: `OPENROUTER_API_KEY=$OPENROUTER_API_KEY ./gradlew test --tests '*E2E*'`
 
 ### 9. Final Validation
+
 - **Task ID**: validate-all
 - **Depends On**: setup-postgresql, chat-memory-jdbc, tasks-spring-data, channel-routing, write-tests, write-live-tests, write-e2e-tests
 - **Assigned To**: validator-final
@@ -441,6 +463,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 - Проверить что e2e тесты помечены @Tag("e2e") и @EnabledIfEnvironmentVariable
 
 ## Acceptance Criteria
+
 1. **Приложение компилируется** — `./gradlew compileJava` без ошибок
 2. **Unit + Integration тесты проходят** — `./gradlew test` без OPENROUTER_API_KEY зелёный (live/e2e skip)
 3. **Нет H2 в рантайме** — зависимость `com.h2database:h2` убрана из `base/build.gradle` и `app/build.gradle` (runtimeOnly)
@@ -457,6 +480,7 @@ OpenRouter подключается через OpenAI provider с `spring.ai.ope
 14. **Тесты не ломают CI** — без OPENROUTER_API_KEY все live/e2e тесты gracefully skip через @EnabledIfEnvironmentVariable
 
 ## Validation Commands
+
 Execute these commands to validate the task is complete:
 
 - `./gradlew compileJava` — компиляция без ошибок
@@ -472,6 +496,7 @@ Execute these commands to validate the task is complete:
 - `./gradlew test --tests '*E2E*'` — только e2e тесты (при наличии ключа)
 
 ## Notes
+
 - **Spring AI JDBC Chat Memory**: проверить через Context7 актуальную документацию `spring-ai-starter-model-chat-memory-repository-jdbc` — какие таблицы создаются, нужна ли отдельная Flyway миграция или starter автоматически создаёт
 - **Task.id генерация**: решено — `DEFAULT gen_random_uuid()` в V1 миграции + `BeforeConvertCallback<Task>` с `UUID.randomUUID().toString()` когда `id == null` (Spring Data JDBC не использует DB defaults)
 - **H2 для тестов**: можно оставить H2 как testRuntimeOnly для быстрых unit-тестов, но интеграционные должны быть с Testcontainers PostgreSQL
@@ -488,3 +513,4 @@ Execute these commands to validate the task is complete:
 - **Multi-instance тест**: можно реализовать через 2 `SpringApplication.run()` на разных портах с общей Testcontainers PostgreSQL, без docker-compose. Проще и быстрее для CI.
 - **Зависимости для тестов**:
   - `app/build.gradle`: `testImplementation 'com.microsoft.playwright:playwright:1.52.0'`, `testImplementation 'org.awaitility:awaitility'` (для ожидания задач)
+

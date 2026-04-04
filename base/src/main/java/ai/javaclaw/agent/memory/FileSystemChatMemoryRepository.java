@@ -2,11 +2,6 @@ package ai.javaclaw.agent.memory;
 
 import ai.javaclaw.files.YamlDocument;
 import ai.javaclaw.files.YamlParser;
-import org.springframework.ai.chat.memory.AppendableChatMemoryRepository;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +11,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.springframework.ai.chat.memory.AppendableChatMemoryRepository;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 
 /**
  * Persists chat conversation history as YAML files inside the agent workspace.
@@ -41,7 +40,8 @@ public class FileSystemChatMemoryRepository implements AppendableChatMemoryRepos
 
     private final Path conversationsDir;
 
-    public FileSystemChatMemoryRepository(@Value("${agent.workspace:Unknown}") Resource workspaceDir) throws IOException {
+    public FileSystemChatMemoryRepository(@Value("${agent.workspace:Unknown}") Resource workspaceDir)
+            throws IOException {
         this.conversationsDir = workspaceDir.getFilePath().resolve("conversations");
     }
 
@@ -49,8 +49,7 @@ public class FileSystemChatMemoryRepository implements AppendableChatMemoryRepos
     public List<String> findConversationIds() {
         if (!Files.exists(conversationsDir)) return List.of();
         try (Stream<Path> files = Files.list(conversationsDir)) {
-            return files
-                    .map(p -> p.getFileName().toString())
+            return files.map(p -> p.getFileName().toString())
                     .filter(name -> name.startsWith("chat-") && name.endsWith(".yaml"))
                     .map(name -> name.substring("chat-".length(), name.length() - ".yaml".length()))
                     .toList();
@@ -74,7 +73,8 @@ public class FileSystemChatMemoryRepository implements AppendableChatMemoryRepos
     @Override
     public void appendAll(String conversationId, List<Message> messages) {
         List<Message> existing = findByConversationId(conversationId);
-        List<Message> combined = Stream.concat(existing.stream(), messages.stream()).toList();
+        List<Message> combined =
+                Stream.concat(existing.stream(), messages.stream()).toList();
         saveAll(conversationId, combined);
     }
 
@@ -87,9 +87,11 @@ public class FileSystemChatMemoryRepository implements AppendableChatMemoryRepos
         String createdAt = Instant.now().toString();
         if (Files.exists(file)) {
             try {
-                Map<String, String> existing = YamlParser.parse(Files.readString(file)).frontmatter();
+                Map<String, String> existing =
+                        YamlParser.parse(Files.readString(file)).frontmatter();
                 if (existing.containsKey("createdAt")) createdAt = existing.get("createdAt");
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         Map<String, String> frontmatter = new LinkedHashMap<>();

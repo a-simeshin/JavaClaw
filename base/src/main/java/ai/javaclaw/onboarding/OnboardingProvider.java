@@ -1,7 +1,6 @@
 package ai.javaclaw.onboarding;
 
 import ai.javaclaw.configuration.ConfigurationManager;
-
 import java.util.Map;
 
 /**
@@ -59,6 +58,6 @@ public interface OnboardingProvider {
      * Called once for all providers when the last content step completes successfully.
      * Default implementation is a no-op.
      */
-    default void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager) throws Exception {
-    }
+    default void saveConfiguration(Map<String, Object> session, ConfigurationManager configurationManager)
+            throws Exception {}
 }

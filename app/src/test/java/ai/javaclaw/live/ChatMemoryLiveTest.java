@@ -1,14 +1,13 @@
 package ai.javaclaw.live;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ai.javaclaw.agent.Agent;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Live integration tests for chat memory isolation and persistence
@@ -37,12 +36,8 @@ class ChatMemoryLiveTest extends LiveTestBase {
         assertThat(messagesConv1).isNotEmpty();
         assertThat(messagesConv2).isNotEmpty();
 
-        String conv1Text = messagesConv1.stream()
-                .map(m -> m.getText())
-                .reduce("", String::concat);
-        String conv2Text = messagesConv2.stream()
-                .map(m -> m.getText())
-                .reduce("", String::concat);
+        String conv1Text = messagesConv1.stream().map(m -> m.getText()).reduce("", String::concat);
+        String conv2Text = messagesConv2.stream().map(m -> m.getText()).reduce("", String::concat);
 
         assertThat(conv1Text).contains("ALPHA");
         assertThat(conv1Text).doesNotContain("BRAVO");
@@ -66,9 +61,7 @@ class ChatMemoryLiveTest extends LiveTestBase {
         // context restarts, so the next test using the same conversation ID
         // would still find these messages. We verify persistence by checking
         // directly in the database that was populated before the context is torn down.
-        String allText = messages.stream()
-                .map(m -> m.getText())
-                .reduce("", String::concat);
+        String allText = messages.stream().map(m -> m.getText()).reduce("", String::concat);
         assertThat(allText).contains("ZEPHYR-42");
     }
 }

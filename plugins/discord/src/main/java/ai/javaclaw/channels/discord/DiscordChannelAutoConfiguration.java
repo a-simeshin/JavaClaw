@@ -2,6 +2,7 @@ package ai.javaclaw.channels.discord;
 
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelRegistry;
+import java.util.EnumSet;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -13,26 +14,30 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
-import java.util.EnumSet;
-
 @AutoConfiguration
 public class DiscordChannelAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "agent.channels.discord", name = {"token", "allowed-user"})
-    public DiscordChannel discordChannel(@Value("${agent.channels.discord.allowed-user}") String allowedUser,
-                                         Agent agent,
-                                         ChannelRegistry channelRegistry) {
+    @ConditionalOnProperty(
+            prefix = "agent.channels.discord",
+            name = {"token", "allowed-user"})
+    public DiscordChannel discordChannel(
+            @Value("${agent.channels.discord.allowed-user}") String allowedUser,
+            Agent agent,
+            ChannelRegistry channelRegistry) {
         return new DiscordChannel(allowedUser, agent, channelRegistry);
     }
 
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "agent.channels.discord", name = {"token", "allowed-user"})
-    public JDA discordJda(@Value("${agent.channels.discord.token}") String token,
-                          DiscordChannel discordChannel) throws InterruptedException {
-        return JDABuilder.createLight(token,
+    @ConditionalOnProperty(
+            prefix = "agent.channels.discord",
+            name = {"token", "allowed-user"})
+    public JDA discordJda(@Value("${agent.channels.discord.token}") String token, DiscordChannel discordChannel)
+            throws InterruptedException {
+        return JDABuilder.createLight(
+                        token,
                         GatewayIntent.GUILD_MESSAGES,
                         GatewayIntent.DIRECT_MESSAGES,
                         GatewayIntent.MESSAGE_CONTENT)

@@ -24,11 +24,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 abstract class LiveTestBase {
 
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:17-alpine")
-                    .withDatabaseName("javaclaw")
-                    .withUsername("javaclaw")
-                    .withPassword("javaclaw");
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
+            .withDatabaseName("javaclaw")
+            .withUsername("javaclaw")
+            .withPassword("javaclaw");
 
     static {
         postgres.start();

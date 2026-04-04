@@ -1,14 +1,13 @@
 package ai.javaclaw.live;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import ai.javaclaw.agent.Agent;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Live integration tests for {@link Agent#respondTo} using a real LLM
@@ -49,9 +48,7 @@ class AgentLiveTest extends LiveTestBase {
         agent.respondTo(conversationId, "Hello from the live test!");
 
         Integer count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM spring_ai_chat_memory WHERE conversation_id = ?",
-                Integer.class,
-                conversationId);
+                "SELECT count(*) FROM spring_ai_chat_memory WHERE conversation_id = ?", Integer.class, conversationId);
 
         assertThat(count).isGreaterThan(0);
     }

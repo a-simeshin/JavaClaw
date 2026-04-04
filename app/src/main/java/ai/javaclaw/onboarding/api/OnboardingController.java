@@ -4,6 +4,10 @@ import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.onboarding.AgentOnboardingProviders;
 import ai.javaclaw.onboarding.OnboardingProvider;
 import jakarta.servlet.http.HttpSession;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class OnboardingController {
@@ -27,7 +26,10 @@ public class OnboardingController {
     private final ConfigurationManager configurationManager;
     private final List<OnboardingProvider> steps;
 
-    public OnboardingController(AgentOnboardingProviders agentOnboardingProviders, ConfigurationManager configurationManager, List<OnboardingProvider> steps) {
+    public OnboardingController(
+            AgentOnboardingProviders agentOnboardingProviders,
+            ConfigurationManager configurationManager,
+            List<OnboardingProvider> steps) {
         this.agentOnboardingProviders = agentOnboardingProviders;
         this.configurationManager = configurationManager;
         this.steps = steps;
@@ -48,7 +50,9 @@ public class OnboardingController {
         // When arriving at the complete step via GET (e.g. by skipping the last optional step),
         // save configuration if the session still holds onboarding data.
         if (COMPLETE_STEP_ID.equals(stepId) && session.getAttribute("onboarding.provider") != null) {
-            String providerLabel = agentOnboardingProviders.getById((String) session.getAttribute("onboarding.provider")).getLabel();
+            String providerLabel = agentOnboardingProviders
+                    .getById((String) session.getAttribute("onboarding.provider"))
+                    .getLabel();
             saveAndComplete(session);
             if (providerLabel != null) model.addAttribute("providerLabel", providerLabel);
         }
@@ -62,16 +66,27 @@ public class OnboardingController {
         model.addAttribute("currentStep", onboardingProvider.getStepTitle());
         model.addAttribute("currentStepNumber", idx + 1);
         model.addAttribute("totalSteps", steps.size());
-        model.addAttribute("steps", steps.stream().map(p -> Map.of("title", p.getStepTitle(), "optional", p.isOptional())).toList());
-        model.addAttribute("previousStepUrl", idx > 0 ? "/onboarding/" + steps.get(idx - 1).getStepId() : null);
-        model.addAttribute("nextStepUrl", idx < steps.size() - 1 ? "/onboarding/" + steps.get(idx + 1).getStepId() : null);
+        model.addAttribute(
+                "steps",
+                steps.stream()
+                        .map(p -> Map.of("title", p.getStepTitle(), "optional", p.isOptional()))
+                        .toList());
+        model.addAttribute(
+                "previousStepUrl", idx > 0 ? "/onboarding/" + steps.get(idx - 1).getStepId() : null);
+        model.addAttribute(
+                "nextStepUrl",
+                idx < steps.size() - 1 ? "/onboarding/" + steps.get(idx + 1).getStepId() : null);
         model.addAttribute("isOptional", onboardingProvider.isOptional());
         model.addAttribute("stepTemplate", onboardingProvider.getTemplatePath());
         return ONBOARDING_TEMPLATE;
     }
 
     @PostMapping("/onboarding/{stepId}")
-    public String postStep(@PathVariable String stepId, @RequestParam Map<String, String> formParams, HttpSession session, RedirectAttributes redirectAttrs) {
+    public String postStep(
+            @PathVariable String stepId,
+            @RequestParam Map<String, String> formParams,
+            HttpSession session,
+            RedirectAttributes redirectAttrs) {
         OnboardingProvider provider = findOnboardingProvider(stepId);
         if (provider == null) {
             return "redirect:/onboarding/" + steps.getFirst().getStepId();
@@ -88,7 +103,9 @@ public class OnboardingController {
 
         String nextId = nextStepId(stepId);
         if (COMPLETE_STEP_ID.equals(nextId)) {
-            String providerLabel = agentOnboardingProviders.getById((String) session.getAttribute("onboarding.provider")).getLabel();
+            String providerLabel = agentOnboardingProviders
+                    .getById((String) session.getAttribute("onboarding.provider"))
+                    .getLabel();
             if (providerLabel != null) redirectAttrs.addFlashAttribute("providerLabel", providerLabel);
             saveAndComplete(session);
         }
