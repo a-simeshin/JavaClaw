@@ -35,16 +35,25 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         chatChannel.setWsSession(session);
         log.info("WebChat WebSocket connected: {}", session.getId());
 
-        List<String> ids = chatChannel.conversationIds();
-        String selectedId = ids.getFirst();
+        try {
+            List<String> ids = chatChannel.conversationIds();
+            String selectedId = ids.getFirst();
 
-        String conversationSelector = ChatHtml.conversationSelector(ids, selectedId);
-        String bubbles = String.join(System.lineSeparator(), chatChannel.loadHistoryAsHtml(selectedId));
-        String inputArea = ChatHtml.chatInputArea(selectedId);
-        chatChannel.sendHtml(
-                Htmx.oobInnerHtml("channel-selector", conversationSelector),
-                Htmx.oobInnerHtml("chat-messages", bubbles),
-                Htmx.oobInnerHtml("chat-input-area", inputArea));
+            String conversationSelector = ChatHtml.conversationSelector(ids, selectedId);
+            String bubbles = String.join(System.lineSeparator(), chatChannel.loadHistoryAsHtml(selectedId));
+            String inputArea = ChatHtml.chatInputArea(selectedId);
+            chatChannel.sendHtml(
+                    Htmx.oobInnerHtml("channel-selector", conversationSelector),
+                    Htmx.oobInnerHtml("chat-messages", bubbles),
+                    Htmx.oobInnerHtml("chat-input-area", inputArea));
+        } catch (Exception ex) {
+            log.error("Failed to send initial chat state for session {}", session.getId(), ex);
+            // Send a minimal welcome so the UI is still usable
+            chatChannel.sendHtml(
+                    Htmx.oobInnerHtml("chat-messages",
+                            ChatHtml.agentBubble("Hi! I'm your JavaClaw assistant. How can I help you today?")),
+                    Htmx.oobInnerHtml("chat-input-area", ChatHtml.chatInputArea("web")));
+        }
     }
 
     @Override

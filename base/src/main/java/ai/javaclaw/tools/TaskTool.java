@@ -40,19 +40,20 @@ public class TaskTool {
     @Tool(description = """
             Use this tool to manage high-level tasks that represent major units of work.
             Tasks are persistent, trackable entities that you can work on backed by JobRunr.
-            
+
             ## When to Use:
             - When a user provides a new goal or assignment.
             - When a user provides multiple goals (create a separate task for EACH).
             - To formalize a request into a trackable entity before starting work.
-            
+
             ## Constraints:
             - Name: Short, descriptive identifier (e.g., 'research-market', 'update-docs'). Spaces will be converted to underscores.
             - Description: Detailed explanation of what needs to be achieved.
+            - sourceChannelName: (optional) The name of the channel where this task originated (e.g., 'ChatChannel', 'TelegramChannel', 'DiscordChannel'). Used for routing task notifications back to the user.
             """)
-    public String createTask(String name, String description) {
+    public String createTask(String name, String description, String sourceChannelName) {
         try {
-            this.taskManager.create(name, description);
+            this.taskManager.create(name, description, sourceChannelName);
             ofNullable(taskEventHandler).ifPresent(x -> x.taskCreated(name, description));
             return String.format("Task '%s' has been created successfully.", name);
         } catch (Exception e) {
@@ -68,12 +69,13 @@ public class TaskTool {
             - executionTime: The specific local date and time (without timezone) when the task should run in this format YYYY-MM-ddTHH:mm:ss (example 2025-03-17T09:00:00).
             - name: Short, descriptive identifier (e.g., 'monday-morning-sync').
             - description: Detailed instructions on what the task entails.
+            - sourceChannelName: (optional) The name of the channel where this task originated. Used for routing task notifications back to the user.
             """)
-    public String scheduleTask(String executionTime, String name, String description) {
+    public String scheduleTask(String executionTime, String name, String description, String sourceChannelName) {
         try {
             // using string to work around tool call argument parsing exception
             LocalDateTime executionTimeAsLocalDateTime = LocalDateTime.parse(executionTime);
-            this.taskManager.schedule(executionTimeAsLocalDateTime, name, description);
+            this.taskManager.schedule(executionTimeAsLocalDateTime, name, description, sourceChannelName);
             ofNullable(taskEventHandler).ifPresent(x -> x.taskScheduled(executionTimeAsLocalDateTime, name, description));
             return String.format("Task '%s' has been scheduled for %s.", name, executionTime);
         } catch (Exception e) {

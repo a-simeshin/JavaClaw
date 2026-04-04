@@ -1,22 +1,13 @@
 package ai.javaclaw.tasks;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 
-public interface TaskRepository {
+import org.springframework.data.repository.ListCrudRepository;
 
-    Task save(Task task);
+public interface TaskRepository extends ListCrudRepository<Task, String> {
 
-    Task getTaskById(String id);
+    List<Task> findByCreatedAtBetweenAndStatus(Instant from, Instant to, Task.Status status);
 
-    List<Task> getTasks(LocalDate localDate, Task.Status status);
-
-    RecurringTask save(RecurringTask recurringTask);
-
-    RecurringTask getRecurringTaskById(String id);
-
-    List<RecurringTask> getAllRecurringTasks();
-
-    void deleteRecurringTask(String id);
-
+    List<Task> findByCreatedAtBetween(Instant from, Instant to);
 }

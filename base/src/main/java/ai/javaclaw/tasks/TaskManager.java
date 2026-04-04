@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -21,51 +22,77 @@ public class TaskManager {
     private final JobScheduler jobScheduler;
     private final StorageProvider storageProvider;
     private final TaskRepository taskRepository;
+    private final RecurringTaskRepository recurringTaskRepository;
 
-    public TaskManager(JobScheduler jobScheduler, StorageProvider storageProvider, TaskRepository taskRepository) {
+    public TaskManager(JobScheduler jobScheduler, StorageProvider storageProvider,
+                       TaskRepository taskRepository, RecurringTaskRepository recurringTaskRepository) {
         this.jobScheduler = jobScheduler;
         this.storageProvider = storageProvider;
         this.taskRepository = taskRepository;
+        this.recurringTaskRepository = recurringTaskRepository;
     }
 
     public void create(String name, String description) {
-        Task task = taskRepository.save(Task.newTask(name, description));
+        create(name, description, null);
+    }
+
+    public void create(String name, String description, String sourceChannelName) {
+        Task task = taskRepository.save(Task.newTask(name, description).withSourceChannelName(sourceChannelName));
         jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been created.", task.getName(), task.getId());
     }
 
     public void schedule(LocalDateTime executionTime, String name, String description) {
+        schedule(executionTime, name, description, null);
+    }
+
+    public void schedule(LocalDateTime executionTime, String name, String description, String sourceChannelName) {
         Instant createdAt = executionTime.atZone(ZoneId.systemDefault()).toInstant();
-        Task task = taskRepository.save(Task.newTask(name, createdAt, description));
+        Task task = taskRepository.save(Task.newTask(name, createdAt, description).withSourceChannelName(sourceChannelName));
         jobScheduler.<TaskHandler>schedule(executionTime, x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been scheduled at {}.", task.getName(), task.getId(), executionTime);
     }
 
     public void scheduleRecurrently(String cronExpression, String name, String description) {
-        RecurringTask recurringTask = taskRepository.save(RecurringTask.newRecurringTask(name, description));
-        jobScheduler.<RecurringTaskHandler>scheduleRecurrently(recurringTask.getName(), cronExpression, x -> x.executeTask(recurringTask.getId()));
-        log.info("Task '{}' ({}) has been scheduled recurrently with cronExpression {}.", name, recurringTask.getId(), cronExpression);
+        RecurringTask recurringTask = recurringTaskRepository.save(
+                RecurringTask.newRecurringTask(name, description, cronExpression));
+        jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
+                recurringTask.getName(), cronExpression, x -> x.executeTask(recurringTask.getId()));
+        log.info("Task '{}' ({}) has been scheduled recurrently with cronExpression {}.",
+                name, recurringTask.getId(), cronExpression);
     }
 
     public void deleteRecurringTask(String name) {
-        RecurringTask recurringTask = taskRepository.getAllRecurringTasks()
+        RecurringTask recurringTask = recurringTaskRepository.findAll()
                 .stream()
                 .filter(x -> x.getName().equals(name))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Recurring task with name " + name + " was not found"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Recurring task with name " + name + " was not found"));
         jobScheduler.deleteRecurringJob(recurringTask.getName());
-        List<Job> jobList = storageProvider.getJobList(StateName.SCHEDULED, Paging.AmountBasedList.ascOnUpdatedAt(1000));
+        List<Job> jobList = storageProvider.getJobList(StateName.SCHEDULED,
+                Paging.AmountBasedList.ascOnUpdatedAt(1000));
         jobList.stream()
                 .filter(j -> j.getRecurringJobId().map(recurringTask.getName()::equals).orElse(false))
                 .map(Job::getId)
                 .findFirst()
                 .ifPresent(jobScheduler::delete);
-        taskRepository.deleteRecurringTask(recurringTask.getId());
+        recurringTaskRepository.deleteById(recurringTask.getId());
         log.info("Recurring task '{}' ({}) has been deleted.", name, recurringTask.getId());
     }
 
     public List<RecurringTask> getAllRecurringTasks() {
-        return taskRepository.getAllRecurringTasks();
+        return recurringTaskRepository.findAll();
+    }
+
+    public List<Task> getTasks(LocalDate date, Task.Status status) {
+        ZoneId zone = ZoneId.systemDefault();
+        Instant from = date.atStartOfDay(zone).toInstant();
+        Instant to = date.plusDays(1).atStartOfDay(zone).toInstant();
+        if (status != null) {
+            return taskRepository.findByCreatedAtBetweenAndStatus(from, to, status);
+        }
+        return taskRepository.findByCreatedAtBetween(from, to);
     }
 
     public void createTaskFromRecurringTask(RecurringTask recurringTask) {

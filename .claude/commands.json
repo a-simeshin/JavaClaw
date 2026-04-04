@@ -1,0 +1,9 @@
+{
+  "commands": [
+    { "skill": "openspec-explore",        "command": "opsx-explore" },
+    { "skill": "openspec-propose",        "command": "opsx-propose" },
+    { "skill": "openspec-apply-change",   "command": "opsx-apply" },
+    { "skill": "openspec-archive-change", "command": "opsx-archive" },
+    { "skill": "openspec-new-spec",       "command": "opsx-spec" }
+  ]
+}

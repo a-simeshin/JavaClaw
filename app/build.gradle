@@ -25,7 +25,9 @@ dependencies {
     implementation 'io.pebbletemplates:pebble-spring-boot-starter:4.1.1'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jdbc-test'
@@ -34,8 +36,25 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'com.microsoft.playwright:playwright:1.52.0'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    // Ensure all tests run in the same JVM (never fork a new JVM per test class).
+    // This is critical for E2E tests: the singleton PostgreSQL container, Spring context,
+    // and Playwright browser are all JVM-scoped and must be shared across all test classes.
+    forkEvery = 0
+    maxParallelForks = 1
+
+    // JVM args for faster startup
+    jvmArgs '-XX:+TieredCompilation', '-XX:TieredStopAtLevel=1'
+
+    // Forward OPENROUTER_API_KEY to the test JVM so @EnabledIfEnvironmentVariable picks it up
+    environment 'OPENROUTER_API_KEY', System.getenv('OPENROUTER_API_KEY')
 }
 
 bootRun {

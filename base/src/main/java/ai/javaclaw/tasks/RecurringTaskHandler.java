@@ -12,16 +12,17 @@ public class RecurringTaskHandler {
     private static final Logger LOGGER = new JobRunrDashboardLogger(LoggerFactory.getLogger(RecurringTaskHandler.class));
 
     private final TaskManager taskManager;
-    private final TaskRepository taskRepository;
+    private final RecurringTaskRepository recurringTaskRepository;
 
-    public RecurringTaskHandler(TaskManager taskManager, TaskRepository taskRepository) {
+    public RecurringTaskHandler(TaskManager taskManager, RecurringTaskRepository recurringTaskRepository) {
         this.taskManager = taskManager;
-        this.taskRepository = taskRepository;
+        this.recurringTaskRepository = recurringTaskRepository;
     }
 
     @Job(name = "Recurring task '%0'", retries = 3)
     public void executeTask(String recurringTaskId) {
-        RecurringTask recurringTask = taskRepository.getRecurringTaskById(recurringTaskId);
+        RecurringTask recurringTask = recurringTaskRepository.findById(recurringTaskId)
+                .orElseThrow(() -> new TaskNotFoundException(recurringTaskId));
         taskManager.createTaskFromRecurringTask(recurringTask);
     }
 }

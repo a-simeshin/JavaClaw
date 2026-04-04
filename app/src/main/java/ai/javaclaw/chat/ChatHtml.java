@@ -12,18 +12,20 @@ public class ChatHtml {
     private ChatHtml() {}
 
     public static String agentBubble(String text) {
+        String safe = text == null || text.isBlank() ? "" : HtmlUtils.htmlEscape(text);
         return """
                 <article class="ar-msg ar-msg--agent">\
                 <div class="ar-msg__avatar">JC</div>\
                 <div class="ar-msg__bubble">%s</div>\
-                </article>""".formatted(HtmlUtils.htmlEscape(text));
+                </article>""".formatted(safe);
     }
 
     public static String userBubble(String text) {
+        String safe = text == null || text.isBlank() ? "" : HtmlUtils.htmlEscape(text);
         return """
                 <article class="ar-msg ar-msg--user">\
                 <div class="ar-msg__bubble">%s</div>\
-                </article>""".formatted(HtmlUtils.htmlEscape(text));
+                </article>""".formatted(safe);
     }
 
     public static String typingDots() {

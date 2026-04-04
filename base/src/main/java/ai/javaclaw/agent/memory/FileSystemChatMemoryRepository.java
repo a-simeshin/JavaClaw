@@ -6,7 +6,6 @@ import org.springframework.ai.chat.memory.AppendableChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,7 +37,6 @@ import java.util.stream.Stream;
  *     Answer text
  * </pre>
  */
-@Component
 public class FileSystemChatMemoryRepository implements AppendableChatMemoryRepository {
 
     private final Path conversationsDir;

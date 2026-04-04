@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -42,6 +43,8 @@ class TaskManagerTest {
     @Mock
     TaskRepository taskRepositoryMock;
     @Mock
+    RecurringTaskRepository recurringTaskRepositoryMock;
+    @Mock
     ChannelRegistry channelRegistryMock;
 
     InMemoryStorageProvider storageProvider;
@@ -57,7 +60,7 @@ class TaskManagerTest {
                 .initialize()
                 .getJobScheduler();
 
-        taskManager = new TaskManager(jobScheduler, storageProvider, taskRepositoryMock);
+        taskManager = new TaskManager(jobScheduler, storageProvider, taskRepositoryMock, recurringTaskRepositoryMock);
     }
 
     @AfterEach
@@ -67,9 +70,10 @@ class TaskManagerTest {
 
     @Test
     void createEnqueuesJob() {
-        Task saved = new Task("some-id", "handle-email", Instant.now(), Task.Status.todo, "Process unread email messages");
+        Task saved = new Task("some-id", "handle-email", Instant.now(), Instant.now(),
+                Task.Status.todo, "Process unread email messages", null, null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
-        when(taskRepositoryMock.getTaskById("some-id")).thenReturn(saved);
+        when(taskRepositoryMock.findById("some-id")).thenReturn(Optional.of(saved));
         when(agentMock.prompt(eq("some-id"), anyString(), any())).thenReturn(new TaskResult(Status.completed, "All mail was summarized!"));
 
         taskManager.create("handle-email", "Process unread email messages");
@@ -80,7 +84,8 @@ class TaskManagerTest {
     @Test
     void scheduleRegistersScheduledJob() {
         LocalDateTime executionTime = LocalDateTime.now().plusMinutes(5).withSecond(0).withNano(0);
-        Task saved = new Task("some-id", "weekly-summary", Instant.now(), Task.Status.todo, "Prepare the weekly summary");
+        Task saved = new Task("some-id", "weekly-summary", Instant.now(), Instant.now(),
+                Task.Status.todo, "Prepare the weekly summary", null, null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
 
         taskManager.schedule(executionTime, "weekly-summary", "Prepare the weekly summary");
@@ -91,8 +96,9 @@ class TaskManagerTest {
     @Test
     void scheduleRecurrentlyRegistersRecurringJob() {
         String cronExpression = "0 */15 * * *";
-        RecurringTask saved = new RecurringTask("some-id", "check-mail", "Check the inbox every 15 minutes");
-        when(taskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
+        RecurringTask saved = new RecurringTask("some-id", "check-mail",
+                "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+        when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cronExpression, "check-mail", "Check the inbox every 15 minutes");
 
@@ -107,9 +113,10 @@ class TaskManagerTest {
     @Test
     void deleteRecurringTaskRemovesFromJobRunr() {
         String cronExpression = "0 */15 * * *";
-        RecurringTask saved = new RecurringTask("some-id", "check-mail", "Check the inbox every 15 minutes");
-        when(taskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
-        when(taskRepositoryMock.getAllRecurringTasks()).thenReturn(List.of(saved));
+        RecurringTask saved = new RecurringTask("some-id", "check-mail",
+                "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+        when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
+        when(recurringTaskRepositoryMock.findAll()).thenReturn(List.of(saved));
 
         taskManager.scheduleRecurrently(cronExpression, "check-mail", "Check the inbox every 15 minutes");
 
@@ -122,7 +129,7 @@ class TaskManagerTest {
 
         await().untilAsserted(() -> assertThat(storageProvider.getRecurringJobs()).isEmpty());
         await().untilAsserted(() -> assertThat(storageProvider.getJobList(StateName.SCHEDULED, Paging.AmountBasedList.ascOnCreatedAt(100))).isEmpty());
-        verify(taskRepositoryMock).deleteRecurringTask("some-id");
+        verify(recurringTaskRepositoryMock).deleteById("some-id");
     }
 
     private @NonNull JobActivator getJobActivator() {
@@ -130,7 +137,7 @@ class TaskManagerTest {
             @Override
             public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
                 if (TaskHandler.class.equals(type)) return (T) new TaskHandler(agentMock, taskRepositoryMock, channelRegistryMock);
-                else if (RecurringTaskHandler.class.equals(type)) return (T) new RecurringTaskHandler(taskManager, taskRepositoryMock);
+                else if (RecurringTaskHandler.class.equals(type)) return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");
             }
         };

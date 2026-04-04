@@ -30,7 +30,8 @@ public class TaskHandler {
 
     @Job(name = "%0", retries = 3)
     public void executeTask(String taskId) {
-        Task task = taskRepository.getTaskById(taskId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
 
         if (!Task.Status.todo.equals(task.getStatus())) {
             throw new IllegalStateException("Cannot handle task '" + task.getName() + "' with status " + task.getStatus() + ". Only tasks that have status todo can be run");
@@ -42,7 +43,7 @@ public class TaskHandler {
             String agentInput = formatTaskForAgent(inProgress);
             TaskResult result = agent.prompt(taskId, agentInput, TaskResult.class);
             taskRepository.save(inProgress.withFeedback(result.feedback()).withStatus(result.newStatus()));
-            notifyUser(task.getName(), result);
+            notifyUser(inProgress, result);
             LOGGER.info("Finished task: {} with status {}", task.getName(), result.newStatus());
         } catch (Exception e) {
             taskRepository.save(inProgress.withStatus(Task.Status.todo));
@@ -50,19 +51,18 @@ public class TaskHandler {
         }
     }
 
-    // TODO: currently we lose the conversationId when moving to a channel. Should channel registry track this?
-    private void notifyUser(String taskName, TaskResult result) {
+    private void notifyUser(Task task, TaskResult result) {
         try {
-            Channel channel = channelRegistry.getLatestChannel();
+            Channel channel = channelRegistry.getChannel(task.getSourceChannelName());
             ofNullable(channel).ifPresent(c -> {
                 if (completed == result.newStatus) {
-                    channel.sendMessage("📋 Task '%s' completed:\n%s".formatted(taskName, result.feedback()));
+                    channel.sendMessage("📋 Task '%s' completed:\n%s".formatted(task.getName(), result.feedback()));
                 } else if (awaiting_human_input == result.newStatus) {
-                    channel.sendMessage("📋 Task '%s' is waiting for your input:\n%s".formatted(taskName, result.feedback()));
+                    channel.sendMessage("📋 Task '%s' is waiting for your input:\n%s".formatted(task.getName(), result.feedback()));
                 }
             });
         } catch (Exception e) {
-            LOGGER.warn("Failed to notify user about task '{}': {}", taskName, e.getMessage());
+            LOGGER.warn("Failed to notify user about task '{}': {}", task.getName(), e.getMessage());
         }
     }
 

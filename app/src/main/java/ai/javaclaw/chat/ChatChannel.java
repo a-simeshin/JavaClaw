@@ -116,8 +116,13 @@ public class ChatChannel implements Channel {
         }
         List<String> bubbles = new ArrayList<>();
         for (Message msg : history) {
-            if (msg instanceof UserMessage) bubbles.add(ChatHtml.userBubble(msg.getText()));
-            else if (msg instanceof AssistantMessage) bubbles.add(ChatHtml.agentBubble(msg.getText()));
+            String text = msg.getText();
+            if (text == null || text.isBlank()) continue;
+            if (msg instanceof UserMessage) bubbles.add(ChatHtml.userBubble(text));
+            else if (msg instanceof AssistantMessage) bubbles.add(ChatHtml.agentBubble(text));
+        }
+        if (bubbles.isEmpty()) {
+            return List.of(ChatHtml.agentBubble("Hi! I'm your JavaClaw assistant. How can I help you today?"));
         }
         return bubbles;
     }

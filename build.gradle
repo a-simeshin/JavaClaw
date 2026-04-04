@@ -40,12 +40,19 @@ configure(subprojects.findAll { it.buildFile.exists() }) {
     plugins.withType(JavaPlugin) {
         java {
             toolchain {
-                languageVersion = JavaLanguageVersion.of(25)
+                languageVersion = JavaLanguageVersion.of(21)
             }
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.compilerArgs.add('-parameters')
         }
 
         tasks.named('test') {
             useJUnitPlatform()
+            // Keep all tests in a single JVM to maximize singleton reuse
+            // (Testcontainers, Spring context cache, Playwright browser)
+            forkEvery = 0
         }
     }
 }
