@@ -18,16 +18,11 @@
     <description>JavaClaw</description>
 
     <modules>
-        <module>core</module>
-        <module>api/chat</module>
-        <module>api/admin</module>
-        <module>channels/discord</module>
-        <module>channels/telegram</module>
-        <module>providers/anthropic</module>
-        <module>providers/google</module>
-        <module>providers/ollama</module>
-        <module>providers/openai</module>
-        <module>app</module>
+        <module>javaclaw-core</module>
+        <module>javaclaw-api</module>
+        <module>javaclaw-channel</module>
+        <module>javaclaw-provider</module>
+        <module>javaclaw-app</module>
     </modules>
 
     <properties>
