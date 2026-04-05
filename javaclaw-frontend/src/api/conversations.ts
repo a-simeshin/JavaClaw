@@ -35,9 +35,11 @@ export function listConversations(
 
 export function listConversationMessages(
   conversationId: string,
-): Promise<MessageDto[]> {
-  return apiJson<MessageDto[]>(
-    `/api/conversations/${encodeURIComponent(conversationId)}/messages`,
+  page = 0,
+  size = 200,
+): Promise<Page<MessageDto>> {
+  return apiJson<Page<MessageDto>>(
+    `/api/conversations/${encodeURIComponent(conversationId)}/messages?page=${page}&size=${size}`,
     { method: "GET" },
   )
 }

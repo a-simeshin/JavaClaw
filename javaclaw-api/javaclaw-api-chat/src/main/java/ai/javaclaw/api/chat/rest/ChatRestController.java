@@ -3,6 +3,9 @@ package ai.javaclaw.api.chat.rest;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import jakarta.validation.Valid;
 import java.util.UUID;
+
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
  * {@code useChat} with {@code streamProtocol: "data"} negotiates the parser.
  */
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/chat")
 public class ChatRestController {
 
@@ -31,12 +35,6 @@ public class ChatRestController {
     private final SseStreamingService streamingService;
     private final ConversationEnsurer conversationEnsurer;
 
-    public ChatRestController(
-            final SseStreamingService streamingService, final ConversationEnsurer conversationEnsurer) {
-        this.streamingService = streamingService;
-        this.conversationEnsurer = conversationEnsurer;
-    }
-
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<ResponseBodyEmitter> send(@Valid @RequestBody final ChatSendRequest request) {
         final ResponseBodyEmitter emitter = streamingService.createEmitter();
@@ -45,6 +43,7 @@ public class ChatRestController {
         }
         final String conversationId = resolveConversationId(request.conversationId());
         conversationEnsurer.ensureExists(conversationId);
+        conversationEnsurer.touch(conversationId, request.content());
         streamingService.stream(emitter, conversationId, request.content());
         return ResponseEntity.ok()
                 .header(VERCEL_STREAM_HEADER, VERCEL_STREAM_VERSION)

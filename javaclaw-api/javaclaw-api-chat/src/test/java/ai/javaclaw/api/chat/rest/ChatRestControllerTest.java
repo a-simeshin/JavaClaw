@@ -46,6 +46,8 @@ class ChatRestControllerTest {
                 .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"));
 
         verify(streamingService).stream(any(), anyString(), anyString());
+        verify(conversationEnsurer).ensureExists("web");
+        verify(conversationEnsurer).touch("web", "hello");
     }
 
     @Test

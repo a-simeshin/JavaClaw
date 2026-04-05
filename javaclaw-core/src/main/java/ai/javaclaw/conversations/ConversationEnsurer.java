@@ -1,5 +1,6 @@
 package ai.javaclaw.conversations;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -22,6 +23,9 @@ public class ConversationEnsurer {
         this.repository = repository;
     }
 
+    /** Preview length for the auto-derived conversation title. */
+    private static final int TITLE_MAX_LENGTH = 80;
+
     /**
      * Creates the conversation row if it does not already exist.
      *
@@ -33,5 +37,27 @@ public class ConversationEnsurer {
         if (!repository.existsById(conversationId)) {
             repository.save(Conversation.newWithId(conversationId));
         }
+    }
+
+    /**
+     * Bumps {@code updated_at} and, when the row has no title yet, stores a
+     * truncated preview of {@code userContent} as the conversation title.
+     *
+     * <p>Never overwrites an existing title — the first user message wins.
+     * Called from the chat send path so the conversation list in the UI
+     * reflects the latest activity and can be sorted by recency.
+     */
+    @Transactional
+    public void touch(final String conversationId, final String userContent) {
+        Assert.hasText(conversationId, "conversationId must not be blank");
+        repository.touchWithTitle(conversationId, truncate(userContent));
+    }
+
+    private static String truncate(final String text) {
+        final String single = StringUtils.normalizeSpace(text);
+        if (StringUtils.isEmpty(single)) {
+            return null;
+        }
+        return StringUtils.abbreviate(single, TITLE_MAX_LENGTH);
     }
 }
