@@ -2,7 +2,7 @@
 
 name: plan-reviewer
 description: Senior architect — critical content review of plans before build. Read-only, returns structured PASS/FAIL verdict.
-model: opus
+model: sonnet
 disallowedTools: Write, Edit, NotebookEdit
 tools: Read, Bash, Glob, Grep, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__find_referencing_code_snippets, mcp__serena__search_for_pattern, mcp__serena__read_memory, mcp__serena__list_memories
 color: red

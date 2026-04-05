@@ -17,30 +17,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/skills")
 public class SkillController {
 
-    private final SkillStore store;
+    private final SkillService service;
 
-    public SkillController(SkillStore store) {
-        this.store = store;
+    public SkillController(final SkillService service) {
+        this.service = service;
     }
 
     @GetMapping
     public List<SkillDto> list() {
-        return store.list();
+        return service.list();
     }
 
     @PostMapping
-    public ResponseEntity<SkillDto> create(@Valid @RequestBody SkillDto body) {
-        return ResponseEntity.status(201).body(store.create(body));
+    public ResponseEntity<SkillDto> create(@Valid @RequestBody final SkillDto body) {
+        return ResponseEntity.status(201).body(service.create(body));
     }
 
     @PutMapping("/{id}")
-    public SkillDto update(@PathVariable String id, @Valid @RequestBody SkillDto body) {
-        return store.update(id, body);
+    public SkillDto update(@PathVariable final String id, @Valid @RequestBody final SkillDto body) {
+        return service.update(id, body);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        store.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable final String id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

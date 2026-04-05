@@ -2,7 +2,6 @@ package ai.javaclaw.api.admin.files;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import java.io.IOException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,37 +22,37 @@ public class FileController {
 
     private static final String BASE = "/api/files";
 
-    private final WorkspaceFileService fileService;
+    private final VirtualFileService fileService;
 
-    public FileController(WorkspaceFileService fileService) {
+    public FileController(final VirtualFileService fileService) {
         this.fileService = fileService;
     }
 
     @GetMapping
-    public FileNodeDto tree() throws IOException {
+    public FileNodeDto tree() {
         return fileService.tree();
     }
 
     @GetMapping("/**")
-    public FileContentDto read(HttpServletRequest request) throws IOException {
+    public FileContentDto read(final HttpServletRequest request) {
         return fileService.read(extractPath(request));
     }
 
     @PutMapping("/**")
-    public FileContentDto write(HttpServletRequest request, @RequestBody FileContentDto body) throws IOException {
-        String path = extractPath(request);
-        String content = body != null ? body.content() : "";
+    public FileContentDto write(final HttpServletRequest request, @RequestBody final FileContentDto body) {
+        final String path = extractPath(request);
+        final String content = body != null ? body.content() : "";
         return fileService.write(path, content);
     }
 
     @DeleteMapping("/**")
-    public ResponseEntity<Void> delete(HttpServletRequest request) throws IOException {
+    public ResponseEntity<Void> delete(final HttpServletRequest request) {
         fileService.delete(extractPath(request));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<FileContentDto> create(@Valid @RequestBody CreateFileRequest body) throws IOException {
+    public ResponseEntity<FileContentDto> create(@Valid @RequestBody final CreateFileRequest body) {
         return ResponseEntity.status(201).body(fileService.create(body.path(), body.content()));
     }
 

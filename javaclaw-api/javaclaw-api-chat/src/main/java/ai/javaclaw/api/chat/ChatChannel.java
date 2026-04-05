@@ -4,6 +4,7 @@ import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelMessageReceivedEvent;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.conversations.ConversationEnsurer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +38,19 @@ public class ChatChannel implements Channel {
     private final Agent agent;
     private final ChannelRegistry channelRegistry;
     private final ChatMemoryRepository chatMemoryRepository;
+    private final ConversationEnsurer conversationEnsurer;
     private final ConcurrentLinkedQueue<String> pendingMessages = new ConcurrentLinkedQueue<>();
     private final AtomicReference<WebSocketSession> wsSession = new AtomicReference<>();
 
-    public ChatChannel(Agent agent, ChannelRegistry channelRegistry, ChatMemoryRepository chatMemoryRepository) {
+    public ChatChannel(
+            final Agent agent,
+            final ChannelRegistry channelRegistry,
+            final ChatMemoryRepository chatMemoryRepository,
+            final ConversationEnsurer conversationEnsurer) {
         this.agent = agent;
         this.channelRegistry = channelRegistry;
         this.chatMemoryRepository = chatMemoryRepository;
+        this.conversationEnsurer = conversationEnsurer;
         channelRegistry.registerChannel(this);
         log.info("Started Web Chat channel");
     }
@@ -129,7 +136,8 @@ public class ChatChannel implements Channel {
     /**
      * Handles a chat message from the web UI for the given conversationId.
      */
-    public String chat(String conversationId, String message) {
+    public String chat(final String conversationId, final String message) {
+        conversationEnsurer.ensureExists(conversationId);
         channelRegistry.publishMessageReceivedEvent(new ChannelMessageReceivedEvent(getName(), message));
         return agent.respondTo(conversationId, message);
     }

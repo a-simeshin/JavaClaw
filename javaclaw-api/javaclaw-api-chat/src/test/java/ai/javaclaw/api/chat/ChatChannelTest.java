@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.conversations.ConversationEnsurer;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,11 +33,14 @@ class ChatChannelTest {
     @Mock
     ChatMemoryRepository chatMemoryRepository;
 
+    @Mock
+    ConversationEnsurer conversationEnsurer;
+
     ChatChannel chatChannel;
 
     @BeforeEach
     void setUp() {
-        chatChannel = new ChatChannel(agent, new ChannelRegistry(), chatMemoryRepository);
+        chatChannel = new ChatChannel(agent, new ChannelRegistry(), chatMemoryRepository, conversationEnsurer);
     }
 
     // -----------------------------------------------------------------------

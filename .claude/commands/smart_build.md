@@ -3,7 +3,8 @@
 allowed-tools: Task, Read, Bash, Write, Edit, Glob, Grep
 description: Smart builder with semantic context routing - loads only relevant sections
 argument-hint: [task description]
----------------------------------
+model: sonnet
+-------------
 
 # Smart Build
 

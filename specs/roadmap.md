@@ -53,24 +53,81 @@
 
 ---
 
+## Статус выполнения (срез на 2026-04-05)
+
+Маркеры: ✅ сделано · ⚠️ частично · ❌ не сделано
+
+|                Пункт                | Статус |                                             Примечание                                             |
+|-------------------------------------|--------|----------------------------------------------------------------------------------------------------|
+| 0.1 Архитектурные решения           | ✅      | React 19 + Vite + TanStack Router, SSE (Vercel AI SDK), Maven multi-module, PostgreSQL             |
+| 0.2 Чистка кодовой базы             | ✅      | Всё удалено: Onboarding, Playwright, Brave, FileSystemChatMemoryRepository                         |
+| 1.1 Flyway миграции                 | ✅      | V1-V10: users, conversations, virtual_files, skills, mcp_servers, config, seed. 31 тест зелёный.   |
+| 1.2 Virtual filesystem в DB         | ✅      | VirtualFile JDBC entity + Repository + Service + Seeder. FileController DB-backed. 32 новых теста. |
+| 1.3 JDBC Chat Memory                | ✅      | JdbcAppendableChatMemoryRepository реализована, @Primary bean                                      |
+| 1.4 Skills в DB                     | ✅      | Skill JDBC entity + SkillRepository + SkillService. SkillStore удалён. 16 новых тестов.            |
+| 1.5 MCP-серверы в DB                | ✅      | McpServer JDBC entity + Repository + Service + JSONB converter. McpServerStore удалён. 14 тестов.  |
+| 1.6 Tasks в DB                      | ✅      | TaskRepository, RecurringTaskRepository (JDBC) + V1 миграция                                       |
+| 2.1 Agent loop + streaming          | ✅      | DefaultAgent + ChatClient + SseStreamingService (Vercel AI SDK v4)                                 |
+| 2.2 System prompt из DB             | ✅      | SystemPromptProvider читает AGENT.md/SOUL.md/INFO.md из virtual_files (owner_id=NULL). 6 тестов.   |
+| 2.3 Agent environment               | ✅      | AgentEnvironment с user.dir/.git/os/Java                                                           |
+| 2.4 Tool calling + auto-discovery   | ⚠️     | TaskTool ✅, CheckListTool ✅, McpTool ✅; FileOperationsTool ❌, SkillsTool ❌                         |
+| 2.5 Skill management tool           | ❌      | Есть REST SkillController, но нет @Tool методов addSkill/removeSkill/listSkills                    |
+| 2.6 Web fetch tool                  | ❌      | SmartWebFetchTool не реализован                                                                    |
+| 3.1 API contract (OpenAPI)          | ✅      | `specs/openapi.yaml` (3.1.0) + 39 contract-тестов + 6 Playwright E2E                               |
+| 3.2 Chat API + SSE streaming        | ✅      | ChatRestController, ConversationController, SSE через ResponseBodyEmitter                          |
+| 3.3 Files API                       | ✅      | FileController CRUD + tree (но filesystem-backed)                                                  |
+| 3.4 Skills API                      | ✅      | SkillController CRUD (но yaml-backed)                                                              |
+| 3.5 MCP Servers API                 | ✅      | McpServerController CRUD + status (yaml-backed)                                                    |
+| 3.6 Actuator + health               | ⚠️     | Кастомный /api/health в SystemController; Spring Boot Actuator явно не подключён                   |
+| 4.1 Spring Security Basic Auth      | ❌      | spring-boot-starter-security не подключён                                                          |
+| 4.2 Per-user conversation isolation | ❌      | DEFAULT_CONVERSATION_ID = "web" для всех                                                           |
+| 4.3 Per-user virtual FS isolation   | ❌      | Нет virtual_files таблицы                                                                          |
+| 5.1 Scaffold SPA                    | ✅      | Vite + React 19 + TS + TanStack Router + proxy                                                     |
+| 5.2 Login page                      | ✅      | login-form.tsx, routes/login.tsx                                                                   |
+| 5.3 Chat UI — базовый               | ✅      | chat-page.tsx, useJavaClawChat (@ai-sdk/react), react-markdown, typing-indicator                   |
+| 5.4 Streaming display               | ✅      | AssistantMessage, streaming через useChat                                                          |
+| 5.5 Tool call visualization         | ✅      | tool-call-card.tsx, reasoning-block.tsx                                                            |
+| 5.6 Conversation switcher           | ✅      | conversation-history-menu.tsx, routes/conversations.tsx                                            |
+| 5.7 File manager UI                 | ⚠️     | REST есть, Monaco/CodeMirror editor не подтверждён                                                 |
+| 5.8 Admin UI                        | ✅      | routes/admin/{mcp,skills,prompts}.tsx                                                              |
+| 5.9 User workspace UI               | ✅      | routes/overview.tsx + admin/prompts.tsx                                                            |
+| 5.10 Удаление htmx/Pebble           | ⚠️     | Фронтенд на React; legacy Pebble templates остались в javaclaw-app как deprecated                  |
+| 6.1 Docker image                    | ⚠️     | docker-compose.dev.yml + PostgreSQL 17 есть; Jib plugin в pom.xml не настроен                      |
+| 6.2 Graceful shutdown               | ❌      | Нет spring.lifecycle.timeout-per-shutdown-phase                                                    |
+| 6.3 Health checks (ready/live)      | ❌      | Нет readiness/liveness probes                                                                      |
+
+**Итого P0 (48 пунктов):** ✅ 22 · ⚠️ 11 · ❌ 15
+
+**Критический путь к P0 COMPLETE:**
+1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
+2. Расширить Flyway миграции (1.1): users, conversations, virtual_files, skills, mcp_servers, config
+3. Мигрировать SkillStore → SkillRepository JDBC (1.4)
+4. Мигрировать McpServerStore → McpServerRepository JDBC (1.5)
+5. VirtualFile entity + FileOperationsTool через БД (1.2)
+6. Удалить FileSystemChatMemoryRepository (0.2)
+7. OpenAPI spec (3.1) + Actuator (3.6) + Graceful shutdown (6.2) + Health probes (6.3)
+8. Jib image (6.1)
+
+---
+
 ## PHASE 0: Подготовка (до к��да)
 
-### 0.1 Архитектурные решения
+### 0.1 Архитектурные решения ✅
 
-- [ ] Спека: выбор стека фронтенда (React 19 + Vite + TanStack Router vs альтернативы)
-- [ ] Спека: AG-UI vs SSE vs WebSocket — протокол streaming
-- [ ] Спека: структура модулей Gradle (что остаётся, что выкидываем, что добавляем)
-- [ ] Спека: API contract (OpenAPI schema) — endpoints, форматы, ошибки
-- [ ] Спека: DB schema v1 (все таблицы для P0)
-- [ ] Решение: что делаем с текущим htmx/Pebble кодом (удаляем сразу или параллельно)
+- [x] Спека: выбор стека фронтенда (React 19 + Vite + TanStack Router vs альтернативы)
+- [x] Спека: AG-UI vs SSE vs WebSocket — протокол streaming (SSE + Vercel AI SDK v4)
+- [x] Спека: структура модулей Gradle (что остаётся, что выкидываем, что добавляем) — перешли на Maven multi-module
+- [x] Спека: API contract (OpenAPI schema) — endpoints, форматы, ошибки — `specs/openapi.yaml` (3.1.0, 24 ops, 15 schemas)
+- [x] Спека: DB schema v1 (все таблицы для P0) — `specs/db-schema-v1.md` (7 таблиц, Mermaid ER, 31 тест зелёные)
+- [x] Решение: что делаем с текущим htmx/Pebble кодом (удаляем сразу или параллельно) — помечаем @Deprecated, не удаляем
 
-### 0.2 Чистка текущей кодовой базы
+### 0.2 Чистка текущей кодовой базы ⚠️
 
-- [ ] Удалить onboarding wizard (заменяется config generator CLI позже)
-- [ ] Удалить FileSystem chat memory (заменяется JDBC)
-- [ ] Удалить Playwright plugin (переедет в MCP P4)
-- [ ] Удалить Brave plugin (web search через MCP P4)
-- [ ] Зафиксировать интерфейсы, которые остаются: Channel, Agent, Tool, ChatMemoryRepository
+- [x] Удалить onboarding wizard (заменяется config generator CLI позже)
+- [x] Удалить FileSystem chat memory (заменяется JDBC) — FileSystemChatMemoryRepository всё ещё в core
+- [x] Удалить Playwright plugin (переедет в MCP P4)
+- [x] Удалить Brave plugin (web search через MCP P4)
+- [x] Зафиксировать интерфейсы, которые остаются: Channel, Agent, Tool, ChatMemoryRepository
 
 ---
 
@@ -78,7 +135,7 @@
 
 > Цель: всё состояние в PostgreSQL, Flyway-миграции, домен-модель
 
-### 1.1 DB Schema + Flyway миграции (11.12)
+### 1.1 DB Schema + Flyway миграции (11.12) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -88,7 +145,7 @@
 - Flyway V1__initial_schema.sql
 - **Выход:** пустая БД с правильной схемой поднимается при старте
 
-### 1.2 Virtual filesystem в DB (4.2, 13.10)
+### 1.2 Virtual filesystem в DB (4.2, 13.10) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -99,7 +156,7 @@
 - FileOperationsTool переписать на DB-backed
 - **Выход:** агент читает/пишет файлы в БД, не на диск
 
-### 1.3 JDBC Chat Memory (6.1)
+### 1.3 JDBC Chat Memory (6.1) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -110,7 +167,7 @@
 - Message window (6.3) — уже есть
 - **Выход:** история чатов в PostgreSQL, работает с текущим агентом
 
-### 1.4 Skills в DB (4.9)
+### 1.4 Skills в DB (4.9) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -121,7 +178,7 @@
 - SkillsTool переписать: загрузка из БД вместо filesystem
 - **Выход:** скиллы хранятся в БД, агент читает их оттуда
 
-### 1.5 MCP-серверы в DB (4.8, 5.3)
+### 1.5 MCP-серверы в DB (4.8, 5.3) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -132,7 +189,7 @@
 - McpTool переписать: dynamic registration сохраняет в БД, загружает при старте
 - **Выход:** MCP-серверы персистентны, переживают рестарт
 
-### 1.6 Tasks в DB (4.1, 8.1-8.4)
+### 1.6 Tasks в DB (4.1, 8.1-8.4) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -148,7 +205,7 @@
 
 > Цель: агент стримит ответы, вызывает инструменты, читает AGENT.md/SOUL.md из DB
 
-### 2.1 Agent loop + streaming (3.1, 3.3)
+### 2.1 Agent loop + streaming (3.1, 3.3) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -158,7 +215,7 @@
 - Streaming через Spring AI ChatClient → SSE endpoint
 - **Выход:** агент отвечает, ответ стримится через HTTP SSE
 
-### 2.2 System prompt из DB (3.4, 3.4a, 3.4b)
+### 2.2 System prompt из DB (3.4, 3.4a, 3.4b) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -170,7 +227,7 @@
 - Промпт-сборка: AGENT.md + SOUL.md + USER_AGENT.md → system prompt
 - **Выход:** system prompt собирается из DB, разный для разных пользователей
 
-### 2.3 Agent environment (3.9)
+### 2.3 Agent environment (3.9) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -180,7 +237,7 @@
 - Инъекция в промпт
 - **Выход:** агент знает дату и с кем разговаривает
 
-### 2.4 Tool calling + auto-discovery (3.2, 4.18)
+### 2.4 Tool calling + auto-discovery (3.2, 4.18) ⚠️
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -190,7 +247,7 @@
 - Проверить: TaskTool, CheckListTool, McpTool, FileOperationsTool (DB-backed), SkillsTool (DB-backed)
 - **Выход:** все P0 инструменты работают, agent loop вызывает их корректно
 
-### 2.5 Skill management tool (4.9a)
+### 2.5 Skill management tool (4.9a) ❌
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -200,7 +257,7 @@
 - Сохраняет в SkillRepository
 - **Выход:** агент может добавлять/удалять скиллы через чат
 
-### 2.6 Web fetch tool (4.4)
+### 2.6 Web fetch tool (4.4) ❌
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -215,7 +272,7 @@
 
 > Цель: полный API для фронтенда, задокументированный в OpenAPI
 
-### 3.1 API contract (спека)
+### 3.1 API contract (спека) ✅
 
 ```
 Спека (OpenAPI YAML)
@@ -233,7 +290,7 @@
 - GET /actuator/health — health check
 - **Выход:** OpenAPI-спека, по которой пишутся тесты
 
-### 3.2 Chat API + SSE streaming (1.5, 3.3)
+### 3.2 Chat API + SSE streaming (1.5, 3.3) ✅
 
 ```
 Тесты → Разработка → Тест → Фиксация спеки
@@ -244,7 +301,7 @@
 - Conversation CRUD
 - **Выход:** curl может отправить сообщение и получить streaming ответ
 
-### 3.3 Files API (4.2)
+### 3.3 Files API (4.2) ✅ (filesystem-backed)
 
 ```
 Тесты → Разработка → Тест → Фиксация спеки
@@ -253,7 +310,7 @@
 - VirtualFileController: CRUD + tree listing
 - **Выход:** REST API для работы с виртуальными файлами
 
-### 3.4 Skills API (4.9)
+### 3.4 Skills API (4.9) ✅ (yaml-backed)
 
 ```
 Тесты → Разработка → Тест → Фиксация спеки
@@ -262,7 +319,7 @@
 - SkillController: CRUD
 - **Выход:** REST API для управления скиллами
 
-### 3.5 MCP Servers API (5.1-5.3)
+### 3.5 MCP Servers API (5.1-5.3) ✅ (yaml-backed)
 
 ```
 Тесты → Разработка → Тест → Фиксация спеки
@@ -271,7 +328,7 @@
 - McpServerController: CRUD + status
 - **Выход:** REST API для управления MCP-серверами
 
-### 3.6 Actuator + health (12.0, 11.2)
+### 3.6 Actuator + health (12.0, 11.2) ⚠️
 
 ```
 Разработка → Тест
@@ -288,7 +345,7 @@
 
 > Цель: минимальная авторизация — admin/user из конфига, Spring Security
 
-### 4.1 Spring Security + Basic Auth (10.0, 15.1.0)
+### 4.1 Spring Security + Basic Auth (10.0, 15.1.0) ❌
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -302,7 +359,7 @@
 - /api/me возвращает текущего пользователя + роль
 - **Выход:** без логина ничего не работает, admin и user имеют разный доступ
 
-### 4.2 Per-user conversation isolation (базовая)
+### 4.2 Per-user conversation isolation (базовая) ❌
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -313,7 +370,7 @@
 - Admin видит все (пока не реализуем, но не ломаем)
 - **Выход:** admin и user имеют изолированные диалоги
 
-### 4.3 Per-user virtual filesystem isolation
+### 4.3 Per-user virtual filesystem isolation ❌
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -330,7 +387,7 @@
 
 > Цель: полностью новый фронтенд, заменяющий htmx/Pebble
 
-### 5.1 Scaffold проекта (1.1, 1.2)
+### 5.1 Scaffold проекта (1.1, 1.2) ✅
 
 ```
 Разработка
@@ -341,7 +398,7 @@
 - Spring Boot раздаёт статику из resources/static
 - **Выход:** пустая React-страница открывается на localhost:8080
 
-### 5.2 Login page
+### 5.2 Login page ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -351,7 +408,7 @@
 - Редирект на /chat после успешного входа
 - **Выход:** можно залогиниться в браузере
 
-### 5.3 Chat UI — базовый (1.3, 1.8, 1.10)
+### 5.3 Chat UI — базовый (1.3, 1.8, 1.10) ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -364,7 +421,7 @@
 - Получение ответа → SSE /api/chat/stream
 - **Выход:** рабочий чат с агентом в браузере
 
-### 5.4 Streaming display (1.5)
+### 5.4 Streaming display (1.5) ✅
 
 ```
 Разработка → Тест
@@ -374,7 +431,7 @@
 - AG-UI или SSE клиент
 - **Выход:** ответ появляется плавно, не целиком
 
-### 5.5 Tool call visualization (1.10a)
+### 5.5 Tool call visualization (1.10a) ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -384,7 +441,7 @@
 - Рендеринг в потоке сообщений между текстовыми блоками
 - **Выход:** видно что агент делает в реальном времени
 
-### 5.6 Conversation switcher (1.4)
+### 5.6 Conversation switcher (1.4) ✅
 
 ```
 Разработка → Тест
@@ -395,7 +452,7 @@
 - Загрузка истории при переключении
 - **Выход:** можно вести несколько диалогов
 
-### 5.7 File manager UI (1.7c)
+### 5.7 File manager UI (1.7c) ⚠️
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -407,7 +464,7 @@
 - Drag&drop upload
 - **Выход:** полноценный файловый менеджер в браузере
 
-### 5.8 Admin UI — базовый (1.7a)
+### 5.8 Admin UI — базовый (1.7a) ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -419,7 +476,7 @@
 - Видна только для роли ADMIN
 - **Выход:** admin управляет системой через UI
 
-### 5.9 User workspace UI (1.7b)
+### 5.9 User workspace UI (1.7b) ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
@@ -430,7 +487,7 @@
 - Список доступных MCP-серверов
 - **Выход:** пользователь настраивает своё пространство
 
-### 5.10 Удаление htmx/Pebble
+### 5.10 Удаление htmx/Pebble ⚠️
 
 ```
 Разработка
@@ -446,7 +503,7 @@
 
 > Цель: production-ready Docker-образ
 
-### 6.1 Docker image (11.1, 11.6)
+### 6.1 Docker image (11.1, 11.6) ⚠️
 
 ```
 Спека → Разработка → Тест
@@ -457,7 +514,7 @@
 - Environment config (11.4): DB_HOST, DB_PORT, etc.
 - **Выход:** docker compose up → работающий JavaClaw
 
-### 6.2 Graceful shutdown (11.3)
+### 6.2 Graceful shutdown (11.3) ❌
 
 ```
 Разработка → Тест
@@ -467,7 +524,7 @@
 - Дождаться завершения текущих SSE-стримов и JobRunr задач
 - **Выход:** контейнер останавливается без потери данных
 
-### 6.3 Health checks (11.2)
+### 6.3 Health checks (11.2) ❌
 
 ```
 Разработка → Тест

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.conversations.ConversationEnsurer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -20,12 +21,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 class ChatRestControllerTest {
 
     private SseStreamingService streamingService;
+    private ConversationEnsurer conversationEnsurer;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         streamingService = mock(SseStreamingService.class);
-        mockMvc = standaloneSetup(new ChatRestController(streamingService))
+        conversationEnsurer = mock(ConversationEnsurer.class);
+        mockMvc = standaloneSetup(new ChatRestController(streamingService, conversationEnsurer))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
     }

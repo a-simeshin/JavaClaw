@@ -17,35 +17,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/mcp-servers")
 public class McpServerController {
 
-    private final McpServerStore store;
+    private final McpServerService service;
 
-    public McpServerController(McpServerStore store) {
-        this.store = store;
+    public McpServerController(final McpServerService service) {
+        this.service = service;
     }
 
     @GetMapping
     public List<McpServerDto> list() {
-        return store.list();
+        return service.list();
     }
 
     @PostMapping
-    public ResponseEntity<McpServerDto> create(@Valid @RequestBody McpServerDto body) {
-        return ResponseEntity.status(201).body(store.create(body));
+    public ResponseEntity<McpServerDto> create(@Valid @RequestBody final McpServerDto body) {
+        return ResponseEntity.status(201).body(service.create(body));
     }
 
     @PutMapping("/{id}")
-    public McpServerDto update(@PathVariable String id, @Valid @RequestBody McpServerDto body) {
-        return store.update(id, body);
+    public McpServerDto update(@PathVariable final String id, @Valid @RequestBody final McpServerDto body) {
+        return service.update(id, body);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        store.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable final String id) {
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/status")
-    public McpServerStatusDto status(@PathVariable String id) {
-        return store.status(id);
+    public McpServerStatusDto status(@PathVariable final String id) {
+        return service.status(id);
     }
 }

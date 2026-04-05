@@ -1,0 +1,1169 @@
+openapi: 3.1.0
+
+info:
+  title: JavaClaw API
+  version: 0.1.0
+  description: >
+    REST API for the JavaClaw AI platform.
+    Covers chat (Vercel AI SDK v4 SSE streaming), conversation management,
+    workspace file CRUD, MCP server registrations, agent skills, and system endpoints.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: /
+    description: Same-origin (default Spring Boot embedded server)
+
+tags:
+  - name: chat
+    description: Chat streaming endpoints — Vercel AI SDK v4 data-stream protocol
+  - name: conversations
+    description: Conversation list / message history / delete
+  - name: files
+    description: Workspace file tree and CRUD
+  - name: mcp-servers
+    description: MCP server registrations (stdio / http)
+  - name: skills
+    description: Agent skill definitions
+  - name: system
+    description: Health check and current-user info
+  - name: legacy
+    description: Deprecated Pebble/htmx view endpoints — do not use in new code
+
+security:
+  - basicAuth: []
+
+components:
+
+  # ── Reusable parameters ────────────────────────────────────────────────────
+
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: Zero-based page index
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    sizeParam:
+      name: size
+      in: query
+      description: Page size
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 20
+
+  # ── Security schemes ───────────────────────────────────────────────────────
+
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: >
+        HTTP Basic authentication. Currently unenforced (guest fallback active).
+        Will be required starting Phase 4.1 (Spring Security hardening).
+
+  # ── Reusable error responses ───────────────────────────────────────────────
+
+  responses:
+    Error400:
+      description: Bad request — validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: Bad Request
+            message: "content: must not be blank"
+            timestamp: "2026-04-05T10:00:00Z"
+
+    Error404:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: Not Found
+            message: "Conversation abc123 not found"
+            timestamp: "2026-04-05T10:00:00Z"
+
+    Error429:
+      description: Too many requests — SSE concurrency limit exhausted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: Too Many Requests
+            message: "SSE concurrency limit reached"
+            timestamp: "2026-04-05T10:00:00Z"
+
+    Error500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: Internal Server Error
+            message: "Unexpected error"
+            timestamp: "2026-04-05T10:00:00Z"
+
+  # ── DTO schemas (13 domain + 2 system = 15 total) ─────────────────────────
+
+  schemas:
+
+    # ── Chat ──────────────────────────────────────────────────────────────────
+
+    ChatSendRequest:
+      type: object
+      description: >
+        Request body for POST /api/chat/send.
+        `content` is the user message text (required, 1–32000 chars).
+        `conversationId` is optional; the server generates one when absent or blank.
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 32000
+          description: User message text
+        conversationId:
+          type: string
+          description: >
+            Existing conversation ID to append to.
+            Omit or send null/blank to start a new conversation.
+
+    # ── Conversations ─────────────────────────────────────────────────────────
+
+    ConversationDto:
+      type: object
+      description: Summary projection of a conversation returned by list and create endpoints.
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+        - messageCount
+      properties:
+        id:
+          type: string
+          description: Conversation identifier (server-assigned or caller-supplied)
+        title:
+          type: string
+          description: >
+            Derived from the first user message (truncated to 80 chars) or the id
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO-8601 creation timestamp (Instant.EPOCH when unknown)
+        updatedAt:
+          type: string
+          format: date-time
+          description: ISO-8601 last-updated timestamp (Instant.EPOCH when unknown)
+        messageCount:
+          type: integer
+          minimum: 0
+          description: Total number of messages in the conversation
+
+    CreateConversationRequest:
+      type: object
+      description: >
+        Optional body for POST /api/conversations.
+        Both fields are optional; the server supplies defaults when absent.
+      properties:
+        title:
+          type: string
+          maxLength: 120
+          description: Human-readable title; defaults to "New conversation"
+        id:
+          type: string
+          maxLength: 120
+          description: Desired conversation ID; server generates "web-<uuid>" when absent
+
+    MessageDto:
+      type: object
+      description: Single message in a conversation history.
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Synthetic message identifier ("<conversationId>#<index>")
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+            - system
+            - tool
+          description: Message role
+        content:
+          type: string
+          description: Message text (may be empty string for tool-response messages)
+        createdAt:
+          type: string
+          format: date-time
+          description: >
+            ISO-8601 timestamp (Instant.EPOCH when the store has no wall-clock data)
+
+    PageResponseConversation:
+      type: object
+      description: Paginated envelope wrapping a list of ConversationDto items.
+      required:
+        - content
+        - page
+        - size
+        - total
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationDto'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+
+    PageResponseMessage:
+      type: object
+      description: Paginated envelope wrapping a list of MessageDto items.
+      required:
+        - content
+        - page
+        - size
+        - total
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDto'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+
+    # ── Files ─────────────────────────────────────────────────────────────────
+
+    FileNodeDto:
+      type: object
+      description: >
+        Tree node returned by GET /api/files.
+        `children` is present and non-null when `type` is "dir"; absent for files.
+      required:
+        - path
+        - name
+        - type
+        - size
+      properties:
+        path:
+          type: string
+          description: Workspace-relative path (e.g. "src/Main.java")
+        name:
+          type: string
+          description: File or directory name (last path segment)
+        type:
+          type: string
+          enum:
+            - file
+            - dir
+          description: Node type
+        size:
+          type: integer
+          format: int64
+          minimum: 0
+          description: File size in bytes; 0 for directories
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileNodeDto'
+          description: Recursive child nodes; present only when type=dir
+
+    FileContentDto:
+      type: object
+      description: File path and raw text content, used for both read and write responses.
+      required:
+        - path
+        - content
+      properties:
+        path:
+          type: string
+          description: Workspace-relative file path
+        content:
+          type: string
+          description: Raw UTF-8 text content of the file
+
+    CreateFileRequest:
+      type: object
+      description: Body for POST /api/files — create a new file.
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          minLength: 1
+          description: Workspace-relative path for the new file (must not start with /)
+        content:
+          type: string
+          description: Initial file content; empty string when omitted
+
+    # ── MCP Servers ───────────────────────────────────────────────────────────
+
+    McpServerDto:
+      type: object
+      description: MCP server registration (stdio or http transport).
+      required:
+        - name
+        - transport
+      properties:
+        id:
+          type: string
+          description: Server-assigned identifier; omit on create
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Human-readable name for this MCP server
+        transport:
+          type: string
+          enum:
+            - stdio
+            - http
+          description: Transport protocol
+        command:
+          type: string
+          description: Shell command to launch the server (stdio transport only)
+        url:
+          type: string
+          description: HTTP endpoint URL (http transport only)
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Additional HTTP headers sent with every request (http transport only)
+        enabled:
+          type: boolean
+          default: true
+          description: Whether the server is active
+
+    McpServerStatusDto:
+      type: object
+      description: Connection-state snapshot for an MCP server.
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+          description: MCP server identifier
+        status:
+          type: string
+          description: >
+            Connection status string, e.g. "connected", "disconnected", "error"
+        detail:
+          type: string
+          description: Optional human-readable detail (error message, latency, etc.)
+
+    # ── Skills ────────────────────────────────────────────────────────────────
+
+    SkillDto:
+      type: object
+      description: Agent skill definition. `id` is generated server-side on create.
+      required:
+        - name
+      properties:
+        id:
+          type: string
+          description: Server-assigned identifier; omit on create
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: Skill name
+        description:
+          type: string
+          maxLength: 500
+          description: Human-readable description of what the skill does
+        enabled:
+          type: boolean
+          default: true
+          description: Whether the skill is active
+
+    # ── System ────────────────────────────────────────────────────────────────
+
+    UserInfoDto:
+      type: object
+      description: >
+        Current user identity as returned by GET /api/me.
+        Falls back to guest/USER when no Spring Security context is present.
+      required:
+        - username
+        - role
+      properties:
+        username:
+          type: string
+          description: Principal name or "guest"
+        role:
+          type: string
+          enum:
+            - USER
+            - ADMIN
+          description: Highest granted role
+
+    HealthResponse:
+      type: object
+      description: Application health snapshot returned by GET /api/health.
+      required:
+        - status
+        - timestamp
+        - components
+      properties:
+        status:
+          type: string
+          enum:
+            - UP
+            - DOWN
+          description: Overall health status
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp of the health check
+        components:
+          type: array
+          items:
+            type: string
+          description: Names of healthy sub-components (e.g. ["chat", "memory"])
+
+    # ── Error envelope ────────────────────────────────────────────────────────
+
+    ApiError:
+      type: object
+      description: >
+        Uniform error envelope returned by all /api/** error responses.
+        Matches ai.javaclaw.api.admin.ApiError record.
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Short error classification (e.g. "Bad Request", "Not Found")
+        message:
+          type: string
+          description: Human-readable error detail
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp of when the error occurred
+
+# =============================================================================
+# Paths
+# =============================================================================
+
+paths:
+
+  # ---------------------------------------------------------------------------
+  # Chat
+  # ---------------------------------------------------------------------------
+
+  /api/chat/send:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a chat message and receive a streaming response
+      description: >
+        Sends a user message to the AI agent and returns a **Vercel AI SDK v4
+        data-stream** response body over a plain-text chunked connection.
+
+
+        **Response content-type:** `text/plain;charset=UTF-8`
+
+
+        **Response header:** `x-vercel-ai-data-stream: v1`
+
+
+        **Frame format:** Each line is `<code>:<json>\n` where `<code>` is:
+
+        - `0` — Text delta: incremental assistant text chunk (also used as keepalive heartbeat with `""`)
+
+        - `2` — Data part: arbitrary JSON data part
+
+        - `3` — Error: stream-level error text
+
+        - `9` — Tool call: `{"toolCallId":"…","toolName":"…","args":{…}}`
+
+        - `a` — Tool result: `{"toolCallId":"…","result":{…}}`
+
+        - `d` — Finish message: `{"finishReason":"stop","usage":{"promptTokens":0,"completionTokens":0}}`
+
+        - `e` — Finish step: `{"finishReason":"stop","usage":{…},"isContinued":false}`
+
+
+        Returns **429** when the SSE concurrency semaphore is exhausted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSendRequest'
+            example:
+              content: "What is the capital of France?"
+              conversationId: "web-abc123"
+      responses:
+        "200":
+          description: SSE data stream — newline-delimited Vercel AI SDK v4 frames
+          headers:
+            x-vercel-ai-data-stream:
+              description: Protocol version indicator consumed by @ai-sdk/react useChat
+              schema:
+                type: string
+                enum: [v1]
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Newline-delimited data-stream frames
+              example: "0:\"Hello\"\n0:\" world\"\ne:{\"finishReason\":\"stop\",\"usage\":{\"promptTokens\":0,\"completionTokens\":0},\"isContinued\":false}\nd:{\"finishReason\":\"stop\",\"usage\":{\"promptTokens\":0,\"completionTokens\":0}}\n"
+        "400":
+          $ref: '#/components/responses/Error400'
+        "429":
+          $ref: '#/components/responses/Error429'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/chat/stream/{conversationId}:
+    post:
+      operationId: reopenChatStream
+      tags: [chat]
+      summary: Reopen a bare data-stream channel for an existing conversation
+      description: >
+        Opens a new SSE data-stream connection tied to `conversationId` without
+        sending a message. Intended for reconnecting after a network interruption.
+
+
+        Same response format and headers as `sendChatMessage`.
+        Returns **429** when the SSE concurrency limit is exhausted.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation to reopen
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bare data-stream channel opened (no assistant turn initiated)
+          headers:
+            x-vercel-ai-data-stream:
+              description: Protocol version indicator
+              schema:
+                type: string
+                enum: [v1]
+          content:
+            text/plain:
+              schema:
+                type: string
+        "429":
+          $ref: '#/components/responses/Error429'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # Conversations
+  # ---------------------------------------------------------------------------
+
+  /api/conversations:
+    get:
+      operationId: listConversations
+      tags: [conversations]
+      summary: List all conversations (paginated)
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/sizeParam'
+      responses:
+        "200":
+          description: Paginated list of conversations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponseConversation'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    post:
+      operationId: createConversation
+      tags: [conversations]
+      summary: Create a new (empty) conversation
+      description: >
+        Creates a conversation entry in the chat-memory store.
+        Both request body fields are optional — the server supplies defaults.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+            example:
+              title: "My first chat"
+              id: "web-custom-42"
+      responses:
+        "200":
+          description: Created conversation summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/conversations/{id}/messages:
+    get:
+      operationId: getConversationMessages
+      tags: [conversations]
+      summary: Get paginated message history for a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Conversation identifier
+          schema:
+            type: string
+        - $ref: '#/components/parameters/pageParam'
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+      responses:
+        "200":
+          description: Paginated message list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponseMessage'
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/conversations/{id}:
+    delete:
+      operationId: deleteConversation
+      tags: [conversations]
+      summary: Delete a conversation and all its messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Conversation identifier
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Conversation deleted successfully
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # Files
+  # ---------------------------------------------------------------------------
+
+  /api/files:
+    get:
+      operationId: getFileTree
+      tags: [files]
+      summary: Get the workspace file tree
+      description: Returns the full recursive directory tree rooted at the workspace root.
+      responses:
+        "200":
+          description: Root node of the workspace file tree
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileNodeDto'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    post:
+      operationId: createFile
+      tags: [files]
+      summary: Create a new file in the workspace
+      description: Creates a new file at the given path with optional initial content.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFileRequest'
+            example:
+              path: "src/Hello.java"
+              content: "public class Hello {}"
+      responses:
+        "201":
+          description: File created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileContentDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/files/{path}:
+    get:
+      operationId: readFile
+      tags: [files]
+      summary: Read a workspace file
+      description: >
+        Returns the path and UTF-8 text content of the file at `{path}`.
+
+
+        **Note:** The path parameter is matched by Spring MVC's `/**` AntPathMatcher,
+        so it may contain forward slashes (e.g. `src/main/App.java`).
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: >
+            Workspace-relative file path — may contain forward slashes.
+            Example: `src/main/java/App.java`
+          schema:
+            type: string
+            pattern: '^(?!/).+'
+      responses:
+        "200":
+          description: File content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileContentDto'
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    put:
+      operationId: writeFile
+      tags: [files]
+      summary: Write (overwrite) a workspace file
+      description: >
+        Writes `content` to the file at `{path}`, creating it if it does not exist.
+        Returns the updated file.
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: Workspace-relative file path (may contain forward slashes)
+          schema:
+            type: string
+            pattern: '^(?!/).+'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileContentDto'
+      responses:
+        "200":
+          description: File written successfully; returns updated content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileContentDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    delete:
+      operationId: deleteFile
+      tags: [files]
+      summary: Delete a workspace file or directory
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: Workspace-relative path to delete (may contain forward slashes)
+          schema:
+            type: string
+            pattern: '^(?!/).+'
+      responses:
+        "204":
+          description: File deleted successfully
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # MCP Servers
+  # ---------------------------------------------------------------------------
+
+  /api/mcp-servers:
+    get:
+      operationId: listMcpServers
+      tags: [mcp-servers]
+      summary: List all registered MCP servers
+      responses:
+        "200":
+          description: Array of MCP server registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/McpServerDto'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    post:
+      operationId: createMcpServer
+      tags: [mcp-servers]
+      summary: Register a new MCP server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/McpServerDto'
+            example:
+              name: "My Python MCP"
+              transport: "stdio"
+              command: "python3 -m my_mcp_server"
+              enabled: true
+      responses:
+        "201":
+          description: MCP server created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/mcp-servers/{id}:
+    put:
+      operationId: updateMcpServer
+      tags: [mcp-servers]
+      summary: Update an existing MCP server registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MCP server identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/McpServerDto'
+      responses:
+        "200":
+          description: Updated MCP server registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    delete:
+      operationId: deleteMcpServer
+      tags: [mcp-servers]
+      summary: Delete an MCP server registration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MCP server identifier
+          schema:
+            type: string
+      responses:
+        "204":
+          description: MCP server deleted
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/mcp-servers/{id}/status:
+    get:
+      operationId: getMcpServerStatus
+      tags: [mcp-servers]
+      summary: Get the connection status of an MCP server
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MCP server identifier
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection-state snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerStatusDto'
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # Skills
+  # ---------------------------------------------------------------------------
+
+  /api/skills:
+    get:
+      operationId: listSkills
+      tags: [skills]
+      summary: List all agent skills
+      responses:
+        "200":
+          description: Array of skill definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkillDto'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    post:
+      operationId: createSkill
+      tags: [skills]
+      summary: Create a new agent skill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillDto'
+            example:
+              name: "Web Search"
+              description: "Search the web using DuckDuckGo"
+              enabled: true
+      responses:
+        "201":
+          description: Skill created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/skills/{id}:
+    put:
+      operationId: updateSkill
+      tags: [skills]
+      summary: Update an existing skill
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Skill identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillDto'
+      responses:
+        "200":
+          description: Updated skill
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDto'
+        "400":
+          $ref: '#/components/responses/Error400'
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+    delete:
+      operationId: deleteSkill
+      tags: [skills]
+      summary: Delete a skill
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Skill identifier
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Skill deleted
+        "404":
+          $ref: '#/components/responses/Error404'
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # System
+  # ---------------------------------------------------------------------------
+
+  /api/me:
+    get:
+      operationId: getCurrentUser
+      tags: [system]
+      summary: Get current authenticated user info
+      description: >
+        Returns the servlet principal name and role.
+        Falls back to `{ "username": "guest", "role": "USER" }` when no
+        Spring Security context is present (current MVP state).
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoDto'
+              example:
+                username: "guest"
+                role: "USER"
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /api/health:
+    get:
+      operationId: getHealth
+      tags: [system]
+      summary: Application health check
+      description: >
+        Returns `{ "status": "UP", "timestamp": "<iso>", "components": ["chat", "memory"] }`.
+        Intended for load-balancer probes.
+      responses:
+        "200":
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "UP"
+                timestamp: "2026-04-05T10:00:00Z"
+                components:
+                  - chat
+                  - memory
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  # ---------------------------------------------------------------------------
+  # Legacy (deprecated) — Pebble/htmx views, do not use in new code
+  # ---------------------------------------------------------------------------
+
+  /legacy/chat:
+    get:
+      operationId: legacyChatView
+      tags: [legacy]
+      deprecated: true
+      summary: "[DEPRECATED] Legacy Pebble/htmx chat view"
+      description: >
+        Serves the old server-side-rendered chat page built with Pebble templates
+        and htmx. Replaced by the React SPA at `/`.
+        Retained per the Pebble deprecation policy — marked @Deprecated in code,
+        not removed. Will be deleted in a future major release.
+      responses:
+        "200":
+          description: HTML page (legacy Pebble template)
+          content:
+            text/html:
+              schema:
+                type: string
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []
+
+  /index:
+    get:
+      operationId: legacyIndex
+      tags: [legacy]
+      deprecated: true
+      summary: "[DEPRECATED] Legacy index redirect"
+      description: >
+        Legacy entry-point that redirected to the Pebble chat view.
+        Replaced by the React SPA root. Retained per the Pebble deprecation policy.
+      responses:
+        "200":
+          description: HTML page or redirect
+          content:
+            text/html:
+              schema:
+                type: string
+        "302":
+          description: Redirect to /legacy/chat
+        "500":
+          $ref: '#/components/responses/Error500'
+      security: []

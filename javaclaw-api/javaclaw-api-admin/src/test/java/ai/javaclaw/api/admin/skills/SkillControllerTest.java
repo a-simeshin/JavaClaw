@@ -1,5 +1,9 @@
 package ai.javaclaw.api.admin.skills;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -9,57 +13,67 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import ai.javaclaw.api.admin.AdminExceptionHandler;
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
+@ExtendWith(MockitoExtension.class)
 class SkillControllerTest {
+
+    @Mock
+    private SkillService skillService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new SkillController(new SkillStore()))
+        mockMvc = standaloneSetup(new SkillController(skillService))
                 .setControllerAdvice(new AdminExceptionHandler())
                 .build();
     }
 
     @Test
     void createListUpdateDeleteLifecycle() throws Exception {
-        MvcResult created = mockMvc.perform(post("/api/skills")
+        final SkillDto created = new SkillDto("uuid-1", "brave", "Web search", true);
+        when(skillService.create(any(SkillDto.class))).thenReturn(created);
+
+        mockMvc.perform(post("/api/skills")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"brave\",\"description\":\"Web search\",\"enabled\":true}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name").value("brave"))
-                .andReturn();
+                .andExpect(jsonPath("$.id").value("uuid-1"))
+                .andExpect(jsonPath("$.name").value("brave"));
 
-        String id = extractId(created);
+        when(skillService.list()).thenReturn(List.of(created));
 
         mockMvc.perform(get("/api/skills"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("brave"));
 
-        mockMvc.perform(put("/api/skills/" + id)
+        final SkillDto updated = new SkillDto("uuid-1", "brave", "Web search", false);
+        when(skillService.update(eq("uuid-1"), any(SkillDto.class))).thenReturn(updated);
+
+        mockMvc.perform(put("/api/skills/uuid-1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"brave\",\"description\":\"Web search\",\"enabled\":false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enabled").value(false));
 
-        mockMvc.perform(delete("/api/skills/" + id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/skills/uuid-1")).andExpect(status().isNoContent());
     }
 
     @Test
     void deleteMissingReturnsNotFound() throws Exception {
-        mockMvc.perform(delete("/api/skills/does-not-exist")).andExpect(status().isNotFound());
-    }
+        doThrow(new NoSuchElementException("skill not found: does-not-exist"))
+                .when(skillService)
+                .delete("does-not-exist");
 
-    private static String extractId(MvcResult result) throws Exception {
-        String body = result.getResponse().getContentAsString();
-        int i = body.indexOf("\"id\":\"") + 6;
-        int j = body.indexOf("\"", i);
-        return body.substring(i, j);
+        mockMvc.perform(delete("/api/skills/does-not-exist")).andExpect(status().isNotFound());
     }
 }
