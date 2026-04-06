@@ -1,5 +1,9 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.api.chat.controller.dto.ConversationDto;
+import ai.javaclaw.api.chat.controller.dto.CreateConversationRequest;
+import ai.javaclaw.api.chat.controller.dto.MessageDto;
+import ai.javaclaw.api.chat.controller.dto.PageResponse;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import jakarta.validation.Valid;

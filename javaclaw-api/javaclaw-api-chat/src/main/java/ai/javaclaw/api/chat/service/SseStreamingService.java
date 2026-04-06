@@ -1,6 +1,7 @@
 package ai.javaclaw.api.chat.rest;
 
 import ai.javaclaw.agent.pipeline.ChatService;
+import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelMessageReceivedEvent;
 import ai.javaclaw.channels.ChannelRegistry;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class SseStreamingService {
     private final ChannelRegistry channelRegistry;
 
     /** Настройки SSE (таймаут, интервал heartbeat, лимит concurrency). */
-    private final SseProperties sseProperties;
+    private final ChatRestConfiguration.SseProperties sseProperties;
 
     /** Набор активных emitter-ов — используется для контроля жизненного цикла. */
     private final Set<ResponseBodyEmitter> emitters = ConcurrentHashMap.newKeySet();
@@ -71,7 +72,7 @@ public class SseStreamingService {
     public SseStreamingService(
             final ChatService chatService,
             final ChannelRegistry channelRegistry,
-            final SseProperties sseProperties,
+            final ChatRestConfiguration.SseProperties sseProperties,
             final ObjectMapper jsonMapper) {
         this.chatService = chatService;
         this.channelRegistry = channelRegistry;

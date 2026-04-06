@@ -1,5 +1,7 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.api.chat.controller.dto.ChatSendRequest;
+import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import jakarta.validation.Valid;
 import java.util.UUID;

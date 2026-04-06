@@ -1,5 +1,6 @@
 package ai.javaclaw.api.chat.rest;
 
+import ai.javaclaw.api.chat.controller.ChatRestController;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

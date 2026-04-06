@@ -1,4 +1,4 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller.dto;
 
 import java.time.Instant;
 
