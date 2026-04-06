@@ -47,18 +47,10 @@ function normaliseMarkdown(md: string): string {
 }
 
 /**
- * Escalate outer code-fence length when its content contains another fence-
- * looking line (e.g. ```python inside ```md). CommonMark closes the outer
- * block at the first subsequent ``` on its own line, so a model that writes
- * a nested code example using three backticks both inside and outside gets
- * rendered as "open, close on first inner fence, orphan content, re-open…".
- *
- * Heuristic: when we see an opener followed later by a line that starts with
- * 3+ backticks (opener-shaped: with info text, or content-shaped), treat the
- * LAST ``` run on its own line as the real closer and widen the outer fence
- * to `max(inner-run)+1` backticks so it uniquely brackets the whole region.
- * When no nested-fence-looking line is present, behaviour matches the parser
- * (first valid closer wins), so normal two-block documents are untouched.
+ * Escalate outer code-fence length when its content contains a bare ``` line
+ * that would prematurely close the block (e.g. showing markdown syntax inside
+ * a code example). Only inspects lines WITHIN the first-matched block — never
+ * scans beyond the first valid closer, so separate code blocks remain intact.
  */
 function escalateNestedFences(md: string): string {
   const lines = md.split("\n")
@@ -66,7 +58,6 @@ function escalateNestedFences(md: string): string {
   let i = 0
   while (i < lines.length) {
     const line = lines[i]
-    // Opener: ≤3 leading spaces, ≥3 backticks, optional info text (no backticks).
     const openMatch = line.match(/^( {0,3})(`{3,})([^`]*)$/)
     if (!openMatch) {
       out.push(line)
@@ -77,34 +68,25 @@ function escalateNestedFences(md: string): string {
     const openFence = openMatch[2]
     const info = openMatch[3]
 
-    // Scan forward: locate first + last valid closers, detect nested-fence lines.
+    // Find the first valid closer (per CommonMark: ≥ opener-length ticks, only spaces after).
     let firstCloseIdx = -1
-    let lastCloseIdx = -1
-    let hasNestedFenceLine = false
     for (let j = i + 1; j < lines.length; j++) {
-      const cl = lines[j]
-      const closer = cl.match(/^ {0,3}(`{3,})\s*$/)
-      const nestedOpener = cl.match(/^ {0,3}`{3,}[^`\s]/) // fence with info text
+      const closer = lines[j].match(/^ {0,3}(`{3,})\s*$/)
       if (closer && closer[1].length >= openFence.length) {
-        if (firstCloseIdx === -1) firstCloseIdx = j
-        lastCloseIdx = j
-      } else if (nestedOpener) {
-        hasNestedFenceLine = true
+        firstCloseIdx = j
+        break
       }
     }
 
     if (firstCloseIdx === -1) {
-      // Unclosed block — leave it to stabilizeStreamingMarkdown / react-markdown.
       out.push(line)
       i++
       continue
     }
 
-    const closeIdx = hasNestedFenceLine ? lastCloseIdx : firstCloseIdx
-
-    // Find the longest ``` run inside the content so we escalate enough.
+    // Check for backtick runs ONLY within this block's content.
     let maxInnerRun = 0
-    for (let j = i + 1; j < closeIdx; j++) {
+    for (let j = i + 1; j < firstCloseIdx; j++) {
       const runs = lines[j].match(/`{3,}/g)
       if (runs) {
         for (const r of runs) {
@@ -112,13 +94,14 @@ function escalateNestedFences(md: string): string {
         }
       }
     }
+
+    // Escalate outer fence so inner runs can't be mistaken as a closer.
     const needed = Math.max(openFence.length, maxInnerRun + 1)
     const newFence = "`".repeat(needed)
-
     out.push(indent + newFence + info)
-    for (let k = i + 1; k < closeIdx; k++) out.push(lines[k])
+    for (let k = i + 1; k < firstCloseIdx; k++) out.push(lines[k])
     out.push(newFence)
-    i = closeIdx + 1
+    i = firstCloseIdx + 1
   }
   return out.join("\n")
 }
@@ -245,11 +228,11 @@ export function AssistantMessage({
           "prose-headings:font-mono prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-[-0.02em]",
           "prose-strong:text-foreground prose-strong:font-semibold",
           "prose-a:text-accent-strong prose-a:font-medium prose-a:no-underline hover:prose-a:underline",
-          "prose-pre:my-3 prose-pre:overflow-x-auto prose-pre:rounded-sm prose-pre:border prose-pre:border-surface-code-border prose-pre:bg-surface-code prose-pre:p-3 prose-pre:font-mono prose-pre:text-[13px] prose-pre:leading-[1.55]",
-          "prose-code:rounded prose-code:border prose-code:border-surface-code-border prose-code:bg-surface-code prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[13px] prose-code:text-accent-strong prose-code:font-medium prose-code:before:content-none prose-code:after:content-none",
+          "prose-pre:my-3 prose-pre:overflow-x-auto prose-pre:rounded-sm prose-pre:border-none prose-pre:bg-surface-code prose-pre:p-3 prose-pre:font-mono prose-pre:text-[13px] prose-pre:leading-[1.55]",
+          "prose-code:rounded prose-code:border-none prose-code:bg-surface-code prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[13px] prose-code:text-accent-strong prose-code:font-medium prose-code:before:content-none prose-code:after:content-none",
           "prose-blockquote:border-l-2 prose-blockquote:border-l-accent-strong prose-blockquote:bg-accent-bg prose-blockquote:py-1 prose-blockquote:pl-4 prose-blockquote:pr-2 prose-blockquote:not-italic prose-blockquote:text-foreground prose-blockquote:[&>p]:before:content-none prose-blockquote:[&>p]:after:content-none",
           "prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-foreground prose-li:marker:text-accent-strong",
-          "prose-hr:border-separator prose-hr:my-4",
+          "prose-hr:border-none prose-hr:my-4 prose-hr:h-px prose-hr:bg-separator",
           "prose-table:my-3 prose-table:font-mono prose-table:text-[12px] prose-table:border prose-table:border-border prose-table:overflow-hidden prose-table:rounded-sm",
           "prose-th:border-b prose-th:border-border prose-th:bg-surface-elevated prose-th:px-3.5 prose-th:py-1.5 prose-th:text-left prose-th:text-[9px] prose-th:font-bold prose-th:uppercase prose-th:tracking-[0.07em] prose-th:text-muted-foreground",
           "prose-td:border-b prose-td:border-border prose-td:px-3.5 prose-td:py-1.5 prose-td:text-foreground",
