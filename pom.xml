@@ -43,7 +43,6 @@
         <jda.version>6.1.1</jda.version>
         <telegrambots.version>9.4.0</telegrambots.version>
         <playwright.version>1.52.0</playwright.version>
-        <pebble.version>4.1.1</pebble.version>
         <netty-macos.version>4.2.10.Final</netty-macos.version>
         <testcontainers.version>1.21.0</testcontainers.version>
 
@@ -145,11 +144,6 @@
                 <groupId>com.microsoft.playwright</groupId>
                 <artifactId>playwright</artifactId>
                 <version>${playwright.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.pebbletemplates</groupId>
-                <artifactId>pebble-spring-boot-starter</artifactId>
-                <version>${pebble.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>

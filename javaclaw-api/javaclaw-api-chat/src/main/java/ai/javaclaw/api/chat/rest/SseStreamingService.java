@@ -1,5 +1,6 @@
 package ai.javaclaw.api.chat.rest;
 
+import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.channels.ChannelMessageReceivedEvent;
 import ai.javaclaw.channels.ChannelRegistry;
 import java.io.IOException;
@@ -14,8 +15,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import tools.jackson.databind.ObjectMapper;
@@ -27,34 +26,60 @@ import tools.jackson.databind.ObjectMapper;
  * heartbeats for disconnect detection, a shared emitter registry for cleanup,
  * a semaphore to bound concurrency, and synchronized writes from the streaming
  * thread + the heartbeat scheduler.
+ *
+ * <p>Streaming is delegated to {@link ChatService#stream(String, String)} which returns
+ * a {@code Flux<ChatResponse>}; this service maps each response to a text delta and
+ * writes it to the Vercel v4 data-stream wire format.
  */
 @Service
 public class SseStreamingService {
 
     private static final Logger log = LoggerFactory.getLogger(SseStreamingService.class);
 
-    private final ChatClient chatClient;
+    /** Оркестратор pipeline запросов к LLM. */
+    private final ChatService chatService;
+
+    /** Реестр каналов для публикации событий о полученных сообщениях. */
     private final ChannelRegistry channelRegistry;
+
+    /** Настройки SSE (таймаут, интервал heartbeat, лимит concurrency). */
     private final SseProperties sseProperties;
 
+    /** Набор активных emitter-ов — используется для контроля жизненного цикла. */
     private final Set<ResponseBodyEmitter> emitters = ConcurrentHashMap.newKeySet();
+
+    /** Семафор, ограничивающий число одновременных SSE-стримов. */
     private final Semaphore concurrencyLimit;
+
+    /** Планировщик heartbeat-сообщений для обнаружения разрыва соединения. */
     private final ScheduledExecutorService heartbeatScheduler;
+
+    /** Исполнитель виртуальных потоков для запуска стримов. */
     private final Executor streamExecutor;
+
+    /** JSON-маппер для сериализации событий в Vercel v4 data-stream формат. */
     private final ObjectMapper jsonMapper;
 
+    /**
+     * Создаёт SseStreamingService с полным набором зависимостей.
+     *
+     * @param chatService оркестратор pipeline, не может быть null
+     * @param channelRegistry реестр каналов, не может быть null
+     * @param sseProperties настройки SSE, не может быть null
+     * @param jsonMapper JSON-маппер, не может быть null
+     */
     public SseStreamingService(
-            ChatClient chatClient,
-            ChannelRegistry channelRegistry,
-            SseProperties sseProperties,
-            ObjectMapper jsonMapper) {
-        this.chatClient = chatClient;
+            final ChatService chatService,
+            final ChannelRegistry channelRegistry,
+            final SseProperties sseProperties,
+            final ObjectMapper jsonMapper) {
+        this.chatService = chatService;
         this.channelRegistry = channelRegistry;
         this.sseProperties = sseProperties;
         this.jsonMapper = jsonMapper;
         this.concurrencyLimit = new Semaphore(sseProperties.maxConcurrent());
         this.heartbeatScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "sse-heartbeat");
+            final Thread t = new Thread(r, "sse-heartbeat");
             t.setDaemon(true);
             return t;
         });
@@ -64,16 +89,18 @@ public class SseStreamingService {
     /**
      * Creates a new emitter, registers cleanup callbacks and returns it.
      * Returns {@code null} if the concurrency limit is exhausted.
+     *
+     * @return новый {@link ResponseBodyEmitter} или {@code null} если лимит исчерпан
      */
     public ResponseBodyEmitter createEmitter() {
         if (!concurrencyLimit.tryAcquire()) {
             return null;
         }
-        ResponseBodyEmitter emitter =
+        final ResponseBodyEmitter emitter =
                 new ResponseBodyEmitter(sseProperties.timeout().toMillis());
         emitters.add(emitter);
 
-        Runnable release = () -> {
+        final Runnable release = () -> {
             if (emitters.remove(emitter)) {
                 concurrencyLimit.release();
             }
@@ -88,14 +115,18 @@ public class SseStreamingService {
     }
 
     /**
-     * Streams the agent's response to {@code request.content()} for the given conversation id.
+     * Streams the agent's response to {@code userContent} for the given conversation id.
      *
-     * <p>Runs the ChatClient stream on a virtual thread; writes to the emitter under a
+     * <p>Runs the ChatService stream on a virtual thread; writes to the emitter under a
      * synchronization lock shared with the heartbeat scheduler.
+     *
+     * @param emitter цель для записи SSE-событий
+     * @param conversationId идентификатор разговора
+     * @param userContent сообщение пользователя
      */
-    public void stream(ResponseBodyEmitter emitter, String conversationId, String userContent) {
-        Object lock = new Object();
-        ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(
+    public void stream(final ResponseBodyEmitter emitter, final String conversationId, final String userContent) {
+        final Object lock = new Object();
+        final ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(
                 () -> sendHeartbeat(emitter, lock),
                 sseProperties.heartbeatInterval().toMillis(),
                 sseProperties.heartbeatInterval().toMillis(),
@@ -107,9 +138,21 @@ public class SseStreamingService {
         streamExecutor.execute(() -> runStream(emitter, lock, conversationId, userContent));
     }
 
-    private void runStream(ResponseBodyEmitter emitter, Object lock, String conversationId, String userContent) {
-        String messageId = "msg_" + UUID.randomUUID();
-        String textBlockId = "text_" + UUID.randomUUID();
+    /**
+     * Выполняет стриминг: публикует события о начале, дельты текста и финальные события.
+     *
+     * @param emitter цель для записи SSE-событий
+     * @param lock объект синхронизации, общий с heartbeat-потоком
+     * @param conversationId идентификатор разговора
+     * @param userContent сообщение пользователя
+     */
+    private void runStream(
+            final ResponseBodyEmitter emitter,
+            final Object lock,
+            final String conversationId,
+            final String userContent) {
+        final String messageId = "msg_" + UUID.randomUUID();
+        final String textBlockId = "text_" + UUID.randomUUID();
         try {
             channelRegistry.publishMessageReceivedEvent(new ChannelMessageReceivedEvent("Web Chat REST", userContent));
 
@@ -122,19 +165,16 @@ public class SseStreamingService {
                     lock,
                     VercelSseEvent.TextStart.builder().id(textBlockId).build());
 
-            chatClient.prompt(userContent).advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId)).stream()
-                    .content()
-                    .doOnNext(delta -> {
-                        if (delta != null && !delta.isEmpty()) {
-                            trySendEvent(
-                                    emitter,
-                                    lock,
-                                    VercelSseEvent.TextDelta.builder()
-                                            .id(textBlockId)
-                                            .delta(delta)
-                                            .build());
-                        }
-                    })
+            chatService.stream(conversationId, userContent)
+                    .map(response -> response.getResult().getOutput().getText())
+                    .filter(text -> text != null && !text.isEmpty())
+                    .doOnNext(delta -> trySendEvent(
+                            emitter,
+                            lock,
+                            VercelSseEvent.TextDelta.builder()
+                                    .id(textBlockId)
+                                    .delta(delta)
+                                    .build()))
                     .blockLast();
 
             sendEvent(
@@ -160,16 +200,33 @@ public class SseStreamingService {
         }
     }
 
-    /** Writes a v4 Vercel AI data-stream line: {@code code:json\n}. */
-    void writeLine(ResponseBodyEmitter emitter, Object lock, char code, Object payload) throws IOException {
-        String line = code + ":" + jsonMapper.writeValueAsString(payload) + "\n";
+    /**
+     * Writes a v4 Vercel AI data-stream line: {@code code:json\n}.
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     * @param code однобуквенный код протокола
+     * @param payload объект для сериализации в JSON
+     * @throws IOException если запись в emitter завершилась ошибкой
+     */
+    void writeLine(final ResponseBodyEmitter emitter, final Object lock, final char code, final Object payload)
+            throws IOException {
+        final String line = code + ":" + jsonMapper.writeValueAsString(payload) + "\n";
         synchronized (lock) {
             emitter.send(line, org.springframework.http.MediaType.TEXT_PLAIN);
         }
     }
 
-    /** Converts a typed UI Message Stream event to the v4 data stream wire line. */
-    private void sendEvent(ResponseBodyEmitter emitter, Object lock, Object payload) throws IOException {
+    /**
+     * Converts a typed UI Message Stream event to the v4 data stream wire line.
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     * @param payload событие для отправки
+     * @throws IOException если запись завершилась ошибкой
+     */
+    private void sendEvent(final ResponseBodyEmitter emitter, final Object lock, final Object payload)
+            throws IOException {
         if (!(payload instanceof VercelSseEvent event)) {
             writeLine(emitter, lock, '2', payload);
             return;
@@ -205,6 +262,7 @@ public class SseStreamingService {
         }
     }
 
+    /** Payload для usage-полей в finish/step finish строках. */
     private record UsageLine(int promptTokens, int completionTokens) {}
 
     /** v4 {@code 9:} tool-call line payload. */
@@ -213,7 +271,14 @@ public class SseStreamingService {
     /** v4 {@code a:} tool-result line payload. */
     private record ToolResultLine(String toolCallId, Object result) {}
 
-    private void trySendEvent(ResponseBodyEmitter emitter, Object lock, Object payload) {
+    /**
+     * Отправляет событие, преобразуя {@link IOException} в {@link ClientDisconnectedException}.
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     * @param payload событие для отправки
+     */
+    private void trySendEvent(final ResponseBodyEmitter emitter, final Object lock, final Object payload) {
         try {
             sendEvent(emitter, lock, payload);
         } catch (IOException io) {
@@ -222,13 +287,26 @@ public class SseStreamingService {
         }
     }
 
+    /** Исключение-сигнал о разрыве соединения клиента в середине стрима. */
     private static final class ClientDisconnectedException extends RuntimeException {
-        ClientDisconnectedException(IOException cause) {
+        /**
+         * Создаёт исключение с оригинальной IOException как причиной.
+         *
+         * @param cause оригинальная IOException
+         */
+        ClientDisconnectedException(final IOException cause) {
             super(cause);
         }
     }
 
-    private void trySendError(ResponseBodyEmitter emitter, Object lock, String message) {
+    /**
+     * Отправляет событие об ошибке, игнорируя IOException (клиент уже отключён).
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     * @param message текст ошибки
+     */
+    private void trySendError(final ResponseBodyEmitter emitter, final Object lock, final String message) {
         try {
             sendEvent(
                     emitter,
@@ -241,7 +319,13 @@ public class SseStreamingService {
         }
     }
 
-    private void sendHeartbeat(ResponseBodyEmitter emitter, Object lock) {
+    /**
+     * Отправляет heartbeat-сообщение (пустая текстовая дельта) для обнаружения разрыва.
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     */
+    private void sendHeartbeat(final ResponseBodyEmitter emitter, final Object lock) {
         try {
             // v4 data stream protocol has no comments — send empty text delta as keepalive.
             writeLine(emitter, lock, '0', "");
@@ -252,12 +336,20 @@ public class SseStreamingService {
         }
     }
 
-    /** Test / diagnostic accessor for the live emitter registry. */
+    /**
+     * Test / diagnostic accessor for the live emitter registry.
+     *
+     * @return число активных emitter-ов
+     */
     public int activeEmitters() {
         return emitters.size();
     }
 
-    /** Admission-control query — exposed for tests. */
+    /**
+     * Admission-control query — exposed for tests.
+     *
+     * @return число доступных разрешений семафора
+     */
     public int availablePermits() {
         return concurrencyLimit.availablePermits();
     }

@@ -1,40 +1,48 @@
 package ai.javaclaw.agent;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
+import ai.javaclaw.agent.pipeline.ChatService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+/**
+ * Реализация {@link Agent} по умолчанию — делегирует запросы к {@link ChatService}.
+ *
+ * <p>ChatService самостоятельно управляет системным промптом, историей и tool callbacks,
+ * поэтому DefaultAgent остаётся тонкой обёрткой над pipeline.
+ */
 @Component
 public class DefaultAgent implements Agent {
 
-    private final ChatClient chatClient;
-    private final SystemPromptProvider systemPromptProvider;
+    /** Сервис-оркестратор pipeline запросов к LLM. */
+    private final ChatService chatService;
 
-    public DefaultAgent(final ChatClient chatClient, final SystemPromptProvider systemPromptProvider) {
-        Assert.notNull(chatClient, "chatClient must not be null");
-        Assert.notNull(systemPromptProvider, "systemPromptProvider must not be null");
-        this.chatClient = chatClient;
-        this.systemPromptProvider = systemPromptProvider;
+    /**
+     * Создаёт DefaultAgent с указанным ChatService.
+     *
+     * @param chatService оркестратор pipeline, не может быть null
+     */
+    public DefaultAgent(final ChatService chatService) {
+        Assert.notNull(chatService, "chatService must not be null");
+        this.chatService = chatService;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Делегирует синхронный вызов к {@link ChatService#call(String, String)}.
+     */
     @Override
     public String respondTo(final String conversationId, final String question) {
-        return chatClient
-                .prompt(question)
-                .system(systemPromptProvider.load())
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .call()
-                .content();
+        return chatService.call(conversationId, question);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Делегирует структурированный вызов к {@link ChatService#call(String, String, Class)}.
+     */
     @Override
     public <T> T prompt(final String conversationId, final String input, final Class<T> result) {
-        return chatClient
-                .prompt(input)
-                .system(systemPromptProvider.load())
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .call()
-                .entity(result);
+        return chatService.call(conversationId, input, result);
     }
 }

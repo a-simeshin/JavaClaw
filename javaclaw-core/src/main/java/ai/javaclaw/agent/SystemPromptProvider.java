@@ -54,6 +54,35 @@ public class SystemPromptProvider {
         return sb.toString();
     }
 
+    /**
+     * Loads identity sections: AGENT.md + SOUL.md concatenated.
+     *
+     * @return combined identity text, empty string if no files found
+     */
+    public String loadIdentity() {
+        final StringBuilder sb = new StringBuilder();
+        for (final String fileName : new String[] {"AGENT.md", "SOUL.md"}) {
+            final String content = readFile(fileName);
+            if (content != null && !content.isBlank()) {
+                if (!sb.isEmpty()) {
+                    sb.append("\n\n");
+                }
+                sb.append(content.strip());
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Loads context sections: INFO.md only.
+     *
+     * @return INFO.md content, empty string if file not found
+     */
+    public String loadContext() {
+        final String content = readFile("INFO.md");
+        return (content != null && !content.isBlank()) ? content.strip() : "";
+    }
+
     private String readFile(final String path) {
         try {
             return repository

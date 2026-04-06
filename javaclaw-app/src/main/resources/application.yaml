@@ -34,14 +34,16 @@ management:
     restart:
       enabled: true
 
-pebble:
-  suffix: .html.peb
 agent:
   onboarding:
     completed: true
   workspace: file:./workspace/
 javaclaw:
   chat:
+    token-budget:
+      max-context-tokens: 200000
+      reserved-for-response: 8000
+      reserved-for-tools: 4000
     sse:
       timeout: 30m
       heartbeat-interval: 15s

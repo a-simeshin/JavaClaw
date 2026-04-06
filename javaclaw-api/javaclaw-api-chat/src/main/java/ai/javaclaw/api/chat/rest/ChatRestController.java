@@ -3,9 +3,7 @@ package ai.javaclaw.api.chat.rest;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import jakarta.validation.Valid;
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

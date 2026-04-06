@@ -8,6 +8,9 @@ public interface SkillRepository extends ListCrudRepository<Skill, String> {
 
     List<Skill> findAllByOwnerIdIsNull();
 
+    /** Finds all global skills (no owner) that are enabled. */
+    List<Skill> findAllByOwnerIdIsNullAndEnabledTrue();
+
     Optional<Skill> findByIdAndOwnerIdIsNull(String id);
 
     boolean existsByOwnerIdIsNullAndName(String name);

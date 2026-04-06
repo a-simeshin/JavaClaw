@@ -3,28 +3,37 @@ package ai.javaclaw.api.chat.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.channels.ChannelRegistry;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
+/**
+ * Unit tests for {@link SseStreamingService} admission control and emitter lifecycle.
+ *
+ * <p>Verifies semaphore-based concurrency limiting and emitter timeout configuration
+ * without starting a real LLM connection.
+ */
 class SseStreamingServiceTest {
 
-    private final ChatClient chatClient = mock(ChatClient.class);
+    /** Мок ChatService — streaming/call не вызываются в этих тестах. */
+    private final ChatService chatService = mock(ChatService.class);
+
+    /** Реальный реестр каналов — лёгкий, не требует моков. */
     private final ChannelRegistry registry = new ChannelRegistry();
 
     @Test
     void createEmitterReturnsNullWhenCapacityExhausted() {
-        SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
-        SseStreamingService service = new SseStreamingService(
-                chatClient,
+        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
+        final SseStreamingService service = new SseStreamingService(
+                chatService,
                 registry,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 
-        ResponseBodyEmitter first = service.createEmitter();
-        ResponseBodyEmitter second = service.createEmitter();
+        final ResponseBodyEmitter first = service.createEmitter();
+        final ResponseBodyEmitter second = service.createEmitter();
 
         assertThat(first).isNotNull();
         assertThat(second).isNull();
@@ -34,14 +43,14 @@ class SseStreamingServiceTest {
 
     @Test
     void createEmitterTracksConfiguredTimeout() {
-        SseProperties props = new SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
-        SseStreamingService service = new SseStreamingService(
-                chatClient,
+        final SseProperties props = new SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
+        final SseStreamingService service = new SseStreamingService(
+                chatService,
                 registry,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 
-        ResponseBodyEmitter emitter = service.createEmitter();
+        final ResponseBodyEmitter emitter = service.createEmitter();
 
         assertThat(emitter).isNotNull();
         assertThat(emitter.getTimeout()).isEqualTo(4242L);
@@ -49,9 +58,9 @@ class SseStreamingServiceTest {
 
     @Test
     void availablePermitsDecrementsOnCreate() {
-        SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
-        SseStreamingService service = new SseStreamingService(
-                chatClient,
+        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
+        final SseStreamingService service = new SseStreamingService(
+                chatService,
                 registry,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
@@ -65,9 +74,9 @@ class SseStreamingServiceTest {
 
     @Test
     void exhaustingAllPermitsReturnsNullAfterMaxReached() {
-        SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
-        SseStreamingService service = new SseStreamingService(
-                chatClient,
+        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
+        final SseStreamingService service = new SseStreamingService(
+                chatService,
                 registry,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());

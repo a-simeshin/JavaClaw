@@ -1,0 +1,38 @@
+# Profile for integration tests (reuses contracttest settings).
+# Database properties are provided via @DynamicPropertySource from Testcontainers.
+spring:
+  ai:
+    openai:
+      api-key: test-key
+      base-url: http://localhost:9999
+      chat:
+        options:
+          model: test-model
+  flyway:
+    enabled: true
+  mvc:
+    async:
+      request-timeout: 5000
+
+agent:
+  workspace: classpath:test-workspace/
+  onboarding:
+    completed: true
+
+javaclaw:
+  chat:
+    sse:
+      timeout: 5s
+      heartbeat-interval: 60s
+      max-concurrent: 100
+
+jobrunr:
+  background-job-server:
+    enabled: false
+  dashboard:
+    enabled: false
+
+logging:
+  level:
+    ai.javaclaw: DEBUG
+    org.springframework.web: WARN
