@@ -85,7 +85,7 @@ export function ConversationHistoryMenu({
   return (
     <div
       aria-label={t("conversations.title")}
-      className={cn("flex flex-col gap-2 px-3 py-3", className)}
+      className={cn("flex min-h-0 flex-1 flex-col gap-2 px-3 py-3", className)}
     >
       <div className="flex items-center justify-between px-2">
         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -125,7 +125,7 @@ export function ConversationHistoryMenu({
       </div>
       <ul
         role="list"
-        className="flex max-h-[320px] flex-col gap-0.5 overflow-y-auto pr-1"
+        className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-1"
       >
         {isError && (
           <li className="px-2 py-1.5 text-[13px] text-error">
