@@ -1,6 +1,6 @@
 import type { Message } from "@ai-sdk/react"
 import { useChat as useAiChat } from "@ai-sdk/react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAtom } from "jotai"
 import { useEffect, useMemo, useRef } from "react"
 
@@ -39,6 +39,7 @@ export function useJavaClawChat(options: UseJavaClawChatOptions = {}) {
   const [conversationId] = useAtom(activeConversationIdAtom)
   const [, setStreaming] = useAtom(isStreamingAtom)
   const onUnauthorized = options.onUnauthorized ?? defaultOnUnauthorized
+  const queryClient = useQueryClient()
 
   const customFetch = useMemo(
     () => createChatFetch(onUnauthorized),
@@ -78,6 +79,13 @@ export function useJavaClawChat(options: UseJavaClawChatOptions = {}) {
               .map((p) => p.text ?? "")
               .join("") ?? "")
       return conversationId ? { content, conversationId } : { content }
+    },
+    // When a turn finishes the backend has just written the user message to
+    // SPRING_AI_CHAT_MEMORY and touched the conversation row (title +
+    // updated_at). Invalidate the sidebar list so the new title and the
+    // bumped timestamp render without a page reload.
+    onFinish: () => {
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] })
     },
   })
 

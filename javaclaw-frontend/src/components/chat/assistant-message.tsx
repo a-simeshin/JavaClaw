@@ -47,6 +47,83 @@ function normaliseMarkdown(md: string): string {
 }
 
 /**
+ * Escalate outer code-fence length when its content contains another fence-
+ * looking line (e.g. ```python inside ```md). CommonMark closes the outer
+ * block at the first subsequent ``` on its own line, so a model that writes
+ * a nested code example using three backticks both inside and outside gets
+ * rendered as "open, close on first inner fence, orphan content, re-open…".
+ *
+ * Heuristic: when we see an opener followed later by a line that starts with
+ * 3+ backticks (opener-shaped: with info text, or content-shaped), treat the
+ * LAST ``` run on its own line as the real closer and widen the outer fence
+ * to `max(inner-run)+1` backticks so it uniquely brackets the whole region.
+ * When no nested-fence-looking line is present, behaviour matches the parser
+ * (first valid closer wins), so normal two-block documents are untouched.
+ */
+function escalateNestedFences(md: string): string {
+  const lines = md.split("\n")
+  const out: string[] = []
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    // Opener: ≤3 leading spaces, ≥3 backticks, optional info text (no backticks).
+    const openMatch = line.match(/^( {0,3})(`{3,})([^`]*)$/)
+    if (!openMatch) {
+      out.push(line)
+      i++
+      continue
+    }
+    const indent = openMatch[1]
+    const openFence = openMatch[2]
+    const info = openMatch[3]
+
+    // Scan forward: locate first + last valid closers, detect nested-fence lines.
+    let firstCloseIdx = -1
+    let lastCloseIdx = -1
+    let hasNestedFenceLine = false
+    for (let j = i + 1; j < lines.length; j++) {
+      const cl = lines[j]
+      const closer = cl.match(/^ {0,3}(`{3,})\s*$/)
+      const nestedOpener = cl.match(/^ {0,3}`{3,}[^`\s]/) // fence with info text
+      if (closer && closer[1].length >= openFence.length) {
+        if (firstCloseIdx === -1) firstCloseIdx = j
+        lastCloseIdx = j
+      } else if (nestedOpener) {
+        hasNestedFenceLine = true
+      }
+    }
+
+    if (firstCloseIdx === -1) {
+      // Unclosed block — leave it to stabilizeStreamingMarkdown / react-markdown.
+      out.push(line)
+      i++
+      continue
+    }
+
+    const closeIdx = hasNestedFenceLine ? lastCloseIdx : firstCloseIdx
+
+    // Find the longest ``` run inside the content so we escalate enough.
+    let maxInnerRun = 0
+    for (let j = i + 1; j < closeIdx; j++) {
+      const runs = lines[j].match(/`{3,}/g)
+      if (runs) {
+        for (const r of runs) {
+          if (r.length > maxInnerRun) maxInnerRun = r.length
+        }
+      }
+    }
+    const needed = Math.max(openFence.length, maxInnerRun + 1)
+    const newFence = "`".repeat(needed)
+
+    out.push(indent + newFence + info)
+    for (let k = i + 1; k < closeIdx; k++) out.push(lines[k])
+    out.push(newFence)
+    i = closeIdx + 1
+  }
+  return out.join("\n")
+}
+
+/**
  * Stabilise markdown mid-stream so incomplete syntax doesn't hijack rendering:
  *  - Unclosed ``` fences would swallow the rest of the message as a code block.
  *  - Unclosed single backticks would swallow the current line as inline code.
@@ -90,8 +167,8 @@ export function AssistantMessage({
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const formattedTs = formatTimestamp(timestamp)
-  const renderedContent = normaliseMarkdown(
-    isStreaming ? stabilizeStreamingMarkdown(content) : content,
+  const renderedContent = escalateNestedFences(
+    normaliseMarkdown(isStreaming ? stabilizeStreamingMarkdown(content) : content),
   )
 
   // Don't render an empty shell — the TypingIndicator keeps the user informed
