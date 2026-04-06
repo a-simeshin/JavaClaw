@@ -47,10 +47,47 @@ function normaliseMarkdown(md: string): string {
 }
 
 /**
- * Escalate outer code-fence length when its content contains a bare ``` line
+ * Find the matching closer for a code-fence opener, accounting for nested
+ * inner fences (e.g. when the LLM shows code-fence examples inside a code block).
+ *
+ * Uses a stack to pair inner openers (fence + info string) with their bare closers,
+ * so the outer closer is found correctly even with multiple nesting levels.
+ */
+function findBlockEnd(
+  lines: string[],
+  startIdx: number,
+  outerLen: number,
+): number {
+  const stack: number[] = [] // backtick counts of inner openers
+  for (let j = startIdx + 1; j < lines.length; j++) {
+    const line = lines[j]
+
+    // Bare fence (potential closer): only backticks + optional whitespace
+    const bareMatch = line.match(/^ {0,3}(`{3,})\s*$/)
+    if (bareMatch) {
+      const len = bareMatch[1].length
+      if (stack.length > 0 && len >= stack[stack.length - 1]) {
+        stack.pop() // closes innermost nested block
+      } else if (stack.length === 0 && len >= outerLen) {
+        return j // closes the outer block
+      }
+      continue
+    }
+
+    // Inner opener: backticks followed by non-whitespace info string
+    const innerMatch = line.match(/^ {0,3}(`{3,})\s*\S/)
+    if (innerMatch) {
+      stack.push(innerMatch[1].length)
+    }
+  }
+  return -1
+}
+
+/**
+ * Escalate outer code-fence length when its content contains backtick runs
  * that would prematurely close the block (e.g. showing markdown syntax inside
- * a code example). Only inspects lines WITHIN the first-matched block — never
- * scans beyond the first valid closer, so separate code blocks remain intact.
+ * a code example). Uses nesting-aware block boundary detection so that
+ * inner fence pairs are properly skipped.
  */
 function escalateNestedFences(md: string): string {
   const lines = md.split("\n")
@@ -68,26 +105,17 @@ function escalateNestedFences(md: string): string {
     const openFence = openMatch[2]
     const info = openMatch[3]
 
-    // Find the first valid closer (per CommonMark: ≥ opener-length ticks, only spaces after).
-    let firstCloseIdx = -1
-    for (let j = i + 1; j < lines.length; j++) {
-      const closer = lines[j].match(/^ {0,3}(`{3,})\s*$/)
-      if (closer && closer[1].length >= openFence.length) {
-        firstCloseIdx = j
-        break
-      }
-    }
-
-    if (firstCloseIdx === -1) {
+    const closeIdx = findBlockEnd(lines, i, openFence.length)
+    if (closeIdx === -1) {
       out.push(line)
       i++
       continue
     }
 
-    // Check for backtick runs ONLY within this block's content.
+    // Find the longest backtick run inside the block content.
     let maxInnerRun = 0
-    for (let j = i + 1; j < firstCloseIdx; j++) {
-      const runs = lines[j].match(/`{3,}/g)
+    for (let k = i + 1; k < closeIdx; k++) {
+      const runs = lines[k].match(/`{3,}/g)
       if (runs) {
         for (const r of runs) {
           if (r.length > maxInnerRun) maxInnerRun = r.length
@@ -99,9 +127,9 @@ function escalateNestedFences(md: string): string {
     const needed = Math.max(openFence.length, maxInnerRun + 1)
     const newFence = "`".repeat(needed)
     out.push(indent + newFence + info)
-    for (let k = i + 1; k < firstCloseIdx; k++) out.push(lines[k])
+    for (let k = i + 1; k < closeIdx; k++) out.push(lines[k])
     out.push(newFence)
-    i = firstCloseIdx + 1
+    i = closeIdx + 1
   }
   return out.join("\n")
 }
