@@ -1,8 +1,7 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ai.javaclaw.api.chat.controller.dto.PageResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

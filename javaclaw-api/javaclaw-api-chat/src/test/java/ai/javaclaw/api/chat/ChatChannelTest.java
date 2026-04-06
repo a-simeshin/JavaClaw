@@ -2,6 +2,7 @@ package ai.javaclaw.api.chat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ai.javaclaw.api.chat.channel.ChatChannel;
 import ai.javaclaw.channels.ChannelRegistry;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;

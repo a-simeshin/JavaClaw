@@ -1,4 +1,4 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.api.chat.error.SseExceptionHandler;
+import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

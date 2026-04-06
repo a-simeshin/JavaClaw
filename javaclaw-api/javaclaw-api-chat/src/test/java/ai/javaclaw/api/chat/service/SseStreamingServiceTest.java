@@ -1,9 +1,10 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import ai.javaclaw.agent.pipeline.ChatService;
+import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelRegistry;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,8 @@ class SseStreamingServiceTest {
 
     @Test
     void createEmitterReturnsNullWhenCapacityExhausted() {
-        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
+        final ChatRestConfiguration.SseProperties props =
+                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
                 registry,
@@ -43,7 +45,8 @@ class SseStreamingServiceTest {
 
     @Test
     void createEmitterTracksConfiguredTimeout() {
-        final SseProperties props = new SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
+        final ChatRestConfiguration.SseProperties props =
+                new ChatRestConfiguration.SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
                 registry,
@@ -58,7 +61,8 @@ class SseStreamingServiceTest {
 
     @Test
     void availablePermitsDecrementsOnCreate() {
-        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
+        final ChatRestConfiguration.SseProperties props =
+                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
                 registry,
@@ -74,7 +78,8 @@ class SseStreamingServiceTest {
 
     @Test
     void exhaustingAllPermitsReturnsNullAfterMaxReached() {
-        final SseProperties props = new SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
+        final ChatRestConfiguration.SseProperties props =
+                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
                 registry,
