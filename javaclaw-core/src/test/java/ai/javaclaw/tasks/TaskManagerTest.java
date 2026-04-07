@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -121,7 +122,7 @@ class TaskManagerTest {
     void scheduleRecurrentlyRegistersRecurringJob() {
         String cronExpression = "0 */15 * * *";
         RecurringTask saved = new RecurringTask(
-                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, null, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cronExpression, "check-mail", "Check the inbox every 15 minutes");
@@ -138,7 +139,7 @@ class TaskManagerTest {
     void deleteRecurringTaskRemovesFromJobRunr() {
         String cronExpression = "0 */15 * * *";
         RecurringTask saved = new RecurringTask(
-                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, Instant.now());
+                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, null, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
         when(recurringTaskRepositoryMock.findAll()).thenReturn(List.of(saved));
 
@@ -157,6 +158,89 @@ class TaskManagerTest {
                         storageProvider.getJobList(StateName.SCHEDULED, Paging.AmountBasedList.ascOnCreatedAt(100)))
                 .isEmpty());
         verify(recurringTaskRepositoryMock).deleteById("some-id");
+    }
+
+    @Test
+    void scheduleRecurrentlyWithConversationIdSavesItToRecurringTask() {
+        final String cronExpression = "0 */15 * * *";
+        final String conversationId = "conv-abc-123";
+        final RecurringTask saved = new RecurringTask(
+                "some-id",
+                "check-mail",
+                "Check the inbox every 15 minutes",
+                cronExpression,
+                null,
+                conversationId,
+                Instant.now());
+        when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
+
+        taskManager.scheduleRecurrently(
+                cronExpression, "check-mail", "Check the inbox every 15 minutes", conversationId);
+
+        final ArgumentCaptor<RecurringTask> captor = ArgumentCaptor.forClass(RecurringTask.class);
+        verify(recurringTaskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getConversationId()).isEqualTo(conversationId);
+    }
+
+    @Test
+    void scheduleRecurrentlyWithoutConversationIdPassesNull() {
+        final String cronExpression = "0 9 * * *";
+        final RecurringTask saved = new RecurringTask(
+                "some-id", "daily-check", "Daily inbox check", cronExpression, null, null, Instant.now());
+        when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
+
+        taskManager.scheduleRecurrently(cronExpression, "daily-check", "Daily inbox check");
+
+        final ArgumentCaptor<RecurringTask> captor = ArgumentCaptor.forClass(RecurringTask.class);
+        verify(recurringTaskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getConversationId()).isNull();
+    }
+
+    @Test
+    void createTaskFromRecurringTaskPropagatesConversationId() {
+        final String conversationId = "conv-xyz-456";
+        final RecurringTask recurringTask = new RecurringTask(
+                "rt-id", "notify-user", "Send user notification", "0 10 * * *", "job-1", conversationId, Instant.now());
+        final Task savedTask = new Task(
+                "task-id",
+                "notify-user",
+                Instant.now(),
+                Instant.now(),
+                Task.Status.todo,
+                "Send user notification",
+                null,
+                null,
+                conversationId);
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedTask);
+
+        taskManager.createTaskFromRecurringTask(recurringTask);
+
+        final ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getConversationId()).isEqualTo(conversationId);
+    }
+
+    @Test
+    void createTaskFromRecurringTaskWithNullConversationIdCreatesTaskWithNull() {
+        final RecurringTask recurringTask =
+                new RecurringTask("rt-id", "cleanup", "Cleanup temp files", "0 0 * * *", "job-2", null, Instant.now());
+        final Task savedTask = new Task(
+                "task-id",
+                "cleanup",
+                Instant.now(),
+                Instant.now(),
+                Task.Status.todo,
+                "Cleanup temp files",
+                null,
+                null,
+                null);
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedTask);
+
+        taskManager.createTaskFromRecurringTask(recurringTask);
+
+        final ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getConversationId()).isNull();
     }
 
     private @NonNull JobActivator getJobActivator() {

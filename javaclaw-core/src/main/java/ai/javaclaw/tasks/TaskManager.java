@@ -60,9 +60,16 @@ public class TaskManager {
         log.info("Task '{}' ({}) has been scheduled at {}.", task.getName(), task.getId(), executionTime);
     }
 
-    public void scheduleRecurrently(String cronExpression, String name, String description) {
-        RecurringTask recurringTask =
-                recurringTaskRepository.save(RecurringTask.newRecurringTask(name, description, cronExpression));
+    /** Планирует повторяющуюся задачу без привязки к conversation. */
+    public void scheduleRecurrently(final String cronExpression, final String name, final String description) {
+        scheduleRecurrently(cronExpression, name, description, null);
+    }
+
+    /** Планирует повторяющуюся задачу с привязкой к conversation. */
+    public void scheduleRecurrently(
+            final String cronExpression, final String name, final String description, final String conversationId) {
+        final RecurringTask recurringTask = recurringTaskRepository.save(
+                RecurringTask.newRecurringTask(name, description, cronExpression, conversationId));
         jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
                 recurringTask.getName(), cronExpression, x -> x.executeTask(recurringTask.getId()));
         log.info(
@@ -105,8 +112,10 @@ public class TaskManager {
         return taskRepository.findByCreatedAtBetween(from, to);
     }
 
-    public void createTaskFromRecurringTask(RecurringTask recurringTask) {
-        Task task = taskRepository.save(Task.newTask(recurringTask.getName(), recurringTask.getDescription()));
+    /** Создаёт одиночный task из recurring task, наследуя conversationId. */
+    public void createTaskFromRecurringTask(final RecurringTask recurringTask) {
+        Task task = taskRepository.save(Task.newTask(recurringTask.getName(), recurringTask.getDescription())
+                .withConversationId(recurringTask.getConversationId()));
         jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been created from recurring task.", task.getName(), task.getId());
     }

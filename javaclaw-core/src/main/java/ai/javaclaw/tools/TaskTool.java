@@ -96,10 +96,14 @@ public class TaskTool {
             - cronExpression: A standard quartz-style cron expression (e.g., '0 12 * * *' for daily at noon or '* * * * *' for every minute. Do not use ? in a cron expression).
             - name: Short, descriptive identifier (e.g., 'weekly-log-cleanup').
             - description: Detailed instructions on what the task entails.
+            - conversationId: The conversation ID to bind this recurring task to for notifications routing.
+              Pass the current conversationId so notifications are delivered to the correct channel.
+              If null or omitted, notifications fall back to the default channel.
             """)
-    public String scheduleRecurringTask(String cronExpression, String name, String description) {
+    public String scheduleRecurringTask(
+            final String cronExpression, final String name, final String description, final String conversationId) {
         try {
-            this.taskManager.scheduleRecurrently(cronExpression, name, description);
+            this.taskManager.scheduleRecurrently(cronExpression, name, description, conversationId);
             ofNullable(taskEventHandler).ifPresent(x -> x.recurringTaskCreated(cronExpression, name, description));
             return String.format(
                     "Task '%s' has been scheduled recurrently with cron expression '%s'.", name, cronExpression);

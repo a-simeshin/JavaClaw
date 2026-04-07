@@ -54,7 +54,7 @@ class DbSchemaV1FullMigrationE2ETest {
 
         assertThat(result.success).isTrue();
 
-        // flyway_schema_history must contain exactly versions 1-10
+        // flyway_schema_history must contain exactly versions 1-13
         List<Integer> versions = new ArrayList<>();
         try (Connection c =
                         DriverManager.getConnection(pgFull.getJdbcUrl(), pgFull.getUsername(), pgFull.getPassword());
@@ -64,7 +64,7 @@ class DbSchemaV1FullMigrationE2ETest {
                 versions.add(rs.getInt(1));
             }
         }
-        assertThat(versions).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+        assertThat(versions).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
     }
 
     @Test

@@ -62,4 +62,25 @@ class RecurringTaskRepositoryTest {
         assertThat(found.getCronExpression()).isEqualTo("0 0 * * MON");
         assertThat(found.getCreatedAt()).isNotNull();
     }
+
+    @Test
+    void savePreservesConversationId() {
+        RecurringTask task =
+                RecurringTask.newRecurringTask("conv-task", "Task with conversation", "0 12 * * *", "test-conv-123");
+
+        RecurringTask saved = recurringTaskRepository.save(task);
+        RecurringTask found = recurringTaskRepository.findById(saved.getId()).orElseThrow();
+
+        assertThat(found.getConversationId()).isEqualTo("test-conv-123");
+    }
+
+    @Test
+    void saveWithNullConversationIdWorks() {
+        RecurringTask task = RecurringTask.newRecurringTask("no-conv-task", "Task without conversation", "0 8 * * *");
+
+        RecurringTask saved = recurringTaskRepository.save(task);
+        RecurringTask found = recurringTaskRepository.findById(saved.getId()).orElseThrow();
+
+        assertThat(found.getConversationId()).isNull();
+    }
 }

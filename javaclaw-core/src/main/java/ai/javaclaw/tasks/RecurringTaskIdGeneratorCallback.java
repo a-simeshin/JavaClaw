@@ -16,6 +16,7 @@ class RecurringTaskIdGeneratorCallback implements BeforeConvertCallback<Recurrin
                     task.getDescription(),
                     task.getCronExpression(),
                     task.getJobId(),
+                    task.getConversationId(),
                     task.getCreatedAt());
         }
         return task;

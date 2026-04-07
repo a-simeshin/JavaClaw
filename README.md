@@ -52,7 +52,33 @@ Task from User A completes &rarr; lookup `telegram-100` &rarr; `{chatId: 100}` &
 
 ### Recurring (cron) tasks
 
-Recurring tasks are not tied to a conversation. Notifications fall back to the default channel (first registered, typically Web Chat). To bind a recurring task to a specific user, `conversationId` support in `RecurringTask` can be added later.
+Recurring tasks are bound to a conversation at creation time. When the AI agent schedules a recurring task via `TaskTool.scheduleRecurringTask()`, the current `conversationId` is captured and stored in `RecurringTask`. Each cron trigger creates a child `Task` that inherits this `conversationId`, ensuring notifications route to the correct channel.
+
+```
+User (Web Chat, conversationId="web-abc123")
+  → AI Agent → TaskTool.scheduleRecurringTask(cron, name, desc, "web-abc123")
+    → RecurringTask saved with conversationId="web-abc123"
+      → [cron trigger] → child Task created with conversationId="web-abc123"
+        → TaskHandler.notifyUser()
+          → ChannelContextService.getContext("web-abc123") → RoutingContext found
+            → WebChatChannel.sendMessage(routingContext, message)
+```
+
+Backward compatibility: recurring tasks without `conversationId` (created before V13 migration) continue to use the default channel fallback.
+
+### Recurring tasks — comparison with other Claw implementations
+
+| Aspect | JavaClaw | OpenClaw (TS) | NullClaw (Zig) | PicoClaw (Go) |
+|--------|----------|---------------|----------------|---------------|
+| **Channel binding** | `conversationId` in `RecurringTask` entity (DB) | `delivery.channel` + `delivery.to` tuple | `DeliveryConfig.channel` + `peer_id` | `Payload.Channel` + `Payload.To` |
+| **Session key** | `conversationId` (e.g. `telegram-100`) | `cron:${jobId}` | `SessionTarget` enum (isolated/main) | `cron-${jobId}` |
+| **Notification routing** | `ChannelContextService` DB lookup → `RoutingContext` → `Channel` | 10-step binding hierarchy + session keys | Channel vtable dispatch + enrichment | `ProcessDirectWithChannel()` via message bus |
+| **Thread support** | `threadId` in routing data | `delivery.threadId` | `delivery.thread_id` | Implicit (single stream) |
+| **Multi-account** | Per-conversation isolation via DB | `delivery.accountId` | `account_id` field | N/A |
+| **Failure delivery** | Default channel fallback | Separate `failureDestination` | `best_effort` flag | Fallback to `cli`/`direct` |
+| **Timezone** | JVM system timezone | IANA TZ in schedule + `staggerMs` jitter | N/A | Via cron expression |
+| **State persistence** | PostgreSQL (survives restarts) | File-based JSON sessions | On-disk `cron.json` | In-memory maps |
+| **Null/missing binding** | Default channel fallback (first registered) | Error if no delivery config | Default mode `none` | Error: "no session context" |
 
 ### Comparison with other Claw implementations
 
