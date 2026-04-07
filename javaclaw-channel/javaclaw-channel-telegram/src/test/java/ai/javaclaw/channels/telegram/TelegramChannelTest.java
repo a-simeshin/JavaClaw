@@ -10,7 +10,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.channels.RoutingContext;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,6 +33,9 @@ class TelegramChannelTest {
 
     @Mock
     private Agent agent;
+
+    @Mock
+    private ChannelContextService channelContextService;
 
     // -----------------------------------------------------------------------
     // Ignored updates
@@ -61,7 +67,7 @@ class TelegramChannelTest {
     }
 
     @Test
-    void ignoresMessagesFromNullUsername() {
+    void ignoresMessagesFromNullUsername() throws TelegramApiException {
         TelegramChannel channel = channel("allowed_user");
         Update update = mock(Update.class);
         Message message = mock(Message.class);
@@ -69,20 +75,24 @@ class TelegramChannelTest {
         when(update.getMessage()).thenReturn(message);
         when(message.hasText()).thenReturn(true);
         when(message.getFrom()).thenReturn(null);
+        when(message.getChatId()).thenReturn(1L);
 
         channel.consume(update);
 
-        verifyNoInteractions(agent, telegramClient);
+        verifyNoInteractions(agent);
+        verify(telegramClient)
+                .execute(argThat((SendMessage msg) -> msg.getText().contains("I'm sorry")));
     }
 
     @Test
-    void ignoresMessagesFromUnauthorizedUser() {
+    void ignoresMessagesFromUnauthorizedUser() throws TelegramApiException {
         TelegramChannel channel = channel("allowed_user");
 
         channel.consume(updateFromUnknownUser("other_user"));
 
         verify(agent, never()).respondTo(anyString(), anyString());
-        verifyNoInteractions(telegramClient);
+        verify(telegramClient)
+                .execute(argThat((SendMessage msg) -> msg.getText().contains("I'm sorry")));
     }
 
     // -----------------------------------------------------------------------
@@ -176,17 +186,42 @@ class TelegramChannelTest {
     }
 
     // -----------------------------------------------------------------------
-    // sendMessage fallback
+    // Routing context saved on consume
     // -----------------------------------------------------------------------
 
     @Test
-    void sendMessageDoesNothingWhenNoChatIdKnown() {
+    void savesRoutingContextOnConsume() throws TelegramApiException {
+        TelegramChannel channel = channel("allowed_user");
+        when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
+
+        channel.consume(updateFrom("allowed_user", "hello", 42L, null));
+
+        verify(channelContextService)
+                .saveContext(eq("telegram-42"), anyString(), argThat(data -> "42".equals(data.get("chatId"))));
+    }
+
+    // -----------------------------------------------------------------------
+    // sendMessage via RoutingContext
+    // -----------------------------------------------------------------------
+
+    @Test
+    void sendMessageDoesNothingWhenNoChatIdInRoutingContext() {
         TelegramChannel channel = channel("allowed_user");
 
-        // No message has been consumed yet, so chatId is unknown
-        channel.sendMessage("hello");
+        channel.sendMessage(new RoutingContext("TelegramChannel", Map.of()), "hello");
 
         verifyNoInteractions(telegramClient);
+    }
+
+    @Test
+    void sendMessageDeliversViaChatIdFromRoutingContext() throws TelegramApiException {
+        TelegramChannel channel = channel("allowed_user");
+
+        channel.sendMessage(new RoutingContext("TelegramChannel", Map.of("chatId", "99")), "notification");
+
+        verify(telegramClient)
+                .execute(argThat(
+                        (SendMessage msg) -> "99".equals(msg.getChatId()) && "notification".equals(msg.getText())));
     }
 
     // -----------------------------------------------------------------------
@@ -194,7 +229,8 @@ class TelegramChannelTest {
     // -----------------------------------------------------------------------
 
     private TelegramChannel channel(String allowedUsername) {
-        return new TelegramChannel("token", allowedUsername, telegramClient, agent, new ChannelRegistry());
+        return new TelegramChannel(
+                "token", allowedUsername, telegramClient, agent, new ChannelRegistry(), channelContextService);
     }
 
     private Update updateFromUnknownUser(String username) {
@@ -204,6 +240,7 @@ class TelegramChannelTest {
         when(update.hasMessage()).thenReturn(true);
         when(update.getMessage()).thenReturn(message);
         when(message.hasText()).thenReturn(true);
+        when(message.getChatId()).thenReturn(1L);
         when(message.getFrom()).thenReturn(user);
         when(user.getUserName()).thenReturn(username);
         return update;

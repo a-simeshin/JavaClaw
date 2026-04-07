@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 class TaskIdGeneratorCallback implements BeforeConvertCallback<Task> {
 
     @Override
-    public Task onBeforeConvert(Task task) {
+    public Task onBeforeConvert(final Task task) {
         if (task.getId() == null) {
             return new Task(
                     UUID.randomUUID().toString(),
@@ -18,7 +18,8 @@ class TaskIdGeneratorCallback implements BeforeConvertCallback<Task> {
                     task.getStatus(),
                     task.getDescription(),
                     task.getFeedback(),
-                    task.getSourceChannelName());
+                    task.getSourceChannelName(),
+                    task.getConversationId());
         }
         return task;
     }

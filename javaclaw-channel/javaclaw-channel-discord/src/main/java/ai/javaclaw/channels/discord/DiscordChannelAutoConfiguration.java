@@ -1,6 +1,7 @@
 package ai.javaclaw.channels.discord;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import java.util.EnumSet;
 import net.dv8tion.jda.api.JDA;
@@ -25,8 +26,9 @@ public class DiscordChannelAutoConfiguration {
     public DiscordChannel discordChannel(
             @Value("${agent.channels.discord.allowed-user}") String allowedUser,
             Agent agent,
-            ChannelRegistry channelRegistry) {
-        return new DiscordChannel(allowedUser, agent, channelRegistry);
+            ChannelRegistry channelRegistry,
+            ChannelContextService channelContextService) {
+        return new DiscordChannel(allowedUser, agent, channelRegistry, channelContextService);
     }
 
     @Bean(destroyMethod = "shutdown")

@@ -5,8 +5,11 @@ import static java.util.regex.Pattern.quote;
 
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.Channel;
-import ai.javaclaw.channels.ChannelMessageReceivedEvent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.channels.RoutingContext;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -24,26 +27,30 @@ public class DiscordChannel extends ListenerAdapter implements Channel {
 
     private final String allowedUserId;
     private final Agent agent;
-    private final ChannelRegistry channelRegistry;
-    private volatile MessageChannel lastChannel;
+    private final ChannelContextService channelContextService;
+    private final ConcurrentHashMap<String, MessageChannel> channelCache = new ConcurrentHashMap<>();
 
-    public DiscordChannel(String allowedUserId, Agent agent, ChannelRegistry channelRegistry) {
+    public DiscordChannel(
+            final String allowedUserId,
+            final Agent agent,
+            final ChannelRegistry channelRegistry,
+            final ChannelContextService channelContextService) {
         this.allowedUserId = normalizeUserId(allowedUserId);
         this.agent = agent;
-        this.channelRegistry = channelRegistry;
+        this.channelContextService = channelContextService;
         channelRegistry.registerChannel(this);
         log.info("Started Discord integration");
     }
 
     @Override
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull final MessageReceivedEvent event) {
         if (!shouldHandle(event)) {
             return;
         }
 
-        String userId = normalizeUserId(event.getAuthor().getId());
-        MessageChannel channel = event.getChannel();
-        String content = normalizeText(event.getJDA(), event.getMessage(), event.isFromGuild());
+        final String userId = normalizeUserId(event.getAuthor().getId());
+        final MessageChannel channel = event.getChannel();
+        final String content = normalizeText(event.getJDA(), event.getMessage(), event.isFromGuild());
 
         if (content == null) {
             return;
@@ -55,24 +62,27 @@ public class DiscordChannel extends ListenerAdapter implements Channel {
             return;
         }
 
-        lastChannel = channel;
-        channelRegistry.publishMessageReceivedEvent(new ChannelMessageReceivedEvent(getName(), content));
-        String response = agent.respondTo(getConversationId(channel.getId()), content);
+        final String conversationId = getConversationId(channel.getId());
+        channelCache.put(channel.getId(), channel);
+        channelContextService.saveContext(conversationId, getName(), Map.of("channelId", channel.getId()));
+
+        final String response = agent.respondTo(conversationId, content);
         reply(channel, response);
     }
 
     @Override
-    public void sendMessage(String message) {
-        MessageChannel channel = lastChannel;
+    public void sendMessage(final RoutingContext routingContext, final String message) {
+        final String channelId = routingContext.get("channelId");
+        final MessageChannel channel = channelId == null ? null : channelCache.get(channelId);
         if (channel == null) {
-            log.error("No known Discord channel, cannot send message '{}'", message);
+            log.error("No Discord channel cached for id '{}', cannot send message", channelId);
             return;
         }
         reply(channel, message);
     }
 
-    private boolean shouldHandle(MessageReceivedEvent event) {
-        User author = event.getAuthor();
+    private boolean shouldHandle(final MessageReceivedEvent event) {
+        final User author = event.getAuthor();
         if (author.isBot() || event.isWebhookMessage()) {
             return false;
         }
@@ -80,21 +90,21 @@ public class DiscordChannel extends ListenerAdapter implements Channel {
                 || event.getMessage().getMentions().isMentioned(event.getJDA().getSelfUser());
     }
 
-    private boolean isAllowedUser(String userId) {
+    private boolean isAllowedUser(final String userId) {
         return userId != null && userId.equalsIgnoreCase(allowedUserId);
     }
 
-    private static void reply(MessageChannel channel, String text) {
+    private static void reply(final MessageChannel channel, final String text) {
         channel.sendMessage(text).queue();
     }
 
-    private static String normalizeText(JDA jda, Message message, boolean guildMessage) {
+    private static String normalizeText(final JDA jda, final Message message, final boolean guildMessage) {
         String content = message.getContentRaw();
         if (content == null) {
             return null;
         }
         if (guildMessage) {
-            String mention =
+            final String mention =
                     ofNullable(jda.getSelfUser()).map(User::getAsMention).orElse("");
             content = content.replaceFirst("^\\s*" + quote(mention) + "\\s*", "");
         }
@@ -102,11 +112,11 @@ public class DiscordChannel extends ListenerAdapter implements Channel {
         return content.isBlank() ? null : content;
     }
 
-    private static String getConversationId(String channelId) {
+    private static String getConversationId(final String channelId) {
         return "discord-" + channelId;
     }
 
-    private static String normalizeUserId(String userId) {
+    private static String normalizeUserId(final String userId) {
         if (userId == null) {
             return null;
         }

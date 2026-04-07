@@ -5,7 +5,7 @@ import static org.mockito.Mockito.mock;
 
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
-import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.channels.ChannelContextService;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
@@ -21,8 +21,8 @@ class SseStreamingServiceTest {
     /** Мок ChatService — streaming/call не вызываются в этих тестах. */
     private final ChatService chatService = mock(ChatService.class);
 
-    /** Реальный реестр каналов — лёгкий, не требует моков. */
-    private final ChannelRegistry registry = new ChannelRegistry();
+    /** Мок ChannelContextService — saveContext не вызывается в этих тестах. */
+    private final ChannelContextService channelContextService = mock(ChannelContextService.class);
 
     @Test
     void createEmitterReturnsNullWhenCapacityExhausted() {
@@ -30,7 +30,7 @@ class SseStreamingServiceTest {
                 new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
-                registry,
+                channelContextService,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 
@@ -49,7 +49,7 @@ class SseStreamingServiceTest {
                 new ChatRestConfiguration.SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
-                registry,
+                channelContextService,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 
@@ -65,7 +65,7 @@ class SseStreamingServiceTest {
                 new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
-                registry,
+                channelContextService,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 
@@ -82,7 +82,7 @@ class SseStreamingServiceTest {
                 new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
         final SseStreamingService service = new SseStreamingService(
                 chatService,
-                registry,
+                channelContextService,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
 

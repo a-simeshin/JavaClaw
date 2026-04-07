@@ -1,6 +1,7 @@
 package ai.javaclaw.channels.telegram;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -20,7 +21,8 @@ public class TelegramChannelAutoConfiguration {
             @Value("${agent.channels.telegram.token:null}") String botToken,
             @Value("${agent.channels.telegram.username:null}") String allowedUsername,
             Agent agent,
-            ChannelRegistry channelRegistry) {
-        return new TelegramChannel(botToken, allowedUsername, agent, channelRegistry);
+            ChannelRegistry channelRegistry,
+            ChannelContextService channelContextService) {
+        return new TelegramChannel(botToken, allowedUsername, agent, channelRegistry, channelContextService);
     }
 }

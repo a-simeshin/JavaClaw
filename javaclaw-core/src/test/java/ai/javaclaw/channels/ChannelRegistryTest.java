@@ -83,7 +83,7 @@ class ChannelRegistryTest {
             }
 
             @Override
-            public void sendMessage(String message) {
+            public void sendMessage(ai.javaclaw.channels.RoutingContext routingContext, String message) {
                 // no-op
             }
         };

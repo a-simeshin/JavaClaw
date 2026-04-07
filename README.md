@@ -15,6 +15,57 @@ Goal — transform a single-user pet project into a scalable service: multi-user
 - Plugin-based channels (Web, Telegram, Discord)
 - Workspace skills (runtime loading)
 
+## Conversation-Aware Channel Routing
+
+Multi-user message routing through a per-conversation context table. Each channel saves routing data (chatId, threadId, channelId) when a message arrives; async tasks use this data to deliver notifications back to the correct user.
+
+### How it works
+
+```
+User message → Channel.consume()
+  → ChannelContextService.saveContext(conversationId, channelName, routingData)
+  → agent.respondTo(conversationId, message)
+    → TaskTool.createTask(name, desc, conversationId)
+
+Task completes → TaskHandler.notifyUser()
+  → ChannelContextService.getContext(conversationId)
+  → channelRegistry.getChannel(ctx.channelName)
+  → channel.sendMessage(routingContext, message)
+```
+
+### Routing data per channel
+
+| Channel | conversationId | routingData |
+|---------|---------------|-------------|
+| Telegram | `telegram-{chatId}[-{threadId}]` | `{chatId, threadId}` |
+| Discord | `discord-{channelId}` | `{channelId}` |
+| Web Chat | `web-{uuid}` | `{conversationId}` |
+
+### Multi-user isolation
+
+Two Telegram users chatting simultaneously:
+
+- User A (chatId=100) &rarr; context saved as `telegram-100`
+- User B (chatId=200) &rarr; context saved as `telegram-200`
+
+Task from User A completes &rarr; lookup `telegram-100` &rarr; `{chatId: 100}` &rarr; notification goes to User A only. No instance-level state, no cross-talk.
+
+### Recurring (cron) tasks
+
+Recurring tasks are not tied to a conversation. Notifications fall back to the default channel (first registered, typically Web Chat). To bind a recurring task to a specific user, `conversationId` support in `RecurringTask` can be added later.
+
+### Comparison with other Claw implementations
+
+| Aspect | JavaClaw | OpenClaw (TS) | NullClaw (Zig) | PicoClaw (Go) |
+|--------|----------|---------------|----------------|---------------|
+| **Send signature** | `sendMessage(RoutingContext, String)` | `sendMessage(MessageSendParams): Promise` | `send(target, message, media): !void` | `Send(ctx, OutboundMessage): ([]string, error)` |
+| **Routing mechanism** | DB lookup by conversationId | 10-step binding hierarchy + session keys | Channel vtable dispatch + registry | OutboundMessage Channel+ChatID pair |
+| **Multi-user isolation** | `conversation_channel_context` table (per-conversation routing data in DB) | Config-driven bindings + session key encoding (agentId/peer/thread) | Per-entry account_id + listener supervision | Sender allowList + IsAllowed check |
+| **State storage** | PostgreSQL (survives restarts) | File-based JSON sessions | In-memory vtable + on-disk agent sessions | In-memory Manager maps |
+| **Thread support** | threadId in routing data | Session key encodes threadId/topicId | MessageRef (target + message_id) | Placeholder tracking + message ID return |
+| **Task notification routing** | TaskHandler &rarr; ChannelContextService &rarr; Channel | Deterministic reply to source channel via session | Dispatch via ChannelRegistry | Manager.SendMessage via worker queue |
+| **Survives restart** | Yes (DB-backed) | Partially (file sessions) | No (in-memory) | No (in-memory) |
+
 ## What We're Building
 
 Turning it into an enterprise platform. Full catalog — in [specs/capabilities-catalog.md](specs/capabilities-catalog.md).

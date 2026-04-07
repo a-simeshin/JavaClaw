@@ -1,9 +1,8 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.service;
 
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
-import ai.javaclaw.channels.ChannelMessageReceivedEvent;
-import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.channels.ChannelContextService;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
@@ -40,8 +39,8 @@ public class SseStreamingService {
     /** Оркестратор pipeline запросов к LLM. */
     private final ChatService chatService;
 
-    /** Реестр каналов для публикации событий о полученных сообщениях. */
-    private final ChannelRegistry channelRegistry;
+    /** Сервис сохранения routing context — позволяет async задачам найти канал для уведомления. */
+    private final ChannelContextService channelContextService;
 
     /** Настройки SSE (таймаут, интервал heartbeat, лимит concurrency). */
     private final ChatRestConfiguration.SseProperties sseProperties;
@@ -64,18 +63,18 @@ public class SseStreamingService {
     /**
      * Создаёт SseStreamingService с полным набором зависимостей.
      *
-     * @param chatService оркестратор pipeline, не может быть null
-     * @param channelRegistry реестр каналов, не может быть null
-     * @param sseProperties настройки SSE, не может быть null
-     * @param jsonMapper JSON-маппер, не может быть null
+     * @param chatService          оркестратор pipeline, не может быть null
+     * @param channelContextService сервис routing context, не может быть null
+     * @param sseProperties        настройки SSE, не может быть null
+     * @param jsonMapper           JSON-маппер, не может быть null
      */
     public SseStreamingService(
             final ChatService chatService,
-            final ChannelRegistry channelRegistry,
+            final ChannelContextService channelContextService,
             final ChatRestConfiguration.SseProperties sseProperties,
             final ObjectMapper jsonMapper) {
         this.chatService = chatService;
-        this.channelRegistry = channelRegistry;
+        this.channelContextService = channelContextService;
         this.sseProperties = sseProperties;
         this.jsonMapper = jsonMapper;
         this.concurrencyLimit = new Semaphore(sseProperties.maxConcurrent());
@@ -155,7 +154,8 @@ public class SseStreamingService {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
         try {
-            channelRegistry.publishMessageReceivedEvent(new ChannelMessageReceivedEvent("Web Chat REST", userContent));
+            channelContextService.saveContext(
+                    conversationId, "Web Chat Channel", java.util.Map.of("conversationId", conversationId));
 
             sendEvent(
                     emitter,

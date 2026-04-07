@@ -48,11 +48,11 @@ public class TaskTool {
             ## Constraints:
             - Name: Short, descriptive identifier (e.g., 'research-market', 'update-docs'). Spaces will be converted to underscores.
             - Description: Detailed explanation of what needs to be achieved.
-            - sourceChannelName: (optional) The name of the channel where this task originated (e.g., 'ChatChannel', 'TelegramChannel', 'DiscordChannel'). Used for routing task notifications back to the user.
+            - conversationId: The conversationId of the current conversation. Used to route task notifications back to the user's channel.
             """)
-    public String createTask(String name, String description, String sourceChannelName) {
+    public String createTask(final String name, final String description, final String conversationId) {
         try {
-            this.taskManager.create(name, description, sourceChannelName);
+            this.taskManager.create(name, description, conversationId);
             ofNullable(taskEventHandler).ifPresent(x -> x.taskCreated(name, description));
             return String.format("Task '%s' has been created successfully.", name);
         } catch (Exception e) {
@@ -70,13 +70,14 @@ public class TaskTool {
             - executionTime: The specific local date and time (without timezone) when the task should run in this format YYYY-MM-ddTHH:mm:ss (example 2025-03-17T09:00:00).
             - name: Short, descriptive identifier (e.g., 'monday-morning-sync').
             - description: Detailed instructions on what the task entails.
-            - sourceChannelName: (optional) The name of the channel where this task originated. Used for routing task notifications back to the user.
+            - conversationId: The conversationId of the current conversation. Used to route task notifications back to the user's channel.
             """)
-    public String scheduleTask(String executionTime, String name, String description, String sourceChannelName) {
+    public String scheduleTask(
+            final String executionTime, final String name, final String description, final String conversationId) {
         try {
             // using string to work around tool call argument parsing exception
             LocalDateTime executionTimeAsLocalDateTime = LocalDateTime.parse(executionTime);
-            this.taskManager.schedule(executionTimeAsLocalDateTime, name, description, sourceChannelName);
+            this.taskManager.schedule(executionTimeAsLocalDateTime, name, description, conversationId);
             ofNullable(taskEventHandler)
                     .ifPresent(x -> x.taskScheduled(executionTimeAsLocalDateTime, name, description));
             return String.format("Task '%s' has been scheduled for %s.", name, executionTime);

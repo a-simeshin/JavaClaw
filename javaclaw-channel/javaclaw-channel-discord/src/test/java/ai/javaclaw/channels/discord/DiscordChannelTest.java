@@ -9,7 +9,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.channels.RoutingContext;
+import java.util.Map;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Mentions;
 import net.dv8tion.jda.api.entities.Message;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 class DiscordChannelTest {
 
     private final Agent agent = mock(Agent.class);
+    private final ChannelContextService channelContextService = mock(ChannelContextService.class);
 
     @Test
     void ignoresBotMessages() {
@@ -78,28 +82,39 @@ class DiscordChannelTest {
     }
 
     @Test
-    void sendMessageUsesLastKnownChannel() {
+    void savesRoutingContextOnMessageReceived() {
+        DiscordChannel channel = channel("123");
+        MessageChannelUnion channelMock = messageChannel("D1");
+        when(agent.respondTo(anyString(), anyString())).thenReturn("ok");
+
+        channel.onMessageReceived(event(false, true, false, "123", "D1", "hello", channelMock));
+
+        verify(channelContextService).saveContext(eq("discord-D1"), anyString(), eq(Map.of("channelId", "D1")));
+    }
+
+    @Test
+    void sendMessageDeliversToKnownChannelViaRoutingContext() {
         DiscordChannel channel = channel("123");
         MessageChannelUnion channelMock = messageChannel("D1");
         when(agent.respondTo(anyString(), anyString())).thenReturn("ok");
         channel.onMessageReceived(event(false, true, false, "123", "D1", "hello", channelMock));
 
-        channel.sendMessage("background update");
+        channel.sendMessage(new RoutingContext("DiscordChannel", Map.of("channelId", "D1")), "background update");
 
         verify(channelMock).sendMessage("background update");
     }
 
     @Test
-    void sendMessageDoesNothingWithoutKnownChannel() {
+    void sendMessageDoesNothingForUnknownChannelId() {
         DiscordChannel channel = channel("123");
 
-        channel.sendMessage("hello");
+        channel.sendMessage(new RoutingContext("DiscordChannel", Map.of("channelId", "unknown")), "hello");
 
         verifyNoInteractions(agent);
     }
 
     private DiscordChannel channel(String allowedUser) {
-        return new DiscordChannel(allowedUser, agent, new ChannelRegistry());
+        return new DiscordChannel(allowedUser, agent, new ChannelRegistry(), channelContextService);
     }
 
     private MessageReceivedEvent event(

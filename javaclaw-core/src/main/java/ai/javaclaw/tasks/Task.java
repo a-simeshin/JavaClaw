@@ -23,7 +23,12 @@ public class Task {
     private final Status status;
     private final String description;
     private final String feedback;
+
+    /** @deprecated Use {@link #conversationId} for routing. Kept for backward compatibility with existing tasks. */
+    @Deprecated
     private final String sourceChannelName;
+
+    private final String conversationId;
 
     public Task(
             String id,
@@ -33,7 +38,8 @@ public class Task {
             Status status,
             String description,
             String feedback,
-            String sourceChannelName) {
+            String sourceChannelName,
+            String conversationId) {
         this.id = id;
         this.name = name;
         this.createdAt = createdAt;
@@ -42,14 +48,15 @@ public class Task {
         this.description = description;
         this.feedback = feedback;
         this.sourceChannelName = sourceChannelName;
+        this.conversationId = conversationId;
     }
 
-    public static Task newTask(String name, String description) {
-        return new Task(null, name, Instant.now(), Instant.now(), Status.todo, description, null, null);
+    public static Task newTask(final String name, final String description) {
+        return new Task(null, name, Instant.now(), Instant.now(), Status.todo, description, null, null, null);
     }
 
-    public static Task newTask(String name, Instant createdAt, String description) {
-        return new Task(null, name, createdAt, Instant.now(), Status.todo, description, null, null);
+    public static Task newTask(final String name, final Instant createdAt, final String description) {
+        return new Task(null, name, createdAt, Instant.now(), Status.todo, description, null, null, null);
     }
 
     public String getId() {
@@ -80,20 +87,43 @@ public class Task {
         return feedback;
     }
 
+    /** @deprecated Use {@link #getConversationId()} for routing. */
+    @Deprecated
     public String getSourceChannelName() {
         return sourceChannelName;
     }
 
-    public Task withStatus(Status newStatus) {
-        return new Task(id, name, createdAt, Instant.now(), newStatus, description, feedback, sourceChannelName);
+    public String getConversationId() {
+        return conversationId;
     }
 
-    public Task withFeedback(String feedback) {
-        return new Task(id, name, createdAt, Instant.now(), status, description, feedback, sourceChannelName);
+    public Task withStatus(final Status newStatus) {
+        return new Task(
+                id,
+                name,
+                createdAt,
+                Instant.now(),
+                newStatus,
+                description,
+                feedback,
+                sourceChannelName,
+                conversationId);
     }
 
-    public Task withSourceChannelName(String channelName) {
-        return new Task(id, name, createdAt, Instant.now(), status, description, feedback, channelName);
+    public Task withFeedback(final String feedback) {
+        return new Task(
+                id, name, createdAt, Instant.now(), status, description, feedback, sourceChannelName, conversationId);
+    }
+
+    /** @deprecated Use {@link #withConversationId(String)} instead. */
+    @Deprecated
+    public Task withSourceChannelName(final String channelName) {
+        return new Task(id, name, createdAt, Instant.now(), status, description, feedback, channelName, conversationId);
+    }
+
+    public Task withConversationId(final String conversationId) {
+        return new Task(
+                id, name, createdAt, Instant.now(), status, description, feedback, sourceChannelName, conversationId);
     }
 
     @Override

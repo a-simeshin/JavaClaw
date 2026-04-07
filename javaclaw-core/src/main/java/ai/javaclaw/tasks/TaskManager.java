@@ -34,24 +34,28 @@ public class TaskManager {
         this.recurringTaskRepository = recurringTaskRepository;
     }
 
-    public void create(String name, String description) {
+    public void create(final String name, final String description) {
         create(name, description, null);
     }
 
-    public void create(String name, String description, String sourceChannelName) {
-        Task task = taskRepository.save(Task.newTask(name, description).withSourceChannelName(sourceChannelName));
+    public void create(final String name, final String description, final String conversationId) {
+        final Task task = taskRepository.save(Task.newTask(name, description).withConversationId(conversationId));
         jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been created.", task.getName(), task.getId());
     }
 
-    public void schedule(LocalDateTime executionTime, String name, String description) {
+    public void schedule(final LocalDateTime executionTime, final String name, final String description) {
         schedule(executionTime, name, description, null);
     }
 
-    public void schedule(LocalDateTime executionTime, String name, String description, String sourceChannelName) {
-        Instant createdAt = executionTime.atZone(ZoneId.systemDefault()).toInstant();
-        Task task = taskRepository.save(
-                Task.newTask(name, createdAt, description).withSourceChannelName(sourceChannelName));
+    public void schedule(
+            final LocalDateTime executionTime,
+            final String name,
+            final String description,
+            final String conversationId) {
+        final Instant createdAt = executionTime.atZone(ZoneId.systemDefault()).toInstant();
+        final Task task =
+                taskRepository.save(Task.newTask(name, createdAt, description).withConversationId(conversationId));
         jobScheduler.<TaskHandler>schedule(executionTime, x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been scheduled at {}.", task.getName(), task.getId(), executionTime);
     }

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.tasks.Task.Status;
 import ai.javaclaw.tasks.TaskHandler.TaskResult;
@@ -48,6 +49,9 @@ class TaskManagerTest {
     @Mock
     ChannelRegistry channelRegistryMock;
 
+    @Mock
+    ChannelContextService channelContextServiceMock;
+
     InMemoryStorageProvider storageProvider;
     TaskManager taskManager;
 
@@ -80,6 +84,7 @@ class TaskManagerTest {
                 Task.Status.todo,
                 "Process unread email messages",
                 null,
+                null,
                 null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
         when(taskRepositoryMock.findById("some-id")).thenReturn(Optional.of(saved));
@@ -102,6 +107,7 @@ class TaskManagerTest {
                 Instant.now(),
                 Task.Status.todo,
                 "Prepare the weekly summary",
+                null,
                 null,
                 null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
@@ -158,7 +164,8 @@ class TaskManagerTest {
             @Override
             public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
                 if (TaskHandler.class.equals(type))
-                    return (T) new TaskHandler(agentMock, taskRepositoryMock, channelRegistryMock);
+                    return (T) new TaskHandler(
+                            agentMock, taskRepositoryMock, channelRegistryMock, channelContextServiceMock);
                 else if (RecurringTaskHandler.class.equals(type))
                     return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");
