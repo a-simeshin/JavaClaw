@@ -35,11 +35,11 @@ Task completes → TaskHandler.notifyUser()
 
 ### Routing data per channel
 
-| Channel | conversationId | routingData |
-|---------|---------------|-------------|
+| Channel  |          conversationId          |     routingData      |
+|----------|----------------------------------|----------------------|
 | Telegram | `telegram-{chatId}[-{threadId}]` | `{chatId, threadId}` |
-| Discord | `discord-{channelId}` | `{channelId}` |
-| Web Chat | `web-{uuid}` | `{conversationId}` |
+| Discord  | `discord-{channelId}`            | `{channelId}`        |
+| Web Chat | `web-{uuid}`                     | `{conversationId}`   |
 
 ### Multi-user isolation
 
@@ -68,29 +68,29 @@ Backward compatibility: recurring tasks without `conversationId` (created before
 
 ### Recurring tasks — comparison with other Claw implementations
 
-| Aspect | JavaClaw | OpenClaw (TS) | NullClaw (Zig) | PicoClaw (Go) |
-|--------|----------|---------------|----------------|---------------|
-| **Channel binding** | `conversationId` in `RecurringTask` entity (DB) | `delivery.channel` + `delivery.to` tuple | `DeliveryConfig.channel` + `peer_id` | `Payload.Channel` + `Payload.To` |
-| **Session key** | `conversationId` (e.g. `telegram-100`) | `cron:${jobId}` | `SessionTarget` enum (isolated/main) | `cron-${jobId}` |
+|          Aspect          |                             JavaClaw                             |              OpenClaw (TS)               |            NullClaw (Zig)            |                PicoClaw (Go)                 |
+|--------------------------|------------------------------------------------------------------|------------------------------------------|--------------------------------------|----------------------------------------------|
+| **Channel binding**      | `conversationId` in `RecurringTask` entity (DB)                  | `delivery.channel` + `delivery.to` tuple | `DeliveryConfig.channel` + `peer_id` | `Payload.Channel` + `Payload.To`             |
+| **Session key**          | `conversationId` (e.g. `telegram-100`)                           | `cron:${jobId}`                          | `SessionTarget` enum (isolated/main) | `cron-${jobId}`                              |
 | **Notification routing** | `ChannelContextService` DB lookup → `RoutingContext` → `Channel` | 10-step binding hierarchy + session keys | Channel vtable dispatch + enrichment | `ProcessDirectWithChannel()` via message bus |
-| **Thread support** | `threadId` in routing data | `delivery.threadId` | `delivery.thread_id` | Implicit (single stream) |
-| **Multi-account** | Per-conversation isolation via DB | `delivery.accountId` | `account_id` field | N/A |
-| **Failure delivery** | Default channel fallback | Separate `failureDestination` | `best_effort` flag | Fallback to `cli`/`direct` |
-| **Timezone** | JVM system timezone | IANA TZ in schedule + `staggerMs` jitter | N/A | Via cron expression |
-| **State persistence** | PostgreSQL (survives restarts) | File-based JSON sessions | On-disk `cron.json` | In-memory maps |
-| **Null/missing binding** | Default channel fallback (first registered) | Error if no delivery config | Default mode `none` | Error: "no session context" |
+| **Thread support**       | `threadId` in routing data                                       | `delivery.threadId`                      | `delivery.thread_id`                 | Implicit (single stream)                     |
+| **Multi-account**        | Per-conversation isolation via DB                                | `delivery.accountId`                     | `account_id` field                   | N/A                                          |
+| **Failure delivery**     | Default channel fallback                                         | Separate `failureDestination`            | `best_effort` flag                   | Fallback to `cli`/`direct`                   |
+| **Timezone**             | JVM system timezone                                              | IANA TZ in schedule + `staggerMs` jitter | N/A                                  | Via cron expression                          |
+| **State persistence**    | PostgreSQL (survives restarts)                                   | File-based JSON sessions                 | On-disk `cron.json`                  | In-memory maps                               |
+| **Null/missing binding** | Default channel fallback (first registered)                      | Error if no delivery config              | Default mode `none`                  | Error: "no session context"                  |
 
 ### Comparison with other Claw implementations
 
-| Aspect | JavaClaw | OpenClaw (TS) | NullClaw (Zig) | PicoClaw (Go) |
-|--------|----------|---------------|----------------|---------------|
-| **Send signature** | `sendMessage(RoutingContext, String)` | `sendMessage(MessageSendParams): Promise` | `send(target, message, media): !void` | `Send(ctx, OutboundMessage): ([]string, error)` |
-| **Routing mechanism** | DB lookup by conversationId | 10-step binding hierarchy + session keys | Channel vtable dispatch + registry | OutboundMessage Channel+ChatID pair |
-| **Multi-user isolation** | `conversation_channel_context` table (per-conversation routing data in DB) | Config-driven bindings + session key encoding (agentId/peer/thread) | Per-entry account_id + listener supervision | Sender allowList + IsAllowed check |
-| **State storage** | PostgreSQL (survives restarts) | File-based JSON sessions | In-memory vtable + on-disk agent sessions | In-memory Manager maps |
-| **Thread support** | threadId in routing data | Session key encodes threadId/topicId | MessageRef (target + message_id) | Placeholder tracking + message ID return |
-| **Task notification routing** | TaskHandler &rarr; ChannelContextService &rarr; Channel | Deterministic reply to source channel via session | Dispatch via ChannelRegistry | Manager.SendMessage via worker queue |
-| **Survives restart** | Yes (DB-backed) | Partially (file sessions) | No (in-memory) | No (in-memory) |
+|            Aspect             |                                  JavaClaw                                  |                            OpenClaw (TS)                            |               NullClaw (Zig)                |                  PicoClaw (Go)                  |
+|-------------------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------|---------------------------------------------|-------------------------------------------------|
+| **Send signature**            | `sendMessage(RoutingContext, String)`                                      | `sendMessage(MessageSendParams): Promise`                           | `send(target, message, media): !void`       | `Send(ctx, OutboundMessage): ([]string, error)` |
+| **Routing mechanism**         | DB lookup by conversationId                                                | 10-step binding hierarchy + session keys                            | Channel vtable dispatch + registry          | OutboundMessage Channel+ChatID pair             |
+| **Multi-user isolation**      | `conversation_channel_context` table (per-conversation routing data in DB) | Config-driven bindings + session key encoding (agentId/peer/thread) | Per-entry account_id + listener supervision | Sender allowList + IsAllowed check              |
+| **State storage**             | PostgreSQL (survives restarts)                                             | File-based JSON sessions                                            | In-memory vtable + on-disk agent sessions   | In-memory Manager maps                          |
+| **Thread support**            | threadId in routing data                                                   | Session key encodes threadId/topicId                                | MessageRef (target + message_id)            | Placeholder tracking + message ID return        |
+| **Task notification routing** | TaskHandler &rarr; ChannelContextService &rarr; Channel                    | Deterministic reply to source channel via session                   | Dispatch via ChannelRegistry                | Manager.SendMessage via worker queue            |
+| **Survives restart**          | Yes (DB-backed)                                                            | Partially (file sessions)                                           | No (in-memory)                              | No (in-memory)                                  |
 
 ## What We're Building
 
@@ -137,7 +137,9 @@ Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 
 - Vite + React 19 + TypeScript + TanStack Router
 - Chat UI with markdown, streaming, tool call visualization
-- File manager, Admin UI, User workspace UI
+- Conversation management: create, switch, search, delete with confirmation
+- i18n (Russian / English), dark / light theme
+- Overview dashboard, Admin UI (Skills, MCP, Prompts), Operations (Logs, Cron, Config)
 
 ### Phase 6: Docker
 
@@ -182,6 +184,7 @@ Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 | Migrations | Flyway                                                |
 | Jobs       | JobRunr                                               |
 | Streaming  | SSE / AG-UI                                           |
+| Testing    | JUnit 5, Playwright (Java), Awaitility, Testcontainers |
 | Deploy     | Docker (Jib), Docker Compose                          |
 
 ## Quick Start
@@ -190,20 +193,31 @@ Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 # Start PostgreSQL
 docker compose -f docker-compose.dev.yml up -d
 
+# Build frontend + backend
+cd javaclaw-frontend && npm run build && cd ..
+./mvnw clean package -DskipTests -pl javaclaw-app -am
+
 # Run the application
-./gradlew :app:bootRun
+java -jar javaclaw-app/target/javaclaw-app-exec.jar
 ```
+
+Open http://localhost:8080 — login with `admin` / `admin123`.
 
 ## Project Structure
 
 ```
 JavaClaw/
-├── base/           # Core: agent, tasks, tools, channels, memory
-├── app/            # Spring Boot entry, web chat, API
-├── plugins/        # Channel plugins (Discord, Telegram)
-├── providers/      # LLM providers (OpenAI, Anthropic, Ollama, Google)
-├── specs/          # Specifications, roadmap, capability catalogs
-└── .claude/        # Claude Code: skills, templates, references, hooks
+├── javaclaw-core/       # Agent loop, tasks, tools, channels, memory, DB migrations
+├── javaclaw-api/        # REST API modules (chat, admin)
+│   ├── javaclaw-api-chat/    # Chat SSE streaming, conversation CRUD
+│   └── javaclaw-api-admin/   # Skills, MCP, prompts management
+├── javaclaw-app/        # Spring Boot entry point, security, configuration
+├── javaclaw-channel/    # Channel plugins (Discord, Telegram)
+├── javaclaw-provider/   # LLM providers (OpenAI, Anthropic, Ollama, Google)
+├── javaclaw-frontend/   # React 19 SPA (Vite + TanStack Router + i18n)
+├── javaclaw-e2e/        # Playwright e2e tests (Java)
+├── specs/               # Specifications, roadmap, capability catalogs
+└── .claude/             # Claude Code: skills, templates, references, hooks
 ```
 
 ## Specifications
@@ -218,7 +232,17 @@ JavaClaw/
 ## Tests
 
 ```bash
-./gradlew test
+# Unit + integration tests (all modules)
+./mvnw verify
+
+# E2E Playwright browser tests (no LLM required)
+./mvnw verify -pl javaclaw-e2e -am -Pe2e-mock
+
+# E2E with live LLM (requires OPENROUTER_API_KEY)
+OPENROUTER_API_KEY=... ./mvnw verify -pl javaclaw-e2e -am -Pe2e
+
+# Frontend unit tests
+cd javaclaw-frontend && npm test
 ```
 
 ## License
