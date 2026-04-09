@@ -174,18 +174,18 @@ Methodology: **Spec → Test → Dev → Verify → Fix Spec** (SDD + TDD)
 
 ## Tech Stack (target)
 
-|   Layer    |                      Technology                       |
-|------------|-------------------------------------------------------|
-| Language   | Java 21+                                              |
-| Framework  | Spring Boot 4, Spring Modulith, Spring Security       |
-| AI         | Spring AI 2.0 (ChatClient, MCP Client, Observability) |
-| Frontend   | React 19 + Vite + TanStack Router                     |
-| Database   | PostgreSQL (primary), SQLite (dev/single-node)        |
-| Migrations | Flyway                                                |
-| Jobs       | JobRunr                                               |
-| Streaming  | SSE / AG-UI                                           |
+|   Layer    |                       Technology                       |
+|------------|--------------------------------------------------------|
+| Language   | Java 21+                                               |
+| Framework  | Spring Boot 4, Spring Modulith, Spring Security        |
+| AI         | Spring AI 2.0 (ChatClient, MCP Client, Observability)  |
+| Frontend   | React 19 + Vite + TanStack Router                      |
+| Database   | PostgreSQL (primary), SQLite (dev/single-node)         |
+| Migrations | Flyway                                                 |
+| Jobs       | JobRunr                                                |
+| Streaming  | SSE / AG-UI                                            |
 | Testing    | JUnit 5, Playwright (Java), Awaitility, Testcontainers |
-| Deploy     | Docker (Jib), Docker Compose                          |
+| Deploy     | Docker (Jib), Docker Compose                           |
 
 ## Quick Start
 

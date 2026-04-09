@@ -71,7 +71,7 @@ The refactoring includes removal of legacy components scheduled for deletion per
 1. The `javaclaw-api/javaclaw-api-chat/` directory is created with Maven structure (`src/main/java`, `src/test/java`, `pom.xml`). The `javaclaw-api/` aggregator POM is also created.
 2. artifactId: `javaclaw-api-chat`.
 3. The following classes are moved from `javaclaw-app/` (with package updates):
-   - `ai.javaclaw.chat.ChatChannel` → `ai.javaclaw.api.chat.ChatChannel`
+   - `ai.javaclaw.chat.ChatChannel` → `ai.javaclaw.api.chat.channel.ChatChannel`
    - `ai.javaclaw.chat.api.ChatController` → `ai.javaclaw.api.chat.ChatController`
    - `ai.javaclaw.chat.ws.ChatWebSocketHandler` → `ai.javaclaw.api.chat.ws.ChatWebSocketHandler`
    - `ai.javaclaw.chat.ws.WebSocketConfig` → `ai.javaclaw.api.chat.ws.WebSocketConfig`

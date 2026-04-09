@@ -294,7 +294,7 @@ This is a structural refactoring — we are primarily PRESERVING existing tests,
   - ArtifactId: `javaclaw-api-chat`
   - Dependencies: javaclaw-core, spring-boot-starter-webmvc, spring-boot-starter-websocket
 - Move classes from `javaclaw-app/src/main/java/` to `javaclaw-api/javaclaw-api-chat/src/main/java/` with package updates:
-  - `ai.javaclaw.chat.ChatChannel` → `ai.javaclaw.api.chat.ChatChannel` (update package declaration)
+  - `ai.javaclaw.chat.ChatChannel` → `ai.javaclaw.api.chat.channel.ChatChannel` (update package declaration)
   - `ai.javaclaw.chat.api.ChatController` → `ai.javaclaw.api.chat.ChatController` (update package + imports)
   - `ai.javaclaw.chat.ChatHtml` → `ai.javaclaw.api.chat.ChatHtml` (update package, add `@Deprecated(forRemoval = true)` annotation with Javadoc: "Scheduled for removal — will be replaced when migrating from Pebble to REST/SPA")
   - `ai.javaclaw.chat.Htmx` → `ai.javaclaw.api.chat.Htmx` (update package, add `@Deprecated(forRemoval = true)` with same Javadoc)

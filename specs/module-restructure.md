@@ -95,7 +95,7 @@ javaclaw/
 
 **Содержимое (из app/):**
 - `ai.javaclaw.api.chat.ChatController` (ex `ai.javaclaw.chat.api.ChatController`)
-- `ai.javaclaw.api.chat.ChatChannel` (ex `ai.javaclaw.chat.ChatChannel`)
+- `ai.javaclaw.api.chat.channel.ChatChannel` (ex `ai.javaclaw.chat.ChatChannel`)
 - `ai.javaclaw.api.chat.ws.ChatWebSocketHandler` (ex `ai.javaclaw.chat.ws.ChatWebSocketHandler`)
 - `ai.javaclaw.api.chat.ws.WebSocketConfig` (ex `ai.javaclaw.chat.ws.WebSocketConfig`)
 
