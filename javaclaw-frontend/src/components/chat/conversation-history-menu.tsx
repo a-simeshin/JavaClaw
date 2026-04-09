@@ -52,7 +52,6 @@ export function ConversationHistoryMenu({
     conversations,
     isLoading,
     isError,
-    createConversation,
     deleteConversation,
   } = useConversationHistory()
 
@@ -64,13 +63,8 @@ export function ConversationHistoryMenu({
     )
   }, [conversations, search])
 
-  const handleNew = async () => {
-    try {
-      const created = await createConversation()
-      setActiveId(created.id)
-    } catch {
-      // network issues handled via react-query
-    }
+  const handleNew = () => {
+    setActiveId(null)
   }
 
   const handleConfirmDelete = () => {
