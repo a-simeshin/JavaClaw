@@ -11,65 +11,85 @@
 Каждый сценарий ниже — это то, что конечный пользователь ДОЛЖЕН уметь делать. Ни один не опционален.
 
 ### S1. Базовый чат
+
 Пользователь пишет сообщение → получает streaming ответ → история сохраняется.
 
 ### S2. Создание задачи из чата
+
 "Напомни мне завтра в 9 утра про встречу" → агент вызывает TaskTool → задача создаётся → пользователь получает подтверждение.
 
 ### S3. Recurring task
+
 "Каждый день в 9 утра присылай погоду" → cron task → каждый день результат приходит в чат пользователя.
 
 ### S4. Task isolation
+
 Выполнение задачи НЕ загрязняет чат пользователя raw промптами, JSON schema, internal tool calls.
 
 ### S5. Real-time notifications
+
 Когда задача завершается — пользователь видит результат в чате БЕЗ ручного обновления страницы. Для Web Chat — SSE push. Для Telegram/Discord — нативная доставка.
 
 ### S6. Human-in-the-loop (approval)
+
 Задача выполняется → агенту нужно разрешение → он отправляет вопрос в чат пользователя → пользователь отвечает → задача продолжается с ответом пользователя.
 
 Пример: "Проверь цены на авиабилеты и купи если дешевле 10000" → агент находит за 9500 → спрашивает "Нашёл за 9500, покупать?" → пользователь "Да" → агент покупает.
 
 ### S7. Отмена задачи
+
 Пользователь пишет "Отмени задачу X" или "Стоп" → задача gracefully останавливается → пользователь получает подтверждение отмены.
 
 ### S8. Parent-child tasks (иерархия)
+
 "Проанализируй 5 конкурентов" → parent task spawn'ит 5 child tasks → каждый работает параллельно → результаты собираются → parent формирует итоговый отчёт.
 
 ### S9. Child result injection
+
 Когда child task завершается → его результат инжектится в контекст parent task → parent может использовать для продолжения работы.
 
 ### S10. Progress updates
+
 Long-running task отправляет progress: "Обработано 3 из 5 конкурентов..." → пользователь видит в чате.
 
 ### S11. Error notification + audit access
+
 Задача падает → пользователь получает понятную нотификацию об ошибке → пользователь может написать "Покажи детали ошибки" → агент достаёт из аудита полную информацию: какой был запрос к модели, что ответила модель, стектрейс, duration.
 
 ### S12. Notify policy
+
 Пользователь может указать: "делай молча" (silent), "сообщай только об ошибках" (on_error), "сообщай только об успехе" (on_success), "сообщай обо всём" (state_changes). По умолчанию — done_only.
 
 ### S13. Task timeout / watchdog
+
 Задача зависла → через timeout_seconds помечается failed → пользователь получает нотификацию "Задача X зависла и была остановлена".
 
 ### S14. Startup recovery
+
 Сервер перезапустился → pending deliveries из delivery_queue обрабатываются → пользователь получает пропущенные нотификации.
 
 ### S15. Rate limiting
+
 Пользователь не может создать бесконечное количество задач. Лимит на количество concurrent tasks и recurring tasks per user.
 
 ### S16. Task context carry-over (recurring memory)
+
 Recurring task может помнить предыдущие executions. Пример: "Присылай шутку каждую минуту, не повторяйся" → агент знает какие шутки уже отправлял.
 
 ### S17. Per-user tool restrictions
+
 Разные пользователи имеют разные наборы доступных инструментов. Admin видит всё, обычный пользователь — ограниченный набор.
 
 ### S18. Multi-channel session isolation
+
 Один пользователь пишет из Telegram и Web Chat → это РАЗНЫЕ сессии (per_channel_peer). Или ОДНА сессия (per_peer) — настраивается.
 
 ### S19. Просмотр списка задач
+
 Пользователь: "Покажи мои задачи" → агент показывает список active/recurring/scheduled tasks с их статусами.
 
 ### S20. Audit trail — полная прозрачность
+
 Пользователь: "Что произошло с задачей X?" → агент показывает: когда создана, когда запущена, какой prompt отправлен в LLM, какие tools вызваны, что ответила модель, сколько заняло, была ли ошибка.
 
 ---
@@ -298,6 +318,7 @@ Recurring task может помнить предыдущие executions. При
 Два уровня аудита: chat audit + task audit. Пользователь может запросить любую информацию через чат.
 
 ### chat_audit_log (уже существует V14, расширить)
+
 ```sql
 ALTER TABLE chat_audit_log ADD COLUMN user_id VARCHAR(36);
 ALTER TABLE chat_audit_log ADD COLUMN tool_calls_detail TEXT;  -- JSON: [{name, args, result, duration_ms}]
@@ -305,6 +326,7 @@ ALTER TABLE chat_audit_log ADD COLUMN token_usage TEXT;        -- JSON: {prompt_
 ```
 
 ### task_audit_log (NEW)
+
 ```sql
 CREATE TABLE task_audit_log (
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -334,6 +356,7 @@ CREATE INDEX idx_task_audit_type ON task_audit_log (event_type);
 ```
 
 ### delivery_audit_log (NEW)
+
 ```sql
 CREATE TABLE delivery_audit_log (
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -352,11 +375,13 @@ CREATE INDEX idx_delivery_audit_conv ON delivery_audit_log (conversation_id);
 ```
 
 ### AuditTool (доступен агенту)
+
 ```
 @Tool: getTaskAudit(taskId) → полная история task execution из task_audit_log
 @Tool: getChatAudit(conversationId, limit) → история chat requests из chat_audit_log
 @Tool: getDeliveryAudit(taskId) → история доставок из delivery_audit_log
 ```
+
 Пользователь спрашивает "Что случилось с задачей X?" → агент вызывает getTaskAudit → показывает:
 - Когда создана, кем
 - Какой prompt отправлен в LLM
@@ -371,10 +396,15 @@ CREATE INDEX idx_delivery_audit_conv ON delivery_audit_log (conversation_id);
 ## Новые таблицы (summary)
 
 ### V15: task_executions
+
 ### V16: delivery_queue
+
 ### V17: extend tasks (parent_task_id, notify_policy, runtime_type, timeout_seconds, carry_over_context, user_id, cancelled_at)
+
 ### V18: extend recurring_tasks (notify_policy, timeout_seconds, carry_over_context)
+
 ### V19: approval_requests
+
 ```sql
 CREATE TABLE approval_requests (
     id              VARCHAR(256) PRIMARY KEY,
@@ -389,8 +419,11 @@ CREATE TABLE approval_requests (
 );
 CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status) WHERE status = 'pending';
 ```
+
 ### V20: task_audit_log + delivery_audit_log
+
 ### V21: extend chat_audit_log (user_id, tool_calls_detail, token_usage)
+
 ### V22: rate_limits (если не через конфиг)
 
 ---
@@ -398,6 +431,7 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 ## Файлы
 
 ### Новые (javaclaw-core)
+
 - `agent/event/EventBus.java` — interface
 - `agent/event/SpringEventBus.java` — ApplicationEventPublisher impl
 - `agent/event/AgentEvent.java` — record
@@ -425,6 +459,7 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 - `tools/AuditTool.java` — @Tool getTaskAudit, getChatAudit, getDeliveryAudit
 
 ### Новые (javaclaw-api-chat)
+
 - `PgNotificationTransport.java`
 - `NotificationTransportConfiguration.java`
 
@@ -436,10 +471,10 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 
 **Chat message types (новые компоненты внутри assistant-message):**
 - `components/chat/task-notification-message.tsx` — визуально выделенная нотификация о задаче:
-  - Status badge: completed (green), failed (red), cancelled (grey), in_progress (blue), awaiting_input (orange)
-  - Иконка по типу: ✅ completed, ❌ failed, ⏳ in_progress, 🔔 awaiting_input
-  - Expandable details: task name, duration, feedback text
-  - Кнопка "Подробнее" → вызывает AuditTool через чат
+- Status badge: completed (green), failed (red), cancelled (grey), in_progress (blue), awaiting_input (orange)
+- Иконка по типу: ✅ completed, ❌ failed, ⏳ in_progress, 🔔 awaiting_input
+- Expandable details: task name, duration, feedback text
+- Кнопка "Подробнее" → вызывает AuditTool через чат
 
 - `components/chat/approval-request-card.tsx` — карточка запроса одобрения:
   - Вопрос агента крупным текстом
@@ -448,13 +483,11 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
   - Quick-reply input: пользователь может написать текстовый ответ вместо кнопки
   - After action: кнопки заменяются на status pill ("Одобрено ✓" / "Отклонено ✗" / "Истекло ⏰")
   - Disabled state когда approval resolved
-
 - `components/chat/task-progress-card.tsx` — progress update для long-running tasks:
   - Progress bar (determinate если % известен, indeterminate если нет)
   - Текст прогресса: "Обработано 3 из 5..."
   - Кнопка "Отменить задачу"
   - Collapse/expand предыдущие progress updates
-
 - `components/chat/task-error-card.tsx` — ошибка задачи:
   - Red border + error icon
   - Error message (краткое)
@@ -463,17 +496,17 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 
 **Conversation list enhancements:**
 - `components/chat/conversation-badge.tsx` — badge на conversation в sidebar:
-  - Unread notification count (число непрочитанных task notifications)
-  - Pending approval indicator (оранжевая точка)
-  - Active task indicator (пульсирующий синий индикатор)
+- Unread notification count (число непрочитанных task notifications)
+- Pending approval indicator (оранжевая точка)
+- Active task indicator (пульсирующий синий индикатор)
 
 **Task management UI:**
 - `components/tasks/task-list-panel.tsx` — боковая панель со списком задач:
-  - Фильтры: All / Active / Recurring / Completed / Failed
-  - Каждая задача: name, status badge, created_at, last execution time
-  - Parent-child: дочерние задачи с indent под parent
-  - Actions: Cancel, Delete, View Audit
-  - Pull-to-refresh / auto-refresh
+- Фильтры: All / Active / Recurring / Completed / Failed
+- Каждая задача: name, status badge, created_at, last execution time
+- Parent-child: дочерние задачи с indent под parent
+- Actions: Cancel, Delete, View Audit
+- Pull-to-refresh / auto-refresh
 
 - `components/tasks/task-detail-dialog.tsx` — диалог деталей задачи:
   - Full audit trail timeline (created → started → tool calls → completed/failed)
@@ -493,6 +526,7 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 - `store/notifications.ts` — notification queue for toasts
 
 ### Новые REST endpoints (backend)
+
 - `GET /api/tasks` — список задач пользователя (фильтры: status, type)
 - `GET /api/tasks/{id}` — детали задачи
 - `GET /api/tasks/{id}/audit` — audit trail задачи
@@ -505,11 +539,13 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 - `GET /api/audit/chat?conversationId=X&limit=N` — chat audit log
 
 ### Новые frontend API modules
+
 - `api/tasks.ts` — CRUD задач, cancel, audit
 - `api/approvals.ts` — respond to approval, list pending
 - `api/audit.ts` — chat/task/delivery audit queries
 
 ### Изменяемые
+
 - `TaskHandler.java` — полный рефакторинг
 - `TaskManager.java` — spawn, cancel, notifyPolicy, runtimeType, timeout, carryOver, rateLimiter
 - `Task.java` — все новые поля
@@ -522,6 +558,7 @@ CREATE INDEX idx_approval_pending ON approval_requests (conversation_id, status)
 - `chat-page.tsx` — подключить useTaskNotifications + approval UI
 
 ### Migrations
+
 V15–V22 (8 миграций)
 
 ---
@@ -529,6 +566,7 @@ V15–V22 (8 миграций)
 ## Изоляция пользователей
 
 ### Данные
+
 - Все таблицы с пользовательскими данными содержат `user_id` FK:
   - `conversations.user_id` — уже есть
   - `tasks.user_id` — добавляем (V17)
@@ -542,11 +580,13 @@ V15–V22 (8 миграций)
 - Audit logs содержат `user_id` для фильтрации.
 
 ### Сессии
+
 - Session key включает userId: `"agent:default:{channel}:{userId}"`
 - ChatMemory: conversation привязана к user, FK enforced
 - Task execution: TaskHandler получает userId из Task → все LLM вызовы в scope этого user
 
 ### Tools
+
 - ToolCallbackResolver может фильтровать tools per user:
   - `UserToolPermission` таблица: user_id, tool_name, allowed (boolean)
   - Или role-based: admin → all tools, user → restricted set
@@ -554,11 +594,13 @@ V15–V22 (8 миграций)
 - Per-user virtual files (AGENT.md с owner_id = userId → персональный промпт)
 
 ### Rate limits
+
 - Per-user: max_concurrent_tasks, max_recurring_tasks, max_tasks_per_hour
 - Хранятся в конфиге или в `user_settings` таблице
 - TaskRateLimiter проверяет перед каждым create/schedule/spawn
 
 ### Безопасность
+
 - Channel adapters аутентифицируют userId:
   - Web Chat: Basic Auth → userId (уже есть)
   - Telegram: chatId mapping → userId
@@ -587,9 +629,11 @@ V15–V22 (8 миграций)
 
 **Concurrency safety:**
 - TaskHandler semaphore: per-pod (JVM), но max_concurrent_tasks проверяется через DB count
-  ```sql
-  SELECT COUNT(*) FROM tasks WHERE status = 'in_progress' AND user_id = ?
-  ```
+
+```sql
+SELECT COUNT(*) FROM tasks WHERE status = 'in_progress' AND user_id = ?
+```
+
 - Optimistic locking на Task entity (`@Version` column) — предотвращает двойное выполнение
 - approval_requests: `SELECT ... FOR UPDATE SKIP LOCKED` при submitApproval → только один pod обрабатывает
 
@@ -638,44 +682,52 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 ## Порядок имплементации
 
 ### Phase 1: Foundations
+
 - EventBus interface + Spring impl
 - NotifyPolicy, TaskRuntime enums
 - Task entity extensions + migrations V17, V18
 - TaskExecution entity + migration V15
 
 ### Phase 2: Task isolation + execution
+
 - TaskHandler refactor: chatModel напрямую, task_executions
 - Restricted tool sets for subtasks
 - CancellationToken mechanism
 - TaskAuditService + migration V20
 
 ### Phase 3: Task hierarchy
+
 - parent_task_id + TaskManager.spawn()
 - Depth limit (3) + concurrency semaphore (5)
 - Child result injection into parent context
 
 ### Phase 4: Human-in-the-loop
+
 - ApprovalService + approval_requests table + migration V19
 - ChatService integration: check pending approvals
 - ApprovalRequest timeout in TaskWatchdog
 
 ### Phase 5: Delivery pipeline
+
 - DeliveryService + delivery_queue + migration V16
 - NotificationTransport interface + PgNotify + InMemory
 - Startup recovery (DeliveryRecovery)
 - DeliveryAuditLog
 
 ### Phase 6: Watchdog + rate limiting
+
 - TaskWatchdog @Scheduled
 - TaskRateLimiter
 - Failed status handling + timeout notifications
 
 ### Phase 7: Audit expansion
+
 - Extend chat_audit_log (V21)
 - AuditTool (@Tool for agent)
 - Token usage tracking
 
 ### Phase 8: Backend REST API
+
 - Task CRUD endpoints (GET/POST/DELETE /api/tasks)
 - Task cancel endpoint (POST /api/tasks/{id}/cancel)
 - Task audit endpoint (GET /api/tasks/{id}/audit)
@@ -685,6 +737,7 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 - Chat audit endpoint (GET /api/audit/chat)
 
 ### Phase 9: Frontend — Core
+
 - use-task-notifications.ts (EventSource SSE hook)
 - use-approval.ts (approve/deny/timeout logic)
 - api/tasks.ts, api/approvals.ts, api/audit.ts (API modules)
@@ -692,6 +745,7 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 - Sonner toast integration for task events
 
 ### Phase 10: Frontend — Chat Message Components
+
 - task-notification-message.tsx (status badge, icon, expandable details)
 - approval-request-card.tsx (countdown timer, approve/deny buttons, quick-reply)
 - task-progress-card.tsx (progress bar, cancel button)
@@ -700,15 +754,18 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 - Integration into assistant-message.tsx and chat-page.tsx
 
 ### Phase 11: Frontend — Task Management
+
 - task-list-panel.tsx (Active/Recurring/History tabs, parent-child hierarchy)
 - task-detail-dialog.tsx (timeline, LLM request/response viewer, tool calls, delivery)
 - Admin: "all users" toggle in task panel
 
 ### Phase 12: Recurring task context carry-over
+
 - carryOverContext flag on RecurringTask
 - TaskHandler loads previous execution summaries when carryOver=true
 
 ### Phase 13: E2E Tests (Playwright)
+
 - E1-E31: full Playwright test suite covering all user stories
 - Test fixtures: mock users (admin + regular), mock tasks, mock approvals
 - CI pipeline: run E2E after all phases complete
@@ -814,10 +871,10 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Task Notification UI:**
 - E4: "Напомни через 1 минуту выпить воды"
-  → Agent confirms: task-notification-card appears (blue, ⏳ scheduled)
-  → After 1 min: task-notification-card appears (green, ✅ completed) with reminder text
-  → Notification appears WITHOUT page refresh (SSE push)
-  → Sonner toast appears in top-right corner
+→ Agent confirms: task-notification-card appears (blue, ⏳ scheduled)
+→ After 1 min: task-notification-card appears (green, ✅ completed) with reminder text
+→ Notification appears WITHOUT page refresh (SSE push)
+→ Sonner toast appears in top-right corner
 
 - E5: task fails (e.g., LLM timeout)
   → task-error-card appears in chat (red border, ❌ icon)
@@ -833,9 +890,9 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Recurring Tasks UI:**
 - E7: "Присылай погоду каждый день в 9 утра"
-  → Agent confirms with task-notification-card (recurring icon 🔄)
-  → Next morning: notification arrives in correct conversation
-  → Second day: new notification, different from first (carryOverContext works)
+→ Agent confirms with task-notification-card (recurring icon 🔄)
+→ Next morning: notification arrives in correct conversation
+→ Second day: new notification, different from first (carryOverContext works)
 
 - E8: "Покажи мои повторяющиеся задачи"
   → Agent lists: name, cron expression (human-readable), last execution, status
@@ -843,15 +900,15 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Approval Request UI:**
 - E9: "Проверь цену на билет и купи если < 10000"
-  → Task starts → agent finds price 9500
-  → approval-request-card appears in chat:
-    - Question: "Найден билет за 9500₽. Купить?"
-    - Countdown bar (green → yellow → red, 60s timeout)
-    - Buttons: [Одобрить ✓] [Отклонить ✗]
-    - Quick-reply text input
-  → User clicks "Одобрить"
-  → Buttons replaced by "Одобрено ✓" pill (green, disabled)
-  → Task continues → completion notification arrives
+→ Task starts → agent finds price 9500
+→ approval-request-card appears in chat:
+- Question: "Найден билет за 9500₽. Купить?"
+- Countdown bar (green → yellow → red, 60s timeout)
+- Buttons: [Одобрить ✓] [Отклонить ✗]
+- Quick-reply text input
+→ User clicks "Одобрить"
+→ Buttons replaced by "Одобрено ✓" pill (green, disabled)
+→ Task continues → completion notification arrives
 
 - E10: approval timeout
   → approval-request-card countdown reaches 0
@@ -864,11 +921,11 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Task Progress UI:**
 - E12: "Проанализируй 5 конкурентов"
-  → task-progress-card appears: progress bar (0%), "Начинаю анализ..."
-  → Progress updates: "Competitor 1/5..." (20%), "Competitor 2/5..." (40%)
-  → Each update: progress bar animates, text changes
-  → "Отменить" button visible on progress card
-  → Final: task-notification-card (completed) with full report
+→ task-progress-card appears: progress bar (0%), "Начинаю анализ..."
+→ Progress updates: "Competitor 1/5..." (20%), "Competitor 2/5..." (40%)
+→ Each update: progress bar animates, text changes
+→ "Отменить" button visible on progress card
+→ Final: task-notification-card (completed) with full report
 
 - E13: cancel mid-progress
   → User clicks "Отменить" on progress card
@@ -877,18 +934,18 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Parent-Child Task UI:**
 - E14: parent task spawns children
-  → Parent progress card shows child tasks as nested items
-  → Each child: name, status badge, duration
-  → Child completes → its status updates in parent card
-  → All children complete → parent produces final result
+→ Parent progress card shows child tasks as nested items
+→ Each child: name, status badge, duration
+→ Child completes → its status updates in parent card
+→ All children complete → parent produces final result
 
 **Task Management Panel:**
 - E15: open task panel (sidebar or dedicated page)
-  → Tabs: Active | Recurring | History
-  → Active tab: in_progress tasks with progress bars
-  → Recurring tab: cron tasks with next execution time
-  → History tab: completed/failed with date filter
-  → Each task row: click → task-detail-dialog opens
+→ Tabs: Active | Recurring | History
+→ Active tab: in_progress tasks with progress bars
+→ Recurring tab: cron tasks with next execution time
+→ History tab: completed/failed with date filter
+→ Each task row: click → task-detail-dialog opens
 
 - E16: task-detail-dialog
   → Timeline view: created → started → tool_call_1 → tool_call_2 → completed
@@ -901,28 +958,28 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Error & Audit UI:**
 - E17: user asks "Что случилось с задачей X?"
-  → Agent calls AuditTool → shows structured audit:
-    - Task name, status, created/finished timestamps
-    - Error message (if failed)
-    - Full request that was sent to model
-    - Model's response
-    - Tool calls with args and results
-    - Duration breakdown
+→ Agent calls AuditTool → shows structured audit:
+- Task name, status, created/finished timestamps
+- Error message (if failed)
+- Full request that was sent to model
+- Model's response
+- Tool calls with args and results
+- Duration breakdown
 
 - E18: user asks "Покажи последние 5 запросов к модели"
   → Agent calls getChatAudit → shows table:
-    - Timestamp, method (stream/call), duration_ms
-    - User content (truncated)
-    - Response (truncated)
-    - Tools used
-    - Token usage (prompt/completion/total)
-    - Error (if any)
+  - Timestamp, method (stream/call), duration_ms
+  - User content (truncated)
+  - Response (truncated)
+  - Tools used
+  - Token usage (prompt/completion/total)
+  - Error (if any)
 
 **Notification Routing:**
 - E19: create task in conversation A → switch to conversation B
-  → Task completes → notification appears ONLY in conversation A
-  → Conversation A badge shows "1" in sidebar
-  → Switch back to A → notification visible, badge resets
+→ Task completes → notification appears ONLY in conversation A
+→ Conversation A badge shows "1" in sidebar
+→ Switch back to A → notification visible, badge resets
 
 - E20: pending approval in conversation A → switch to B
   → Persistent toast: "Ожидает ответа в чате 'ConvA'" with "Перейти" button
@@ -930,13 +987,13 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 
 **Rate Limiting:**
 - E21: create 15 tasks quickly
-  → First 10 succeed → confirmations
-  → 11th: agent says "Превышен лимит: максимум 10 одновременных задач. Текущие задачи: ..."
-  → Warning toast
+→ First 10 succeed → confirmations
+→ 11th: agent says "Превышен лимит: максимум 10 одновременных задач. Текущие задачи: ..."
+→ Warning toast
 
 **User Isolation:**
 - E22: login as user A → create task → logout → login as user B
-  → "Покажи мои задачи" → empty list (user B has no tasks)
+→ "Покажи мои задачи" → empty list (user B has no tasks)
 
 - E23: user A's recurring task fires → notification does NOT appear for user B
 
@@ -979,3 +1036,4 @@ ALTER TABLE delivery_queue ADD COLUMN claimed_at TIMESTAMP;
 17. 2 pod'а: approval response на pod A → task на pod B возобновляется
 18. Pod crash → JobRunr retry → task завершается на другом pod'е
 19. Delivery deduplication: claimed_by предотвращает двойную доставку
+
