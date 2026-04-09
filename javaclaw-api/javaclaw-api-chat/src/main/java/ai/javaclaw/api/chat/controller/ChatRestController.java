@@ -47,6 +47,7 @@ public class ChatRestController {
         streamingService.stream(emitter, conversationId, request.content());
         return ResponseEntity.ok()
                 .header(VERCEL_STREAM_HEADER, VERCEL_STREAM_VERSION)
+                .header("x-conversation-id", conversationId)
                 .contentType(MediaType.parseMediaType("text/plain;charset=UTF-8"))
                 .body(emitter);
     }

@@ -1,9 +1,8 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.error;
 
 import ai.javaclaw.api.chat.controller.ChatRestController;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,11 +14,10 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
  *
  * <p>See: Spring #33340, #33421, #33832, Boot #14237.
  */
+@Slf4j
 @Order(0)
 @ControllerAdvice(basePackageClasses = ChatRestController.class)
 public class SseExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(SseExceptionHandler.class);
 
     @ExceptionHandler(IOException.class)
     public void handleClientAbort(IOException ex) {

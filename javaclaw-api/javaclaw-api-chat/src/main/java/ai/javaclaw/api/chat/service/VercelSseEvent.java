@@ -1,4 +1,4 @@
-package ai.javaclaw.api.chat.rest;
+package ai.javaclaw.api.chat.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
