@@ -1,5 +1,6 @@
 package ai.javaclaw.agent.pipeline;
 
+import ai.javaclaw.agent.audit.ChatAuditService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,9 @@ public class ChatService {
     /** Резолвер tool callbacks. */
     private final ToolCallbackResolver toolCallbackResolver;
 
+    /** Сервис аудита запросов/ответов LLM. */
+    private final ChatAuditService chatAuditService;
+
     /**
      * Создаёт ChatService с полным набором зависимостей.
      *
@@ -46,20 +50,24 @@ public class ChatService {
      * @param chatMemory хранилище истории, не может быть null
      * @param messageAssembler ассемблер промптов, не может быть null
      * @param toolCallbackResolver резолвер tool callbacks, не может быть null
+     * @param chatAuditService сервис аудита, не может быть null
      */
     public ChatService(
             final ChatModel chatModel,
             final ChatMemory chatMemory,
             final MessageAssembler messageAssembler,
-            final ToolCallbackResolver toolCallbackResolver) {
+            final ToolCallbackResolver toolCallbackResolver,
+            final ChatAuditService chatAuditService) {
         Assert.notNull(chatModel, "chatModel must not be null");
         Assert.notNull(chatMemory, "chatMemory must not be null");
         Assert.notNull(messageAssembler, "messageAssembler must not be null");
         Assert.notNull(toolCallbackResolver, "toolCallbackResolver must not be null");
+        Assert.notNull(chatAuditService, "chatAuditService must not be null");
         this.chatModel = chatModel;
         this.chatMemory = chatMemory;
         this.messageAssembler = messageAssembler;
         this.toolCallbackResolver = toolCallbackResolver;
+        this.chatAuditService = chatAuditService;
     }
 
     /**
@@ -82,19 +90,35 @@ public class ChatService {
         final Prompt prompt = buildPrompt(conversationId, userContent);
         final Sinks.Many<String> contentSink = Sinks.many().unicast().onBackpressureBuffer();
         final StringBuilder assistantContent = new StringBuilder();
+        final long startTime = System.currentTimeMillis();
 
         try {
             final Flux<ChatResponse> responseFlux = chatModel.stream(prompt);
             return responseFlux
                     .doOnNext(response -> accumulateContent(response, assistantContent))
-                    .doOnComplete(() -> persistAssistantMessage(conversationId, assistantContent.toString()))
-                    .doOnError(error ->
-                            log.warn("Stream error for conversation {}: {}", conversationId, error.getMessage()));
+                    .doOnComplete(() -> {
+                        final String text = assistantContent.toString();
+                        persistAssistantMessage(conversationId, text);
+                        chatAuditService.logSuccess(
+                                conversationId, "stream", prompt, text, System.currentTimeMillis() - startTime);
+                    })
+                    .doOnError(error -> {
+                        log.warn("Stream error for conversation {}: {}", conversationId, error.getMessage());
+                        chatAuditService.logError(
+                                conversationId, "stream", prompt, error, System.currentTimeMillis() - startTime);
+                    });
         } catch (final UnsupportedOperationException e) {
             log.debug(
                     "ChatModel does not support streaming, falling back to call() for conversation {}", conversationId);
             return Mono.fromCallable(() -> chatModel.call(prompt))
-                    .doOnSuccess(response -> persistAssistantMessage(conversationId, extractText(response)))
+                    .doOnSuccess(response -> {
+                        final String text = extractText(response);
+                        persistAssistantMessage(conversationId, text);
+                        chatAuditService.logSuccess(
+                                conversationId, "stream-fb", prompt, text, System.currentTimeMillis() - startTime);
+                    })
+                    .doOnError(error -> chatAuditService.logError(
+                            conversationId, "stream-fb", prompt, error, System.currentTimeMillis() - startTime))
                     .flux();
         }
     }
@@ -113,11 +137,18 @@ public class ChatService {
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
         final Prompt prompt = buildPrompt(conversationId, userContent);
-        final ChatResponse response = chatModel.call(prompt);
-        final String assistantText = extractText(response);
-
-        persistAssistantMessage(conversationId, assistantText);
-        return assistantText;
+        final long startTime = System.currentTimeMillis();
+        try {
+            final ChatResponse response = chatModel.call(prompt);
+            final String assistantText = extractText(response);
+            persistAssistantMessage(conversationId, assistantText);
+            chatAuditService.logSuccess(
+                    conversationId, "call", prompt, assistantText, System.currentTimeMillis() - startTime);
+            return assistantText;
+        } catch (final Exception e) {
+            chatAuditService.logError(conversationId, "call", prompt, e, System.currentTimeMillis() - startTime);
+            throw e;
+        }
     }
 
     /**
@@ -141,11 +172,18 @@ public class ChatService {
         chatMemory.add(conversationId, List.of(new UserMessage(enrichedContent)));
 
         final Prompt prompt = buildPrompt(conversationId, enrichedContent);
-        final ChatResponse response = chatModel.call(prompt);
-        final String assistantText = extractText(response);
-
-        persistAssistantMessage(conversationId, assistantText);
-        return converter.convert(assistantText);
+        final long startTime = System.currentTimeMillis();
+        try {
+            final ChatResponse response = chatModel.call(prompt);
+            final String assistantText = extractText(response);
+            persistAssistantMessage(conversationId, assistantText);
+            chatAuditService.logSuccess(
+                    conversationId, "call<T>", prompt, assistantText, System.currentTimeMillis() - startTime);
+            return converter.convert(assistantText);
+        } catch (final Exception e) {
+            chatAuditService.logError(conversationId, "call<T>", prompt, e, System.currentTimeMillis() - startTime);
+            throw e;
+        }
     }
 
     /**

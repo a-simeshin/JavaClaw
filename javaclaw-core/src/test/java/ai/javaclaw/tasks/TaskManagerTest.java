@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import ai.javaclaw.agent.Agent;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
+import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.tasks.Task.Status;
 import ai.javaclaw.tasks.TaskHandler.TaskResult;
 import java.time.Duration;
@@ -52,6 +53,9 @@ class TaskManagerTest {
 
     @Mock
     ChannelContextService channelContextServiceMock;
+
+    @Mock
+    ConversationEnsurer conversationEnsurerMock;
 
     InMemoryStorageProvider storageProvider;
     TaskManager taskManager;
@@ -249,7 +253,11 @@ class TaskManagerTest {
             public <T> T activateJob(Class<T> type) throws JobActivatorShutdownException {
                 if (TaskHandler.class.equals(type))
                     return (T) new TaskHandler(
-                            agentMock, taskRepositoryMock, channelRegistryMock, channelContextServiceMock);
+                            agentMock,
+                            taskRepositoryMock,
+                            channelRegistryMock,
+                            channelContextServiceMock,
+                            conversationEnsurerMock);
                 else if (RecurringTaskHandler.class.equals(type))
                     return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");

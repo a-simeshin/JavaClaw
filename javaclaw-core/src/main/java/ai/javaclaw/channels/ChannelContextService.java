@@ -1,5 +1,6 @@
 package ai.javaclaw.channels;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -56,7 +57,7 @@ public class ChannelContextService {
         Assert.hasText(channelName, "channelName cannot be blank");
         try {
             final String json = objectMapper.writeValueAsString(routingData != null ? routingData : Map.of());
-            jdbcTemplate.update(UPSERT_SQL, conversationId, channelName, json, Instant.now());
+            jdbcTemplate.update(UPSERT_SQL, conversationId, channelName, json, Timestamp.from(Instant.now()));
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Failed to save channel routing context for conversation " + conversationId, e);

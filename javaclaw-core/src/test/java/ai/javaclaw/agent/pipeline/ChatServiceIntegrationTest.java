@@ -75,6 +75,9 @@ class ChatServiceIntegrationTest {
     /** Mock tool callback resolver. */
     private ToolCallbackResolver toolCallbackResolver;
 
+    /** Mock audit service. */
+    private ai.javaclaw.agent.audit.ChatAuditService chatAuditService;
+
     /** The service under test, wired with real pipeline and mocked boundaries. */
     private ChatService chatService;
 
@@ -128,7 +131,8 @@ class ChatServiceIntegrationTest {
                 budgetProperties,
                 tokenEstimator);
 
-        chatService = new ChatService(chatModel, chatMemory, assembler, toolCallbackResolver);
+        chatAuditService = mock(ai.javaclaw.agent.audit.ChatAuditService.class);
+        chatService = new ChatService(chatModel, chatMemory, assembler, toolCallbackResolver, chatAuditService);
     }
 
     // -------------------------------------------------------------------------

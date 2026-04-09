@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ai.javaclaw.agent.audit.ChatAuditService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,10 @@ class ChatServiceTest {
     @Mock
     private ToolCallbackResolver toolCallbackResolver;
 
+    /** Мок сервиса аудита. */
+    @Mock
+    private ChatAuditService chatAuditService;
+
     /** Тестируемый сервис. */
     private ChatService chatService;
 
@@ -73,7 +78,7 @@ class ChatServiceTest {
     @BeforeEach
     void setUp() {
         when(toolCallbackResolver.resolve()).thenReturn(List.of());
-        chatService = new ChatService(chatModel, chatMemory, messageAssembler, toolCallbackResolver);
+        chatService = new ChatService(chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService);
     }
 
     /**

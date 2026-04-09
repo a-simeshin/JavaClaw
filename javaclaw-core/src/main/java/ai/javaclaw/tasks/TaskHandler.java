@@ -8,6 +8,7 @@ import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.channels.RoutingContext;
+import ai.javaclaw.conversations.ConversationEnsurer;
 import java.util.Map;
 import java.util.Optional;
 import org.jobrunr.jobs.annotations.Job;
@@ -25,16 +26,19 @@ public class TaskHandler {
     private final TaskRepository taskRepository;
     private final ChannelRegistry channelRegistry;
     private final ChannelContextService channelContextService;
+    private final ConversationEnsurer conversationEnsurer;
 
     public TaskHandler(
             final Agent agent,
             final TaskRepository taskRepository,
             final ChannelRegistry channelRegistry,
-            final ChannelContextService channelContextService) {
+            final ChannelContextService channelContextService,
+            final ConversationEnsurer conversationEnsurer) {
         this.agent = agent;
         this.taskRepository = taskRepository;
         this.channelRegistry = channelRegistry;
         this.channelContextService = channelContextService;
+        this.conversationEnsurer = conversationEnsurer;
     }
 
     @Job(name = "%0", retries = 3)
@@ -49,8 +53,11 @@ public class TaskHandler {
         final Task inProgress = taskRepository.save(task.withStatus(Task.Status.in_progress));
         try {
             LOGGER.info("Starting task: {}", task.getName());
+            final String conversationId =
+                    inProgress.getConversationId() != null ? inProgress.getConversationId() : taskId;
+            conversationEnsurer.ensureExists(conversationId);
             final String agentInput = formatTaskForAgent(inProgress);
-            final TaskResult result = agent.prompt(taskId, agentInput, TaskResult.class);
+            final TaskResult result = agent.prompt(conversationId, agentInput, TaskResult.class);
             taskRepository.save(inProgress.withFeedback(result.feedback()).withStatus(result.newStatus()));
             notifyUser(inProgress, result);
             LOGGER.info("Finished task: {} with status {}", task.getName(), result.newStatus());

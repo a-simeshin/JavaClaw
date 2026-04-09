@@ -1,5 +1,6 @@
 package ai.javaclaw.agent.pipeline;
 
+import ai.javaclaw.agent.audit.ChatAuditService;
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.tools.AutoDiscoveredTool;
 import ai.javaclaw.tools.CheckListTool;
@@ -93,7 +94,8 @@ public class ChatServiceConfiguration {
             final ChatModel chatModel,
             final ChatMemory chatMemory,
             final MessageAssembler messageAssembler,
-            final ToolCallbackResolver toolCallbackResolver) {
-        return new ChatService(chatModel, chatMemory, messageAssembler, toolCallbackResolver);
+            final ToolCallbackResolver toolCallbackResolver,
+            final ChatAuditService chatAuditService) {
+        return new ChatService(chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService);
     }
 }

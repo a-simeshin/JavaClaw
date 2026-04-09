@@ -13,6 +13,7 @@ import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.channels.RoutingContext;
+import ai.javaclaw.conversations.ConversationEnsurer;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -38,13 +39,17 @@ class TaskHandlerTest {
     private ChannelContextService channelContextService;
 
     @Mock
+    private ConversationEnsurer conversationEnsurer;
+
+    @Mock
     private Channel channel;
 
     private TaskHandler taskHandler;
 
     @BeforeEach
     void setUp() {
-        taskHandler = new TaskHandler(agent, taskRepository, channelRegistry, channelContextService);
+        taskHandler =
+                new TaskHandler(agent, taskRepository, channelRegistry, channelContextService, conversationEnsurer);
     }
 
     @Test
