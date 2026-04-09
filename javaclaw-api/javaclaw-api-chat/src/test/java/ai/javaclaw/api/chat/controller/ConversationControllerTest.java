@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
+import ai.javaclaw.conversations.ConversationRepository;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,7 @@ class ConversationControllerTest {
     private ChatMemoryRepository chatMemoryRepository;
     private ConversationEnsurer conversationEnsurer;
     private ConversationQueryService queryService;
+    private ConversationRepository conversationRepository;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -33,7 +35,9 @@ class ConversationControllerTest {
         chatMemoryRepository = mock(ChatMemoryRepository.class);
         conversationEnsurer = mock(ConversationEnsurer.class);
         queryService = mock(ConversationQueryService.class);
-        mockMvc = standaloneSetup(new ConversationController(chatMemoryRepository, conversationEnsurer, queryService))
+        conversationRepository = mock(ConversationRepository.class);
+        mockMvc = standaloneSetup(new ConversationController(
+                        chatMemoryRepository, conversationEnsurer, queryService, conversationRepository))
                 .build();
     }
 
@@ -139,5 +143,6 @@ class ConversationControllerTest {
     void deleteReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/conversations/web")).andExpect(status().isNoContent());
         verify(chatMemoryRepository).deleteByConversationId(eq("web"));
+        verify(conversationRepository).deleteById(eq("web"));
     }
 }

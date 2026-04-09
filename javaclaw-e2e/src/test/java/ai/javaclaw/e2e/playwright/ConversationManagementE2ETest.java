@@ -82,7 +82,128 @@ class ConversationManagementE2ETest extends PlaywrightE2ETestBase {
     }
 
     @Test
-    @DisplayName("04. Search filters the conversation list")
+    @DisplayName("04. Cancel delete preserves conversation in list")
+    void cancelDeletePreservesConversation() {
+        login("e2e-user", "e2e-password");
+
+        // First, create a conversation by sending a message
+        Locator composer = page.locator("textarea").first();
+        composer.fill("preserve me");
+        page.locator("button[type=submit]").first().click();
+        awaitSidebarContains("preserve me");
+
+        // Count conversations before delete attempt
+        int beforeCount = page.locator("nav button")
+                .filter(new Locator.FilterOptions().setHasText("preserve me"))
+                .count();
+        if (beforeCount == 0) {
+            notes.add("conversation not created for cancel-delete test");
+            return;
+        }
+
+        // Click delete
+        Locator trash = page.locator("button[aria-label*=Delete], button[aria-label*=Удалить]")
+                .first();
+        if (trash.count() == 0) {
+            notes.add("no trash button found");
+            return;
+        }
+        trash.click();
+
+        // Dialog appears — click Cancel / Отмена
+        Locator dialog = page.locator("[role=dialog]").first();
+        assertThat(dialog).isVisible();
+        Locator cancel = dialog.locator("button")
+                .filter(new Locator.FilterOptions().setHasText("Cancel"))
+                .or(dialog.locator("button").filter(new Locator.FilterOptions().setHasText("Отмена")))
+                .first();
+        cancel.click();
+        page.waitForTimeout(300);
+
+        // Conversation should still be in the list
+        int afterCount = page.locator("nav button")
+                .filter(new Locator.FilterOptions().setHasText("preserve me"))
+                .count();
+        if (afterCount < beforeCount) {
+            throw new AssertionError(
+                    "Cancel delete removed conversation: before=" + beforeCount + " after=" + afterCount);
+        }
+        reportLine("- [history] cancel delete preserved conversation");
+    }
+
+    @Test
+    @DisplayName("05. Confirm delete removes conversation from list and backend")
+    void confirmDeleteRemovesConversation() {
+        login("e2e-user", "e2e-password");
+
+        // Create a conversation
+        Locator composer = page.locator("textarea").first();
+        composer.fill("delete me test");
+        page.locator("button[type=submit]").first().click();
+        awaitSidebarContains("delete me test");
+
+        // Find delete button for this conversation
+        Locator trash = page.locator("button[aria-label*=Delete], button[aria-label*=Удалить]")
+                .first();
+        if (trash.count() == 0) {
+            notes.add("no trash button found for confirm-delete test");
+            return;
+        }
+        trash.click();
+
+        // Confirm deletion
+        Locator dialog = page.locator("[role=dialog]").first();
+        assertThat(dialog).isVisible();
+        Locator confirm = dialog.locator("button")
+                .filter(new Locator.FilterOptions().setHasText("Delete"))
+                .or(dialog.locator("button").filter(new Locator.FilterOptions().setHasText("Удалить")))
+                .first();
+        confirm.click();
+        awaitSidebarNotContains("delete me test");
+        reportLine("- [history] confirm delete removed conversation from list");
+    }
+
+    @Test
+    @DisplayName("06. New conversation appears in sidebar after sending message")
+    void newConversationAppearsInSidebarAfterSend() {
+        login("e2e-user", "e2e-password");
+
+        // DB is clean, sidebar should be empty
+        int beforeCount = page.locator("nav button[aria-label]").count();
+
+        // Send a message to create conversation lazily
+        Locator composer = page.locator("textarea").first();
+        composer.fill("sidebar appearance test");
+        page.locator("button[type=submit]").first().click();
+        awaitSidebarContains("sidebar appearance");
+        reportLine("- [history] new conversation appeared in sidebar after send");
+    }
+
+    @Test
+    @DisplayName("07. Search with no results shows empty message")
+    void searchNoResultsShowsEmptyMessage() {
+        login("e2e-user", "e2e-password");
+
+        Locator search = page.locator("input[type=text]").first();
+        if (search.count() == 0 || !search.isVisible()) {
+            notes.add("no search input visible");
+            return;
+        }
+        search.fill("XX_NOTHING_MATCHES_XX");
+        page.waitForTimeout(300);
+
+        // Should show "No matches" / "Ничего не найдено"
+        Locator emptyMsg = page.getByText("No matches")
+                .or(page.getByText("Ничего не найдено"))
+                .or(page.getByText("No conversations"))
+                .or(page.getByText("Диалогов пока нет"))
+                .first();
+        assertThat(emptyMsg).isVisible();
+        reportLine("- [history] search no-results message visible");
+    }
+
+    @Test
+    @DisplayName("08. Search filters the conversation list")
     void searchFiltersList() {
         login("e2e-user", "e2e-password");
         Locator search =

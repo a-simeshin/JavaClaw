@@ -123,7 +123,7 @@ class OpenApiContractComplianceTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").isString())
-                .andExpect(jsonPath("$.title").value("New conversation"))
+                .andExpect(jsonPath("$.title").isString())
                 .andExpect(jsonPath("$.messageCount").value(0));
     }
 

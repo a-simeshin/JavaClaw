@@ -1,5 +1,7 @@
 package ai.javaclaw.e2e.support;
 
+import static org.awaitility.Awaitility.await;
+
 import ai.javaclaw.JavaClawApplication;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -12,6 +14,7 @@ import com.microsoft.playwright.options.ViewportSize;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -348,6 +351,62 @@ public abstract class PlaywrightE2ETestBase {
             }
         }
         return total;
+    }
+
+    // -------------------------------------------------------------------- Awaitility helpers
+
+    /**
+     * Polls until the given CSS selector matches at least one visible element.
+     * Much faster than a fixed {@code waitForTimeout} because it returns as soon
+     * as the condition is met (polls every 200ms, default timeout 10s).
+     */
+    protected void awaitVisible(String cssSelector) {
+        awaitVisible(cssSelector, Duration.ofSeconds(10));
+    }
+
+    /** {@link #awaitVisible(String)} with a custom timeout. */
+    protected void awaitVisible(String cssSelector, Duration timeout) {
+        await().atMost(timeout)
+                .pollInterval(Duration.ofMillis(200))
+                .ignoreExceptions()
+                .until(() -> {
+                    Locator loc = page.locator(cssSelector).first();
+                    return loc.count() > 0 && loc.isVisible();
+                });
+    }
+
+    /**
+     * Polls until the sidebar contains (or no longer contains) text matching
+     * the given substring. Useful after create/delete conversation.
+     */
+    protected void awaitSidebarContains(String text) {
+        awaitSidebarContains(text, Duration.ofSeconds(10));
+    }
+
+    protected void awaitSidebarContains(String text, Duration timeout) {
+        await().atMost(timeout)
+                .pollInterval(Duration.ofMillis(200))
+                .ignoreExceptions()
+                .until(() -> page.locator("nav").innerText().contains(text));
+    }
+
+    protected void awaitSidebarNotContains(String text) {
+        awaitSidebarNotContains(text, Duration.ofSeconds(10));
+    }
+
+    protected void awaitSidebarNotContains(String text, Duration timeout) {
+        await().atMost(timeout)
+                .pollInterval(Duration.ofMillis(200))
+                .ignoreExceptions()
+                .until(() -> !page.locator("nav").innerText().contains(text));
+    }
+
+    /**
+     * Polls until a network request matching the URL pattern has been captured.
+     * Replaces {@code waitForTimeout(6_000)} after send-message actions.
+     */
+    protected void awaitNetworkRequest(List<?> requests, int minCount, Duration timeout) {
+        await().atMost(timeout).pollInterval(Duration.ofMillis(200)).until(() -> requests.size() >= minCount);
     }
 
     /** Collects all data captured by helpers for reporting. */

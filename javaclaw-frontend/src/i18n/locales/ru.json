@@ -1,14 +1,22 @@
 {
-  "app": {
-    "name": "JavaClaw",
-    "console": "Консоль"
-  },
   "nav": {
     "chat": "Чат",
     "overview": "Обзор",
     "admin": "Админ",
     "settings": "Настройки",
-    "history": "История"
+    "history": "История",
+    "skills": "Навыки",
+    "mcp": "MCP",
+    "prompts": "Промпты",
+    "logs": "Логи",
+    "cron": "Планировщик",
+    "config": "Конфигурация",
+    "conversations": "Диалоги",
+    "section": {
+      "navigation": "Навигация",
+      "admin": "Админ",
+      "ops": "Операции"
+    }
   },
   "actions": {
     "send": "Отправить",
@@ -29,7 +37,12 @@
     "placeholder": "Сообщение для JavaClaw",
     "empty": {
       "title": "Начните диалог",
-      "description": "Отправьте сообщение, чтобы начать. Ответы приходят потоком."
+      "description": "Отправьте сообщение, чтобы начать. Ответы приходят потоком.",
+      "suggest": {
+        "status": "Показать состояние бэкенда и последнюю активность",
+        "skills": "Список доступных навыков и MCP-серверов",
+        "logs": "Показать последние 20 записей ошибок в логах"
+      }
     },
     "typing": "Обработка",
     "assistant": "Ассистент",
@@ -77,6 +90,41 @@
   "language": {
     "en": "Английский",
     "ru": "Русский"
+  },
+  "app": {
+    "name": "JavaClaw",
+    "console": "Консоль",
+    "service": {
+      "name": "javaclaw"
+    },
+    "status": {
+      "checking": "Проверка…",
+      "running": "Работает",
+      "offline": "Недоступен",
+      "down": "Остановлен",
+      "degraded": "Ограничен"
+    }
+  },
+  "overview": {
+    "title": "Обзор",
+    "subtitle": "Состояние системы",
+    "health": "Здоровье",
+    "connection": "Подключение",
+    "online": "В сети",
+    "offline": "Не в сети",
+    "skills": "Навыки",
+    "enabled": "включено",
+    "conversations": "Диалоги",
+    "active": "активных",
+    "components": "компонентов",
+    "checking": "проверка…",
+    "systemInfo": "Информация о системе",
+    "quickActions": "Быстрые действия",
+    "openChat": "Открыть чат",
+    "manageSkills": "Управление навыками",
+    "viewLogs": "Просмотр логов",
+    "recentActivity": "Последняя активность",
+    "noRecentEvents": "Нет недавних событий."
   },
   "errors": {
     "unknown": "Что-то пошло не так",

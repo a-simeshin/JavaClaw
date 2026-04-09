@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -40,7 +41,7 @@ class ChannelContextServiceTest {
         service.saveContext("telegram-42", "TelegramChannel", Map.of("chatId", "42"));
 
         verify(jdbcTemplate)
-                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), anyString(), any(Instant.class));
+                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), anyString(), any(Timestamp.class));
     }
 
     @Test
@@ -48,7 +49,7 @@ class ChannelContextServiceTest {
         service.saveContext("telegram-42", "TelegramChannel", null);
 
         verify(jdbcTemplate)
-                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), eq("{}"), any(Instant.class));
+                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), eq("{}"), any(Timestamp.class));
     }
 
     @Test

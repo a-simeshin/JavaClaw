@@ -41,7 +41,9 @@ class ThemeAndI18nE2ETest extends PlaywrightE2ETestBase {
     void languageDropdownSwitches() {
         login("e2e-user", "e2e-password");
 
-        Locator langBtn = page.locator("button[aria-label=Language], button[aria-label*=language]")
+        // Language button aria-label changes with locale (Language / Язык)
+        Locator langBtn = page.locator(
+                        "button[aria-label=Language], button[aria-label*=language], button[aria-label*='Язык']")
                 .first();
         if (langBtn.count() == 0 || !langBtn.isVisible()) {
             notes.add("language button missing");
@@ -49,19 +51,29 @@ class ThemeAndI18nE2ETest extends PlaywrightE2ETestBase {
         }
         langBtn.click();
         page.waitForTimeout(200);
-        Locator ruOption = page.locator("[role=menuitem]:has-text(\"Russian\"), :text(\"Русский\")")
+        Locator ruOption = page.locator("[role=menuitem]")
+                .filter(new Locator.FilterOptions().setHasText("Russian"))
+                .or(page.locator("[role=menuitem]").filter(new Locator.FilterOptions().setHasText("Русский")))
                 .first();
         if (ruOption.count() > 0) {
             ruOption.click();
             page.waitForTimeout(200);
             Object stored = page.evaluate("() => window.localStorage.getItem('i18nextLng')");
             reportLine("- [i18n] switched to RU, stored=" + stored);
-            // switch back
-            langBtn.click();
-            page.waitForTimeout(100);
-            Locator enOption =
-                    page.locator("[role=menuitem]:has-text(\"English\")").first();
-            if (enOption.count() > 0) enOption.click();
+            // After switching to RU, the button label changes — re-locate it
+            Locator langBtnRu = page.locator(
+                            "button[aria-label*='Язык'], button[aria-label=Language], button[aria-label*=language]")
+                    .first();
+            if (langBtnRu.count() > 0 && langBtnRu.isVisible()) {
+                langBtnRu.click();
+                page.waitForTimeout(100);
+                Locator enOption = page.locator("[role=menuitem]")
+                        .filter(new Locator.FilterOptions().setHasText("English"))
+                        .or(page.locator("[role=menuitem]")
+                                .filter(new Locator.FilterOptions().setHasText("Английский")))
+                        .first();
+                if (enOption.count() > 0) enOption.click();
+            }
         } else {
             notes.add("russian menu option missing");
         }

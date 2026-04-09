@@ -1,14 +1,57 @@
 {
   "app": {
     "name": "JavaClaw",
-    "console": "Console"
+    "console": "Console",
+    "service": {
+      "name": "javaclaw"
+    },
+    "status": {
+      "checking": "Checking…",
+      "running": "Running",
+      "offline": "Offline",
+      "down": "Down",
+      "degraded": "Degraded"
+    }
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "System state at a glance",
+    "health": "Health",
+    "connection": "Connection",
+    "online": "Online",
+    "offline": "Offline",
+    "skills": "Skills",
+    "enabled": "enabled",
+    "conversations": "Conversations",
+    "active": "active",
+    "components": "components",
+    "checking": "checking…",
+    "systemInfo": "System info",
+    "quickActions": "Quick actions",
+    "openChat": "Open chat",
+    "manageSkills": "Manage skills",
+    "viewLogs": "View logs",
+    "recentActivity": "Recent activity",
+    "noRecentEvents": "No recent events."
   },
   "nav": {
     "chat": "Chat",
     "overview": "Overview",
     "admin": "Admin",
     "settings": "Settings",
-    "history": "History"
+    "history": "History",
+    "skills": "Skills",
+    "mcp": "MCP",
+    "prompts": "Prompts",
+    "logs": "Logs",
+    "cron": "Cron",
+    "config": "Config",
+    "conversations": "Conversations",
+    "section": {
+      "navigation": "Navigation",
+      "admin": "Admin",
+      "ops": "Operations"
+    }
   },
   "actions": {
     "send": "Send",
@@ -29,7 +72,12 @@
     "placeholder": "Message JavaClaw",
     "empty": {
       "title": "Start a conversation",
-      "description": "Send a message to begin. Responses stream in real time."
+      "description": "Send a message to begin. Responses stream in real time.",
+      "suggest": {
+        "status": "Show backend health and recent activity",
+        "skills": "List available skills and MCP servers",
+        "logs": "Tail the last 20 error log entries"
+      }
     },
     "typing": "Thinking",
     "assistant": "Assistant",

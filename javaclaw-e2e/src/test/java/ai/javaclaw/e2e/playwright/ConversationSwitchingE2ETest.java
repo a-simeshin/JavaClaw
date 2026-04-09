@@ -43,7 +43,7 @@ class ConversationSwitchingE2ETest extends PlaywrightE2ETestBase {
         if (optionCount > 1) {
             String secondConvId = options.nth(1).getAttribute("value");
             page.locator("#channel-select").selectOption(secondConvId);
-            page.waitForTimeout(1_000);
+            page.waitForLoadState();
 
             Locator allBubbles = page.locator("article.ar-msg--user .ar-msg__bubble");
             boolean foundWebMessage = false;
@@ -57,7 +57,7 @@ class ConversationSwitchingE2ETest extends PlaywrightE2ETestBase {
                     foundWebMessage, "Web conversation message should not appear in a different conversation");
 
             page.locator("#channel-select").selectOption("web");
-            page.waitForTimeout(1_000);
+            page.waitForLoadState();
 
             Locator webBubbles = page.locator("article.ar-msg--user .ar-msg__bubble");
             boolean foundAfterSwitch = false;

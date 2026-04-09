@@ -5,6 +5,7 @@ import {
   IconMessage,
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useTranslation } from "react-i18next"
 
 import { useHealth, useInfo } from "@/api/config"
 import { useSkills } from "@/api/skills"
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/overview")({
 })
 
 function OverviewPage() {
+  const { t } = useTranslation()
   const health = useHealth()
   const info = useInfo()
   const skills = useSkills()
@@ -47,38 +49,38 @@ function OverviewPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <PageHeader
-        title="Overview"
-        subtitle="System state at a glance"
+        title={t("overview.title")}
+        subtitle={t("overview.subtitle")}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Health"
+          label={t("overview.health")}
           value={healthStatus}
           tone={healthTone}
           icon={IconHeartRateMonitor}
           hint={
             health.isLoading
-              ? "checking…"
-              : `${Object.keys(components).length} components`
+              ? t("overview.checking")
+              : `${Object.keys(components).length} ${t("overview.components")}`
           }
         />
         <StatCard
-          label="Connection"
-          value={health.isError ? "Offline" : "Online"}
+          label={t("overview.connection")}
+          value={health.isError ? t("overview.offline") : t("overview.online")}
           tone={health.isError ? "error" : "ok"}
           icon={IconActivity}
         />
         <StatCard
-          label="Skills"
+          label={t("overview.skills")}
           value={skillsCount}
-          hint={`${enabledSkills} enabled`}
+          hint={`${enabledSkills} ${t("overview.enabled")}`}
           icon={IconBoltFilled}
         />
         <StatCard
-          label="Conversations"
+          label={t("overview.conversations")}
           value="—"
-          hint="active"
+          hint={t("overview.active")}
           icon={IconMessage}
         />
       </div>
@@ -86,7 +88,7 @@ function OverviewPage() {
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-md border border-border bg-card p-4 lg:col-span-2">
           <h2 className="mb-3 font-mono text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-muted-foreground">
-            System info
+            {t("overview.systemInfo")}
           </h2>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px]">
             <div className="flex items-center justify-between">
@@ -118,17 +120,17 @@ function OverviewPage() {
 
         <div className="rounded-md border border-border bg-card p-4">
           <h2 className="mb-3 font-mono text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-muted-foreground">
-            Quick actions
+            {t("overview.quickActions")}
           </h2>
           <div className="flex flex-col gap-2">
             <Button asChild variant="outline" size="sm" className="justify-start">
-              <Link to="/chat">Open chat</Link>
+              <Link to="/chat">{t("overview.openChat")}</Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="justify-start">
-              <Link to="/admin/skills">Manage skills</Link>
+              <Link to="/admin/skills">{t("overview.manageSkills")}</Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="justify-start">
-              <Link to="/logs">View logs</Link>
+              <Link to="/logs">{t("overview.viewLogs")}</Link>
             </Button>
           </div>
         </div>
@@ -136,10 +138,10 @@ function OverviewPage() {
 
       <section className="rounded-md border border-border bg-card p-4">
         <h2 className="mb-3 font-mono text-[10px] font-semibold uppercase leading-tight tracking-[0.12em] text-muted-foreground">
-          Recent activity
+          {t("overview.recentActivity")}
         </h2>
         <p className="text-[12px] text-muted-foreground">
-          No recent events.
+          {t("overview.noRecentEvents")}
         </p>
       </section>
     </div>

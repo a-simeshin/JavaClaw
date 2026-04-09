@@ -12,6 +12,7 @@ import com.microsoft.playwright.options.LoadState;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -233,8 +234,12 @@ class ChatFlowE2ETest extends PlaywrightE2ETestBase {
             }
         }
 
-        // Allow up to 6 s for network to fire
-        page.waitForTimeout(6_000);
+        // Wait for network request instead of fixed sleep (graceful — may not fire without LLM)
+        try {
+            awaitNetworkRequest(chatRequests, 1, Duration.ofSeconds(6));
+        } catch (org.awaitility.core.ConditionTimeoutException ignored) {
+            // Expected when LLM is not configured
+        }
 
         if (!chatRequests.isEmpty()) {
             Request req = chatRequests.get(0);

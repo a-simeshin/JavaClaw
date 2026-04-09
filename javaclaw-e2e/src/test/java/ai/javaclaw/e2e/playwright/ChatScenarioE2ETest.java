@@ -241,16 +241,121 @@ class ChatScenarioE2ETest extends PlaywrightE2ETestBase {
     }
 
     @Test
-    @DisplayName("07. Send button becomes Stop button while streaming")
+    @DisplayName("07a. Empty state shows suggestion buttons that fill composer")
+    void emptyStateSuggestionButtonsFillComposer() {
+        login("e2e-user", "e2e-password");
+
+        // Empty state suggestions should be visible
+        Locator suggestions = page.locator("main button").filter(new Locator.FilterOptions().setHasText("health"));
+        if (suggestions.count() == 0) {
+            // Try localized variant
+            suggestions = page.locator("main button").filter(new Locator.FilterOptions().setHasText("backend"));
+        }
+        if (suggestions.count() == 0) {
+            notes.add("no suggestion buttons found in empty state");
+            return;
+        }
+        String buttonText = suggestions.first().innerText().trim();
+        suggestions.first().click();
+
+        // Composer should be filled with the suggestion text
+        Locator composer = page.locator("textarea").first();
+        String composerValue = (String) composer.evaluate("el => el.value");
+        if (composerValue == null || composerValue.isBlank()) {
+            throw new AssertionError("Suggestion click did not fill composer");
+        }
+
+        // Send button should now be enabled
+        Locator sendBtn = page.locator("button[type=submit]").first();
+        assertThat(sendBtn).isEnabled();
+
+        reportLine("- [chat] suggestion button filled composer with: "
+                + composerValue.substring(0, Math.min(40, composerValue.length())));
+    }
+
+    @Test
+    @DisplayName("07b. Assistant message shows ASSISTANT label and timestamp")
+    @Tag("requires-backend")
+    @EnabledIfEnvironmentVariable(named = "OPENROUTER_API_KEY", matches = ".+")
+    void assistantMessageShowsLabelAndTimestamp() {
+        login("e2e-user", "e2e-password");
+
+        page.locator("textarea").first().fill("say hi");
+        page.locator("button[type=submit]").first().click();
+
+        // Wait for assistant response
+        page.waitForSelector("[data-role=assistant]", new Page.WaitForSelectorOptions().setTimeout(60_000));
+
+        // ASSISTANT label should appear (uppercase mono)
+        Locator label =
+                page.getByText("ASSISTANT").or(page.getByText("АССИСТЕНТ")).first();
+        assertThat(label).isVisible();
+
+        // Timestamp in HH:MM format should be visible near the label
+        Locator timeText = page.locator("text=/\\d{2}:\\d{2}/").first();
+        if (timeText.count() > 0) {
+            assertThat(timeText).isVisible();
+            reportLine("- [chat] assistant label and timestamp visible");
+        } else {
+            notes.add("timestamp not found near assistant label");
+        }
+    }
+
+    @Test
+    @DisplayName("07c. User menu dropdown contains Sign Out option")
+    void userMenuContainsSignOut() {
+        login("e2e-user", "e2e-password");
+
+        Locator userMenuBtn = page.locator("button[aria-label*='User menu'], button[aria-label*='Меню пользователя']")
+                .first();
+        if (userMenuBtn.count() == 0 || !userMenuBtn.isVisible()) {
+            notes.add("user menu button not found");
+            return;
+        }
+        userMenuBtn.click();
+
+        // Menu should contain Sign out / Выйти
+        Locator signOut = page.getByText("Sign out").or(page.getByText("Выйти")).first();
+        assertThat(signOut).isVisible();
+
+        // Close menu
+        page.keyboard().press("Escape");
+        reportLine("- [shell] user menu contains sign out option");
+    }
+
+    @Test
+    @DisplayName("07d. Sidebar footer shows service status indicator")
+    void sidebarFooterShowsServiceStatus() {
+        login("e2e-user", "e2e-password");
+
+        // Footer should show "Running" / "Работает" status text
+        Locator status =
+                page.getByText("Running").or(page.getByText("Работает")).first();
+        if (status.count() == 0 || !status.isVisible()) {
+            notes.add("service status not visible in sidebar footer");
+            return;
+        }
+        assertThat(status).isVisible();
+
+        // Green dot indicator should exist nearby
+        Locator dot = page.locator(".bg-success-bright, .bg-success").first();
+        if (dot.count() > 0) {
+            reportLine("- [shell] sidebar footer shows Running status with green dot");
+        } else {
+            reportLine("- [shell] sidebar footer shows Running status (no green dot found)");
+        }
+    }
+
+    @Test
+    @DisplayName("08. Send button becomes Stop button while streaming")
     void stopButtonReplacesSendDuringStreaming() {
         // Without a live LLM this is hard to trigger deterministically; verify the CSS
         // layout of both buttons renders with correct aria-labels when simulated.
         loginViaStorage("e2e-user", "e2e-password");
         navigateTo("/chat");
-        // Both labels present in i18n catalog (Stop streaming / Send)
-        // Smoke: verify composer has an action button with aria-label Send by default
-        Locator send = page.locator("button[aria-label=Send]").first();
+        // Smoke: verify composer has a submit button (Send / Отправить)
+        Locator send = page.locator("button[type=submit]").first();
         assertThat(send).isVisible();
-        reportLine("- [chat] send button present with aria-label Send");
+        reportLine("- [chat] send button present as button[type=submit]");
     }
 }

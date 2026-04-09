@@ -6,11 +6,13 @@ import ai.javaclaw.api.chat.controller.dto.MessageDto;
 import ai.javaclaw.api.chat.controller.dto.PageResponse;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
+import ai.javaclaw.conversations.ConversationRepository;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
  * first user message is used as a display-time fallback for an unset title.
  */
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/conversations")
 public class ConversationController {
 
@@ -41,15 +44,7 @@ public class ConversationController {
     private final ChatMemoryRepository chatMemoryRepository;
     private final ConversationEnsurer conversationEnsurer;
     private final ConversationQueryService queryService;
-
-    public ConversationController(
-            final ChatMemoryRepository chatMemoryRepository,
-            final ConversationEnsurer conversationEnsurer,
-            final ConversationQueryService queryService) {
-        this.chatMemoryRepository = chatMemoryRepository;
-        this.conversationEnsurer = conversationEnsurer;
-        this.queryService = queryService;
-    }
+    private final ConversationRepository conversationRepository;
 
     @GetMapping
     public PageResponse<ConversationDto> list(
@@ -102,6 +97,7 @@ public class ConversationController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable final String id) {
         chatMemoryRepository.deleteByConversationId(id);
+        conversationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
