@@ -5,3 +5,4 @@ dist
 *.local
 coverage
 src/routeTree.gen.ts
+.claude/data/sessions/
