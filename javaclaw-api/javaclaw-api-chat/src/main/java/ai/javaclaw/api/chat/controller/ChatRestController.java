@@ -49,7 +49,7 @@ public class ChatRestController {
         final String userId = userResolver.resolveUserId(principal.getName());
         conversationEnsurer.ensureExistsForUser(conversationId, userId);
         conversationEnsurer.touch(conversationId, request.content());
-        streamingService.stream(emitter, conversationId, request.content());
+        streamingService.stream(emitter, conversationId, userId, request.content());
         return ResponseEntity.ok()
                 .header(VERCEL_STREAM_HEADER, VERCEL_STREAM_VERSION)
                 .header("x-conversation-id", conversationId)

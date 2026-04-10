@@ -581,9 +581,12 @@
 
 ## PHASE 8: P1 — Расширение агента
 
-### 8.1 SOUL.md per-user (3.4c)
+### 8.1 SOUL.md per-user (3.4c) ✅
 
-- USER_SOUL.md в virtual filesystem
+- [x] SystemPromptProvider.loadIdentity(userId) — загружает global AGENT.md + SOUL.md, затем per-user USER_AGENT.md + USER_SOUL.md
+- [x] userId протянут через весь pipeline: ChatRestController → SseStreamingService → ChatService → MessageAssembler → SystemPromptProvider
+- [x] Backward-compatible: существующие no-userId методы делегируют с null (global-only)
+- [x] 4 новых теста в SystemPromptProviderTest: per-user append, missing user files, null userId, DB error graceful skip
 
 ### 8.2 Steering / interruption (3.8)
 

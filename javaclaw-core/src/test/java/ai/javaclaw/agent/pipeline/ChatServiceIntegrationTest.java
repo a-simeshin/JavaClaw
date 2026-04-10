@@ -113,7 +113,7 @@ class ChatServiceIntegrationTest {
         skillRepository = mock(SkillRepository.class);
         toolCallbackResolver = mock(ToolCallbackResolver.class);
 
-        when(systemPromptProvider.loadIdentity()).thenReturn(IDENTITY_PROMPT);
+        when(systemPromptProvider.loadIdentity(null)).thenReturn(IDENTITY_PROMPT);
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(skillRepository.findAllByOwnerIdIsNullAndEnabledTrue()).thenReturn(List.of());
         when(toolCallbackResolver.resolve()).thenReturn(List.of());

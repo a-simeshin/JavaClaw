@@ -75,7 +75,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("assemble(): system message is first in toMessageList()")
     void assemble_systemMessageIsFirst() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("I am an agent.");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("I am an agent.");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
@@ -90,7 +90,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("assemble(): SystemMessage from history is filtered out")
     void assemble_systemMessageFilteredFromHistory() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID))
@@ -110,7 +110,7 @@ class MessageAssemblerTest {
     @DisplayName("assemble(): empty skills section is not included in system prompt")
     void assemble_emptySkillsSectionSkipped() {
         final String identity = "I am an agent.";
-        when(systemPromptProvider.loadIdentity()).thenReturn(identity);
+        when(systemPromptProvider.loadIdentity(null)).thenReturn(identity);
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
@@ -124,7 +124,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("assemble(): all 4 sections appear when all providers return content")
     void assemble_allFourSectionsPresent() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("IDENTITY");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("IDENTITY");
         when(systemPromptProvider.loadContext()).thenReturn("CONTEXT");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("SKILLS");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
@@ -141,7 +141,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("assemble(): empty history → only system + user in toMessageList()")
     void assemble_emptyHistory_onlySystemAndUser() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
@@ -158,7 +158,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("toMessageList(): order is [system, history..., user]")
     void toMessageList_correctOrder() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
 
@@ -183,7 +183,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("toMessageList(): returns unmodifiable list")
     void toMessageList_returnsUnmodifiableList() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
@@ -208,7 +208,7 @@ class MessageAssemblerTest {
         //    short "question N / answer N" messages — each ~3 tokens — are trimmed).
         final TokenEstimator tokenEstimator = new TokenEstimator();
 
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
 
@@ -249,7 +249,7 @@ class MessageAssemblerTest {
     @Test
     @DisplayName("assemble(): reads history from chatMemoryRepository, not chatMemory")
     void assemble_readsFromRepository_notChatMemory() {
-        when(systemPromptProvider.loadIdentity()).thenReturn("Identity");
+        when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());

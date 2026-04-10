@@ -9,6 +9,7 @@ import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -118,10 +119,23 @@ public class MessageAssembler {
      * @return assembled prompt containing the system message, filtered history, and user message
      */
     public AssembledPrompt assemble(final String conversationId, final String userContent) {
+        return assemble(conversationId, null, userContent);
+    }
+
+    /**
+     * Assembles an {@link AssembledPrompt} with per-user prompt support.
+     *
+     * @param conversationId identifier of the conversation, must not be blank
+     * @param userId         user id for per-user prompt files, or {@code null} for global-only
+     * @param userContent    content of the current user message, must not be blank
+     * @return assembled prompt containing the system message, filtered history, and user message
+     */
+    public AssembledPrompt assemble(
+            final String conversationId, @Nullable final String userId, final String userContent) {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
 
-        final SystemMessage systemMessage = buildSystemMessage();
+        final SystemMessage systemMessage = buildSystemMessage(userId);
         final int systemTokens = tokenEstimator.estimate(systemMessage);
         final TokenBudget budget = budgetProperties.toBudget().withSystemTokens(systemTokens);
 
@@ -140,10 +154,10 @@ public class MessageAssembler {
      *
      * @return system message containing all available prompt sections
      */
-    private SystemMessage buildSystemMessage() {
+    private SystemMessage buildSystemMessage(@Nullable final String userId) {
         final List<String> sections = new ArrayList<>(4);
 
-        final String identity = systemPromptProvider.loadIdentity();
+        final String identity = systemPromptProvider.loadIdentity(userId);
         if (identity != null && !identity.isBlank()) {
             sections.add(identity);
         }

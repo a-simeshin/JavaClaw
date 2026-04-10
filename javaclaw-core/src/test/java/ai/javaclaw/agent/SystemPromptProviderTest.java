@@ -93,6 +93,79 @@ class SystemPromptProviderTest {
         assertThat(result).doesNotContain("AGENT.md");
     }
 
+    // -------------------------------------------------------------------------
+    // Per-user identity tests (8.1 SOUL.md per-user)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void loadIdentity_withUserId_appendsUserFiles() {
+        final String userId = "user-123";
+        when(repositoryMock.findByOwnerIdIsNullAndPath("AGENT.md"))
+                .thenReturn(Optional.of(VirtualFile.newGlobalFile("AGENT.md", "Global agent.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdIsNullAndPath("SOUL.md"))
+                .thenReturn(Optional.of(VirtualFile.newGlobalFile("SOUL.md", "Global soul.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_AGENT.md"))
+                .thenReturn(
+                        Optional.of(VirtualFile.newUserFile(userId, "USER_AGENT.md", "User agent.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_SOUL.md"))
+                .thenReturn(
+                        Optional.of(VirtualFile.newUserFile(userId, "USER_SOUL.md", "User soul.", "text/markdown")));
+
+        final String result = provider.loadIdentity(userId);
+
+        assertThat(result).contains("Global agent.");
+        assertThat(result).contains("Global soul.");
+        assertThat(result).contains("User agent.");
+        assertThat(result).contains("User soul.");
+        // Order: global first, then per-user
+        assertThat(result.indexOf("Global agent.")).isLessThan(result.indexOf("User agent."));
+        assertThat(result.indexOf("Global soul.")).isLessThan(result.indexOf("User soul."));
+    }
+
+    @Test
+    void loadIdentity_withUserId_missingUserFiles_returnsGlobalOnly() {
+        final String userId = "user-456";
+        when(repositoryMock.findByOwnerIdIsNullAndPath("AGENT.md"))
+                .thenReturn(Optional.of(VirtualFile.newGlobalFile("AGENT.md", "Global agent.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdIsNullAndPath("SOUL.md")).thenReturn(Optional.empty());
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_AGENT.md")).thenReturn(Optional.empty());
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_SOUL.md")).thenReturn(Optional.empty());
+
+        final String result = provider.loadIdentity(userId);
+
+        assertThat(result).contains("Global agent.");
+        assertThat(result).doesNotContain("User");
+    }
+
+    @Test
+    void loadIdentity_nullUserId_skipsUserFiles() {
+        when(repositoryMock.findByOwnerIdIsNullAndPath("AGENT.md"))
+                .thenReturn(Optional.of(VirtualFile.newGlobalFile("AGENT.md", "Global agent.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdIsNullAndPath("SOUL.md")).thenReturn(Optional.empty());
+
+        final String result = provider.loadIdentity(null);
+
+        assertThat(result).contains("Global agent.");
+        // No per-user repository calls should have been made
+    }
+
+    @Test
+    void loadIdentity_userFileDbError_skipsGracefully() {
+        final String userId = "user-789";
+        when(repositoryMock.findByOwnerIdIsNullAndPath("AGENT.md"))
+                .thenReturn(Optional.of(VirtualFile.newGlobalFile("AGENT.md", "Global agent.", "text/markdown")));
+        when(repositoryMock.findByOwnerIdIsNullAndPath("SOUL.md")).thenReturn(Optional.empty());
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_AGENT.md")).thenThrow(new RuntimeException("DB error"));
+        when(repositoryMock.findByOwnerIdAndPath(userId, "USER_SOUL.md"))
+                .thenReturn(
+                        Optional.of(VirtualFile.newUserFile(userId, "USER_SOUL.md", "User soul.", "text/markdown")));
+
+        final String result = provider.loadIdentity(userId);
+
+        assertThat(result).contains("Global agent.");
+        assertThat(result).contains("User soul.");
+    }
+
     @Test
     void load_filesOrderedAgentThenSoulThenInfo() {
         final VirtualFile agentMd = VirtualFile.newGlobalFile("AGENT.md", "FIRST", "text/markdown");

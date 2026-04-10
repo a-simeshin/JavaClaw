@@ -125,6 +125,22 @@ public class SseStreamingService {
      * @param userContent сообщение пользователя
      */
     public void stream(final ResponseBodyEmitter emitter, final String conversationId, final String userContent) {
+        stream(emitter, conversationId, null, userContent);
+    }
+
+    /**
+     * Streams the agent's response with per-user prompt support.
+     *
+     * @param emitter цель для записи SSE-событий
+     * @param conversationId идентификатор разговора
+     * @param userId идентификатор пользователя для per-user промптов, может быть null
+     * @param userContent сообщение пользователя
+     */
+    public void stream(
+            final ResponseBodyEmitter emitter,
+            final String conversationId,
+            final String userId,
+            final String userContent) {
         final Object lock = new Object();
         final ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(
                 () -> sendHeartbeat(emitter, lock),
@@ -135,7 +151,7 @@ public class SseStreamingService {
         emitter.onTimeout(() -> heartbeat.cancel(false));
         emitter.onError(ex -> heartbeat.cancel(false));
 
-        streamExecutor.execute(() -> runStream(emitter, lock, conversationId, userContent));
+        streamExecutor.execute(() -> runStream(emitter, lock, conversationId, userId, userContent));
     }
 
     /**
@@ -150,6 +166,7 @@ public class SseStreamingService {
             final ResponseBodyEmitter emitter,
             final Object lock,
             final String conversationId,
+            final String userId,
             final String userContent) {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
@@ -166,7 +183,7 @@ public class SseStreamingService {
                     lock,
                     VercelSseEvent.TextStart.builder().id(textBlockId).build());
 
-            chatService.stream(conversationId, userContent)
+            chatService.stream(conversationId, userId, userContent)
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(text -> text != null && !text.isEmpty())
                     .doOnNext(delta -> trySendEvent(

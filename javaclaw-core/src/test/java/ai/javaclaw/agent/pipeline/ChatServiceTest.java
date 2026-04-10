@@ -102,7 +102,8 @@ class ChatServiceTest {
     @DisplayName("stream(): SystemMessage идёт первым в Prompt")
     void stream_systemMessageIsFirst() {
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
 
         final ArgumentCaptor<Prompt> promptCaptor = ArgumentCaptor.forClass(Prompt.class);
@@ -129,7 +130,7 @@ class ChatServiceTest {
                 List.of(historyUser, historyAssistant),
                 new UserMessage(USER_CONTENT));
 
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(assembled);
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT)).thenReturn(assembled);
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
 
@@ -152,7 +153,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("stream(): пользовательское сообщение персистируется до начала стриминга")
     void stream_userMessagePersistedBeforeStreaming() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
 
@@ -173,7 +175,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("stream(): ассистентское сообщение персистируется после завершения стрима")
     void stream_assistantMessagePersistedAfterStreamComplete() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
 
@@ -193,7 +196,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("stream(): fallback на call() если ChatModel выбрасывает UnsupportedOperationException")
     void stream_fallbackToCallWhenStreamingUnsupported() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         when(chatModel.stream(any(Prompt.class)))
                 .thenThrow(new UnsupportedOperationException("streaming not supported"));
         final ChatResponse fallbackResponse = buildChatResponse(ASSISTANT_REPLY);
@@ -217,7 +221,7 @@ class ChatServiceTest {
                 List.of(historyUser, historyAssistant),
                 new UserMessage(USER_CONTENT));
 
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(assembled);
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT)).thenReturn(assembled);
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
 
@@ -246,7 +250,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("call(): возвращает текст ответа ассистента")
     void call_returnsAssistantText() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         when(chatModel.call(any(Prompt.class))).thenReturn(buildChatResponse(ASSISTANT_REPLY));
 
         final String result = chatService.call(CONVERSATION_ID, USER_CONTENT);
@@ -257,7 +262,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("call(): персистирует и user, и assistant сообщения")
     void call_persistsBothMessages() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         when(chatModel.call(any(Prompt.class))).thenReturn(buildChatResponse(ASSISTANT_REPLY));
 
         chatService.call(CONVERSATION_ID, USER_CONTENT);
@@ -276,7 +282,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("call(): SystemMessage первым в Prompt")
     void call_systemMessageIsFirst() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         when(chatModel.call(any(Prompt.class))).thenReturn(buildChatResponse(ASSISTANT_REPLY));
 
         chatService.call(CONVERSATION_ID, USER_CONTENT);
@@ -291,7 +298,8 @@ class ChatServiceTest {
     @Test
     @DisplayName("call(): пустой ответ LLM не вызывает ошибку")
     void call_emptyResponseHandledGracefully() {
-        when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT)).thenReturn(buildAssembledPrompt(USER_CONTENT));
+        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
+                .thenReturn(buildAssembledPrompt(USER_CONTENT));
         final ChatResponse emptyResponse = new ChatResponse(List.of(new Generation(new AssistantMessage(""))));
         when(chatModel.call(any(Prompt.class))).thenReturn(emptyResponse);
 
@@ -310,8 +318,8 @@ class ChatServiceTest {
     @DisplayName("call(resultType): добавляет format instructions к userContent")
     void callWithResultType_addsFormatInstructions() {
         // BeanOutputConverter appends format instructions to userContent; assembler is called with enriched content
-        when(messageAssembler.assemble(eq(CONVERSATION_ID), anyString())).thenAnswer(inv -> {
-            final String content = inv.getArgument(1);
+        when(messageAssembler.assemble(eq(CONVERSATION_ID), any(), anyString())).thenAnswer(inv -> {
+            final String content = inv.getArgument(2);
             return new AssembledPrompt(new SystemMessage(SYSTEM_PROMPT), List.of(), new UserMessage(content));
         });
         // Возвращаем валидный JSON для SimpleDto
@@ -388,7 +396,7 @@ class ChatServiceTest {
         @DisplayName("stream(): no pending approval → normal chat flow (T17)")
         void stream_noPendingApprovalProceedsNormally() {
             when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(false);
-            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+            when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
                     .thenReturn(buildAssembledPrompt(USER_CONTENT));
             when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
 
@@ -404,7 +412,7 @@ class ChatServiceTest {
         @DisplayName("call(): no pending approval → normal chat flow (T17)")
         void call_noPendingApprovalProceedsNormally() {
             when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(false);
-            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+            when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
                     .thenReturn(buildAssembledPrompt(USER_CONTENT));
             when(chatModel.call(any(Prompt.class))).thenReturn(buildChatResponse(ASSISTANT_REPLY));
 
@@ -419,7 +427,7 @@ class ChatServiceTest {
         @DisplayName("stream(): approvalService is null → normal chat flow")
         void stream_nullApprovalServiceProceedsNormally() {
             // chatService (from parent setUp) has null approvalService
-            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+            when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
                     .thenReturn(buildAssembledPrompt(USER_CONTENT));
             when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
 
