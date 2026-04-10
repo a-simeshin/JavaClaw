@@ -121,6 +121,7 @@ class ChatServiceIntegrationTest {
         when(chatMemoryRepository.findByConversationId(any())).thenReturn(List.of());
 
         final ConversationSummaryService summaryService = mock(ConversationSummaryService.class);
+        final FewShotExamplesProvider fewShotExamplesProvider = mock(FewShotExamplesProvider.class);
         final ActiveSkillsProvider skillsProvider = new ActiveSkillsProvider(skillRepository);
         final MessageAssembler assembler = new MessageAssembler(
                 systemPromptProvider,
@@ -131,7 +132,8 @@ class ChatServiceIntegrationTest {
                 windower,
                 budgetProperties,
                 tokenEstimator,
-                summaryService);
+                summaryService,
+                fewShotExamplesProvider);
 
         chatAuditService = mock(ai.javaclaw.agent.audit.ChatAuditService.class);
         chatService = new ChatService(chatModel, chatMemory, assembler, toolCallbackResolver, chatAuditService);

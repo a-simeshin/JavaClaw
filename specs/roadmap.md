@@ -605,10 +605,13 @@
 - [x] MessageAssembler: инъекция existing summary в system prompt ("# Previous Conversation Summary"), trigger суммаризации при dropped turns
 - [x] 7 новых тестов: ConversationSummaryServiceTest (5), TurnBoundaryWindowerTest (2)
 
-### 8.4 FewShotExamples (3.2a)
+### 8.4 FewShotExamples (3.2a) ✅
 
-- Per-tool примеры в конфиге
-- Инъекция в промпт при вызове tool calling
+- [x] V25 миграция: tool_examples таблица (tool_name, owner_id, example_order, user_message, assistant_message, tool_call, tool_result)
+- [x] ToolExample entity + ToolExampleRepository (findAllGlobal, findGlobalByToolName, findAllForUser)
+- [x] FewShotExamplesProvider: загрузка global + per-user examples, форматирование в XML-style `<example>` блоки
+- [x] Инъекция в system prompt через MessageAssembler (секция "# Tool Calling Examples" между Environment и Summary)
+- [x] 6 новых тестов в FewShotExamplesProviderTest: empty, formatted, per-user, grouping, optional fields, DB error
 
 ### 8.5 Thinking/reasoning mode (2.11)
 

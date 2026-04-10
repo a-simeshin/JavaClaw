@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
  *   <li>Skills — globally enabled skills from {@link ActiveSkillsProvider#loadActiveSkills()}</li>
  *   <li>Context — INFO.md from {@link SystemPromptProvider#loadContext()}</li>
  *   <li>Environment — {@link AgentEnvironment#info()} (if not blank)</li>
+ *   <li>Tool Examples — few-shot examples from {@link FewShotExamplesProvider#loadExamples(String)}</li>
  * </ol>
  *
  * <p>History is loaded directly from {@link ChatMemoryRepository} (bypassing the window applied
@@ -70,6 +71,9 @@ public class MessageAssembler {
     /** Service for retrieving and creating conversation summaries when turns are dropped. */
     private final ConversationSummaryService summaryService;
 
+    /** Provider for few-shot tool-calling examples. */
+    private final FewShotExamplesProvider fewShotExamplesProvider;
+
     /**
      * Creates a {@code MessageAssembler} with all required dependencies.
      *
@@ -82,6 +86,7 @@ public class MessageAssembler {
      * @param budgetProperties      token budget configuration, must not be null
      * @param tokenEstimator        token estimator for measuring message costs, must not be null
      * @param summaryService        service for conversation summaries, must not be null
+     * @param fewShotExamplesProvider provider for few-shot tool-calling examples, must not be null
      */
     public MessageAssembler(
             final SystemPromptProvider systemPromptProvider,
@@ -92,7 +97,8 @@ public class MessageAssembler {
             final TurnBoundaryWindower windower,
             final TokenBudgetProperties budgetProperties,
             final TokenEstimator tokenEstimator,
-            final ConversationSummaryService summaryService) {
+            final ConversationSummaryService summaryService,
+            final FewShotExamplesProvider fewShotExamplesProvider) {
         Assert.notNull(systemPromptProvider, "systemPromptProvider must not be null");
         Assert.notNull(activeSkillsProvider, "activeSkillsProvider must not be null");
         Assert.notNull(chatMemory, "chatMemory must not be null");
@@ -102,6 +108,7 @@ public class MessageAssembler {
         Assert.notNull(budgetProperties, "budgetProperties must not be null");
         Assert.notNull(tokenEstimator, "tokenEstimator must not be null");
         Assert.notNull(summaryService, "summaryService must not be null");
+        Assert.notNull(fewShotExamplesProvider, "fewShotExamplesProvider must not be null");
         this.systemPromptProvider = systemPromptProvider;
         this.activeSkillsProvider = activeSkillsProvider;
         this.chatMemory = chatMemory;
@@ -111,6 +118,7 @@ public class MessageAssembler {
         this.budgetProperties = budgetProperties;
         this.tokenEstimator = tokenEstimator;
         this.summaryService = summaryService;
+        this.fewShotExamplesProvider = fewShotExamplesProvider;
     }
 
     /**
@@ -189,6 +197,15 @@ public class MessageAssembler {
         final String envInfo = AgentEnvironment.info().toString();
         if (envInfo != null && !envInfo.isBlank()) {
             sections.add("# Environment\n" + envInfo);
+        }
+
+        try {
+            final String examples = fewShotExamplesProvider.loadExamples(userId);
+            if (examples != null && !examples.isBlank()) {
+                sections.add(examples);
+            }
+        } catch (final Exception e) {
+            // graceful skip — examples are optional
         }
 
         try {

@@ -52,6 +52,10 @@ class MessageAssemblerTest {
     @Mock
     private ConversationSummaryService summaryService;
 
+    /** Mock provider for few-shot tool-calling examples. */
+    @Mock
+    private FewShotExamplesProvider fewShotExamplesProvider;
+
     /** The assembler under test. */
     private MessageAssembler messageAssembler;
 
@@ -74,7 +78,8 @@ class MessageAssemblerTest {
                 new TurnBoundaryWindower(),
                 budgetProperties,
                 tokenEstimator,
-                summaryService);
+                summaryService,
+                fewShotExamplesProvider);
     }
 
     @Test
@@ -238,7 +243,8 @@ class MessageAssemblerTest {
                 new TurnBoundaryWindower(),
                 tightBudget,
                 tokenEstimator,
-                summaryService);
+                summaryService,
+                fewShotExamplesProvider);
 
         final List<Message> bigHistory = buildHistory(41);
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(bigHistory);
