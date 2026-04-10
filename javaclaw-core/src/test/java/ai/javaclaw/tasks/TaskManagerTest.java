@@ -1,11 +1,13 @@
 package ai.javaclaw.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,11 +70,14 @@ class TaskManagerTest {
     @Mock
     TaskAuditService taskAuditServiceMock;
 
+    CancellationTokenRegistry cancellationTokenRegistry;
+
     InMemoryStorageProvider storageProvider;
     TaskManager taskManager;
 
     @BeforeEach
     void setUp() {
+        cancellationTokenRegistry = new CancellationTokenRegistry();
         storageProvider = new InMemoryStorageProvider();
         JobScheduler jobScheduler = JobRunr.configure()
                 .useStorageProvider(storageProvider)
@@ -82,7 +87,14 @@ class TaskManagerTest {
                 .initialize()
                 .getJobScheduler();
 
-        taskManager = new TaskManager(jobScheduler, storageProvider, taskRepositoryMock, recurringTaskRepositoryMock);
+        taskManager = new TaskManager(
+                jobScheduler,
+                storageProvider,
+                taskRepositoryMock,
+                recurringTaskRepositoryMock,
+                cancellationTokenRegistry,
+                eventBusMock,
+                taskAuditServiceMock);
     }
 
     @AfterEach
@@ -259,6 +271,371 @@ class TaskManagerTest {
         final ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
         verify(taskRepositoryMock).save(captor.capture());
         assertThat(captor.getValue().getConversationId()).isNull();
+    }
+
+    // --- T9: spawn sets parentTaskId and inherits conversationId from parent ---
+    @Test
+    void spawnSetsParentTaskIdAndInheritsConversationId() {
+        final String parentId = "parent-id";
+        final String convId = "conv-123";
+        final Task parent = new Task(
+                parentId,
+                "parent-task",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "Parent desc",
+                null,
+                null,
+                convId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+        final Task savedChild = new Task(
+                "child-id",
+                "child-task",
+                Instant.now(),
+                Instant.now(),
+                Status.todo,
+                "Child desc",
+                null,
+                null,
+                convId,
+                parentId,
+                null,
+                TaskRuntime.async,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+
+        when(taskRepositoryMock.findById(parentId)).thenReturn(Optional.of(parent));
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedChild);
+
+        Task result = taskManager.spawn(parentId, "child-task", "Child desc");
+
+        assertThat(result.getParentTaskId()).isEqualTo(parentId);
+        assertThat(result.getConversationId()).isEqualTo(convId);
+        assertThat(result.getUserId()).isEqualTo("user-1");
+
+        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getParentTaskId()).isEqualTo(parentId);
+        assertThat(captor.getValue().getConversationId()).isEqualTo(convId);
+        assertThat(captor.getValue().getUserId()).isEqualTo("user-1");
+        assertThat(captor.getValue().getRuntimeType()).isEqualTo(TaskRuntime.async);
+    }
+
+    // --- T10: spawn with depth > 3 throws ---
+    @Test
+    void spawnThrowsWhenDepthExceedsLimit() {
+        // Chain: root(0) → child(1) → grandchild(2) → great-grandchild(3), try to spawn under great-grandchild
+        final Task greatGrandchild = new Task(
+                "ggc-id",
+                "ggc",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "GGC",
+                null,
+                null,
+                null,
+                "grandchild-id",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        final Task grandchild = new Task(
+                "grandchild-id",
+                "grandchild",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "GC",
+                null,
+                null,
+                null,
+                "child-id",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        final Task child = new Task(
+                "child-id",
+                "child",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "C",
+                null,
+                null,
+                null,
+                "root-id",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        final Task root = new Task(
+                "root-id",
+                "root",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "R",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        when(taskRepositoryMock.findById("ggc-id")).thenReturn(Optional.of(greatGrandchild));
+        when(taskRepositoryMock.findById("grandchild-id")).thenReturn(Optional.of(grandchild));
+        when(taskRepositoryMock.findById("child-id")).thenReturn(Optional.of(child));
+        when(taskRepositoryMock.findById("root-id")).thenReturn(Optional.of(root));
+
+        assertThatThrownBy(() -> taskManager.spawn("ggc-id", "too-deep", "Should fail"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Maximum task depth of 3 exceeded");
+    }
+
+    // --- T11: cancel sets cancelled status, cancels token, emits event ---
+    @Test
+    void cancelSetsStatusAndCancelsToken() {
+        final String taskId = "cancel-me";
+        final Task task = new Task(
+                taskId,
+                "cancel-task",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "To cancel",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        when(taskRepositoryMock.findById(taskId)).thenReturn(Optional.of(task));
+        when(taskRepositoryMock.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Register a token so we can verify it gets cancelled
+        CancellationToken token = cancellationTokenRegistry.register(taskId);
+        assertThat(token.isCancelled()).isFalse();
+
+        taskManager.cancel(taskId);
+
+        // Token should be cancelled
+        assertThat(token.isCancelled()).isTrue();
+
+        // Task should be saved with cancelled status
+        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(Status.cancelled);
+
+        // Event emitted
+        verify(eventBusMock).emit(any());
+
+        // Audit logged
+        verify(taskAuditServiceMock).logCancelled(eq(taskId), any());
+    }
+
+    @Test
+    void cancelIgnoresTerminalState() {
+        final String taskId = "already-done";
+        final Task task = new Task(
+                taskId,
+                "done-task",
+                Instant.now(),
+                Instant.now(),
+                Status.completed,
+                "Done",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        when(taskRepositoryMock.findById(taskId)).thenReturn(Optional.of(task));
+
+        taskManager.cancel(taskId);
+
+        verify(taskRepositoryMock, never()).save(any());
+        verify(eventBusMock, never()).emit(any());
+    }
+
+    @Test
+    void spawnAtDepth1Succeeds() {
+        // Root task (depth=0) → spawn child (depth=1) should succeed
+        final Task root = new Task(
+                "root-id",
+                "root",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "Root",
+                null,
+                null,
+                "conv-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+        final Task savedChild = new Task(
+                "child-id",
+                "child",
+                Instant.now(),
+                Instant.now(),
+                Status.todo,
+                "Child",
+                null,
+                null,
+                "conv-1",
+                "root-id",
+                null,
+                TaskRuntime.async,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+
+        when(taskRepositoryMock.findById("root-id")).thenReturn(Optional.of(root));
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedChild);
+
+        Task result = taskManager.spawn("root-id", "child", "Child");
+        assertThat(result.getId()).isEqualTo("child-id");
+    }
+
+    @Test
+    void spawnAtDepth2Succeeds() {
+        // Root → child (depth=1) → spawn grandchild (depth=2) should succeed (limit is 3)
+        final Task child = new Task(
+                "child-id",
+                "child",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "C",
+                null,
+                null,
+                "conv-1",
+                "root-id",
+                null,
+                null,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+        final Task root = new Task(
+                "root-id",
+                "root",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "R",
+                null,
+                null,
+                "conv-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+        final Task savedGrandchild = new Task(
+                "gc-id",
+                "grandchild",
+                Instant.now(),
+                Instant.now(),
+                Status.todo,
+                "GC",
+                null,
+                null,
+                "conv-1",
+                "child-id",
+                null,
+                TaskRuntime.async,
+                null,
+                null,
+                "user-1",
+                null,
+                null,
+                null);
+
+        when(taskRepositoryMock.findById("child-id")).thenReturn(Optional.of(child));
+        when(taskRepositoryMock.findById("root-id")).thenReturn(Optional.of(root));
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedGrandchild);
+
+        Task result = taskManager.spawn("child-id", "grandchild", "GC");
+        assertThat(result.getId()).isEqualTo("gc-id");
+    }
+
+    @Test
+    void spawnWithNonExistentParentThrows() {
+        when(taskRepositoryMock.findById("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> taskManager.spawn("missing", "child", "desc"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Parent task not found");
+    }
+
+    @Test
+    void cancelWithNonExistentTaskThrows() {
+        when(taskRepositoryMock.findById("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> taskManager.cancel("missing"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Task not found");
     }
 
     private @NonNull JobActivator getJobActivator() {
