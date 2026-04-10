@@ -58,6 +58,28 @@
       "output": "Результат",
       "showDetails": "Показать детали",
       "hideDetails": "Скрыть детали"
+    },
+    "task": {
+      "showDetails": "Показать детали задачи",
+      "hideDetails": "Скрыть детали задачи",
+      "showAudit": "Показать аудит",
+      "duration": "Длительность",
+      "status": {
+        "completed": "Завершена",
+        "failed": "Ошибка",
+        "cancelled": "Отменена",
+        "in_progress": "Выполняется",
+        "awaiting_input": "Ожидает ответа",
+        "todo": "Запланирована"
+      },
+      "error": {
+        "stacktrace": "Стектрейс",
+        "llmRequest": "Запрос к модели"
+      },
+      "progress": {
+        "bar": "Прогресс задачи",
+        "cancel": "Отменить задачу"
+      }
     }
   },
   "login": {

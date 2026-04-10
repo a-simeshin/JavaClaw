@@ -93,6 +93,28 @@
       "output": "Output",
       "showDetails": "Show details",
       "hideDetails": "Hide details"
+    },
+    "task": {
+      "showDetails": "Show task details",
+      "hideDetails": "Hide task details",
+      "showAudit": "Show audit",
+      "duration": "Duration",
+      "status": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "in_progress": "In progress",
+        "awaiting_input": "Awaiting input",
+        "todo": "Scheduled"
+      },
+      "error": {
+        "stacktrace": "Stacktrace",
+        "llmRequest": "Model request"
+      },
+      "progress": {
+        "bar": "Task progress",
+        "cancel": "Cancel task"
+      }
     }
   },
   "login": {
