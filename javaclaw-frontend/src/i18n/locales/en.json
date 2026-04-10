@@ -93,6 +93,38 @@
       "output": "Output",
       "showDetails": "Show details",
       "hideDetails": "Hide details"
+    },
+    "task": {
+      "showDetails": "Show task details",
+      "hideDetails": "Hide task details",
+      "showAudit": "Show audit",
+      "duration": "Duration",
+      "status": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "in_progress": "In progress",
+        "awaiting_input": "Awaiting input",
+        "todo": "Scheduled"
+      },
+      "error": {
+        "stacktrace": "Stacktrace",
+        "llmRequest": "Model request"
+      },
+      "progress": {
+        "bar": "Task progress",
+        "cancel": "Cancel task"
+      }
+    },
+    "approval": {
+      "approve": "Approve",
+      "deny": "Deny",
+      "approved": "Approved",
+      "denied": "Denied",
+      "expired": "Expired",
+      "timeRemaining": "Time remaining",
+      "countdown": "Approval countdown",
+      "replyPlaceholder": "Type a custom response..."
     }
   },
   "login": {
@@ -125,6 +157,41 @@
   "language": {
     "en": "English",
     "ru": "Russian"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "empty": "No tasks",
+    "refresh": "Refresh",
+    "toggleChildren": "Toggle children",
+    "tab": {
+      "all": "All",
+      "active": "Active",
+      "recurring": "Recurring",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "runtime": {
+      "cron": "Cron",
+      "async": "Async",
+      "inline": "Inline"
+    },
+    "detail": {
+      "title": "Task details",
+      "timeline": "Timeline",
+      "modelRequest": "Model request",
+      "modelResponse": "Model response",
+      "tools": "Tools",
+      "deliveries": "Deliveries",
+      "noEvents": "No events recorded",
+      "eventType": "Event",
+      "duration": "Duration",
+      "toolName": "Tool",
+      "toolArgs": "Arguments",
+      "toolResult": "Result",
+      "channel": "Channel",
+      "attempts": "Attempts",
+      "status": "Status"
+    }
   },
   "errors": {
     "unknown": "Something went wrong",

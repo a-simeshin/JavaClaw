@@ -1,10 +1,15 @@
 package ai.javaclaw.tasks;
 
+import ai.javaclaw.agent.audit.TaskAuditService;
+import ai.javaclaw.agent.event.AgentEvent;
+import ai.javaclaw.agent.event.EventBus;
+import ai.javaclaw.agent.event.EventKind;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.JobScheduler;
@@ -18,20 +23,34 @@ import org.springframework.stereotype.Component;
 public class TaskManager {
 
     private static final Logger log = LoggerFactory.getLogger(TaskManager.class);
+    private static final int MAX_TASK_DEPTH = 3;
+
     private final JobScheduler jobScheduler;
     private final StorageProvider storageProvider;
     private final TaskRepository taskRepository;
     private final RecurringTaskRepository recurringTaskRepository;
+    private final CancellationTokenRegistry cancellationTokenRegistry;
+    private final EventBus eventBus;
+    private final TaskAuditService taskAuditService;
+    private final TaskRateLimiter rateLimiter;
 
     public TaskManager(
             JobScheduler jobScheduler,
             StorageProvider storageProvider,
             TaskRepository taskRepository,
-            RecurringTaskRepository recurringTaskRepository) {
+            RecurringTaskRepository recurringTaskRepository,
+            CancellationTokenRegistry cancellationTokenRegistry,
+            EventBus eventBus,
+            TaskAuditService taskAuditService,
+            TaskRateLimiter rateLimiter) {
         this.jobScheduler = jobScheduler;
         this.storageProvider = storageProvider;
         this.taskRepository = taskRepository;
         this.recurringTaskRepository = recurringTaskRepository;
+        this.cancellationTokenRegistry = cancellationTokenRegistry;
+        this.eventBus = eventBus;
+        this.taskAuditService = taskAuditService;
+        this.rateLimiter = rateLimiter;
     }
 
     public void create(final String name, final String description) {
@@ -39,7 +58,19 @@ public class TaskManager {
     }
 
     public void create(final String name, final String description, final String conversationId) {
-        final Task task = taskRepository.save(Task.newTask(name, description).withConversationId(conversationId));
+        create(name, description, conversationId, null);
+    }
+
+    /**
+     * Creates a task with userId. When userId is provided, rate limits are checked before creation.
+     *
+     * @throws RateLimitExceededException if user's rate limit is exceeded
+     */
+    public void create(final String name, final String description, final String conversationId, final String userId) {
+        checkRateLimit(userId);
+        final Task task = taskRepository.save(Task.newTask(name, description)
+                .withConversationId(conversationId)
+                .withUserId(userId));
         jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been created.", task.getName(), task.getId());
     }
@@ -53,9 +84,25 @@ public class TaskManager {
             final String name,
             final String description,
             final String conversationId) {
+        schedule(executionTime, name, description, conversationId, null);
+    }
+
+    /**
+     * Schedules a task with userId. When userId is provided, rate limits are checked before scheduling.
+     *
+     * @throws RateLimitExceededException if user's rate limit is exceeded
+     */
+    public void schedule(
+            final LocalDateTime executionTime,
+            final String name,
+            final String description,
+            final String conversationId,
+            final String userId) {
+        checkRateLimit(userId);
         final Instant createdAt = executionTime.atZone(ZoneId.systemDefault()).toInstant();
-        final Task task =
-                taskRepository.save(Task.newTask(name, createdAt, description).withConversationId(conversationId));
+        final Task task = taskRepository.save(Task.newTask(name, createdAt, description)
+                .withConversationId(conversationId)
+                .withUserId(userId));
         jobScheduler.<TaskHandler>schedule(executionTime, x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been scheduled at {}.", task.getName(), task.getId(), executionTime);
     }
@@ -68,6 +115,21 @@ public class TaskManager {
     /** Планирует повторяющуюся задачу с привязкой к conversation. */
     public void scheduleRecurrently(
             final String cronExpression, final String name, final String description, final String conversationId) {
+        scheduleRecurrently(cronExpression, name, description, conversationId, null);
+    }
+
+    /**
+     * Планирует повторяющуюся задачу с userId. Проверяет recurring rate limit.
+     *
+     * @throws RateLimitExceededException if user's recurring task limit is exceeded
+     */
+    public void scheduleRecurrently(
+            final String cronExpression,
+            final String name,
+            final String description,
+            final String conversationId,
+            final String userId) {
+        checkRecurringRateLimit(userId);
         final RecurringTask recurringTask = recurringTaskRepository.save(
                 RecurringTask.newRecurringTask(name, description, cronExpression, conversationId));
         jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
@@ -77,6 +139,97 @@ public class TaskManager {
                 name,
                 recurringTask.getId(),
                 cronExpression);
+    }
+
+    /**
+     * Spawns a child task under the given parent. Inherits conversationId and userId from parent.
+     * Depth limit: max {@value MAX_TASK_DEPTH} levels (parent → child → grandchild).
+     */
+    public Task spawn(final String parentTaskId, final String name, final String description) {
+        final Task parent = taskRepository
+                .findById(parentTaskId)
+                .orElseThrow(() -> new IllegalArgumentException("Parent task not found: " + parentTaskId));
+
+        checkRateLimit(parent.getUserId());
+
+        int depth = calculateDepth(parent);
+        if (depth >= MAX_TASK_DEPTH) {
+            throw new IllegalStateException("Maximum task depth of " + MAX_TASK_DEPTH
+                    + " exceeded. Cannot spawn child for task: " + parentTaskId);
+        }
+
+        final Task child = taskRepository.save(Task.newTask(name, description)
+                .withParentTaskId(parentTaskId)
+                .withConversationId(parent.getConversationId())
+                .withUserId(parent.getUserId())
+                .withRuntimeType(TaskRuntime.async));
+
+        jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(child.getId()));
+
+        final AgentEvent.EventMeta meta = AgentEvent.EventMeta.ofTask(null, child.getId());
+        eventBus.emit(AgentEvent.of(
+                EventKind.SUBTASK_SPAWN,
+                meta,
+                Map.of("parentTaskId", parentTaskId, "childTaskId", child.getId(), "childName", name)));
+        taskAuditService.logCreated(child.getId());
+
+        log.info(
+                "Child task '{}' ({}) spawned under parent '{}' at depth {}.",
+                name,
+                child.getId(),
+                parentTaskId,
+                depth + 1);
+        return child;
+    }
+
+    /** Cancels a task: sets status to cancelled, cancels CancellationToken, emits event. */
+    public void cancel(final String taskId) {
+        final Task task = taskRepository
+                .findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
+
+        if (task.getStatus() == Task.Status.completed
+                || task.getStatus() == Task.Status.failed
+                || task.getStatus() == Task.Status.cancelled) {
+            log.info("Task '{}' ({}) is already in terminal state: {}", task.getName(), taskId, task.getStatus());
+            return;
+        }
+
+        taskRepository.save(task.withStatus(Task.Status.cancelled));
+        cancellationTokenRegistry.cancel(taskId);
+
+        final AgentEvent.EventMeta cancelMeta = AgentEvent.EventMeta.ofTask(null, taskId);
+        eventBus.emit(AgentEvent.of(
+                EventKind.TASK_CANCELLED,
+                cancelMeta,
+                Map.of(
+                        "taskName",
+                        task.getName(),
+                        "previousStatus",
+                        task.getStatus().name())));
+        taskAuditService.logCancelled(taskId, null);
+
+        log.info("Task '{}' ({}) has been cancelled.", task.getName(), taskId);
+    }
+
+    /**
+     * Calculates the depth of a task in the hierarchy (0 = root, 1 = child, 2 = grandchild).
+     */
+    int calculateDepth(final Task task) {
+        int depth = 0;
+        String currentParentId = task.getParentTaskId();
+        while (currentParentId != null && depth < MAX_TASK_DEPTH + 1) {
+            depth++;
+            final String pid = currentParentId;
+            currentParentId =
+                    taskRepository.findById(pid).map(Task::getParentTaskId).orElse(null);
+        }
+        return depth;
+    }
+
+    /** Returns child tasks of the given parent. */
+    public List<Task> getChildTasks(final String parentTaskId) {
+        return taskRepository.findByParentTaskId(parentTaskId);
     }
 
     public void deleteRecurringTask(String name) {
@@ -100,6 +253,18 @@ public class TaskManager {
 
     public List<RecurringTask> getAllRecurringTasks() {
         return recurringTaskRepository.findAll();
+    }
+
+    private void checkRateLimit(final String userId) {
+        if (userId != null && rateLimiter != null) {
+            rateLimiter.checkLimit(userId);
+        }
+    }
+
+    private void checkRecurringRateLimit(final String userId) {
+        if (userId != null && rateLimiter != null) {
+            rateLimiter.checkRecurringLimit(userId);
+        }
     }
 
     public List<Task> getTasks(LocalDate date, Task.Status status) {

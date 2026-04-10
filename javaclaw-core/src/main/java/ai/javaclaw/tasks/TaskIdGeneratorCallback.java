@@ -19,7 +19,16 @@ class TaskIdGeneratorCallback implements BeforeConvertCallback<Task> {
                     task.getDescription(),
                     task.getFeedback(),
                     task.getSourceChannelName(),
-                    task.getConversationId());
+                    task.getConversationId(),
+                    task.getParentTaskId(),
+                    task.getNotifyPolicy(),
+                    task.getRuntimeType(),
+                    task.getTimeoutSeconds(),
+                    task.getCarryOverContext(),
+                    task.getUserId(),
+                    task.getFailedAt(),
+                    task.getCancelledAt(),
+                    task.getVersion());
         }
         return task;
     }

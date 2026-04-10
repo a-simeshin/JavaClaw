@@ -9,13 +9,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.tasks.ApprovalService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -325,6 +328,107 @@ class ChatServiceTest {
         assertThat(lastMessage).isInstanceOf(UserMessage.class);
         assertThat(lastMessage.getText()).contains(USER_CONTENT);
         assertThat(lastMessage.getText()).contains("JSON"); // BeanOutputConverter добавляет JSON schema
+    }
+
+    // -------------------------------------------------------------------------
+    // Approval integration tests (T17 — pending approval routing)
+    // -------------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("Approval routing")
+    class ApprovalRouting {
+
+        @Mock
+        private ApprovalService approvalService;
+
+        private ChatService chatServiceWithApproval;
+
+        @BeforeEach
+        void setUpApproval() {
+            Mockito.lenient().when(toolCallbackResolver.resolve()).thenReturn(List.of());
+            chatServiceWithApproval = new ChatService(
+                    chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService, approvalService);
+        }
+
+        @Test
+        @DisplayName("stream(): pending approval → ответ перехватывается, submitApproval вызван, LLM не вызывается")
+        void stream_pendingApprovalInterceptsAndSubmits() {
+            when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(true);
+            when(approvalService.submitApproval(CONVERSATION_ID, USER_CONTENT)).thenReturn(true);
+
+            StepVerifier.create(chatServiceWithApproval.stream(CONVERSATION_ID, USER_CONTENT))
+                    .expectNextMatches(r -> ChatService.APPROVAL_CONFIRMATION.equals(
+                            r.getResult().getOutput().getText()))
+                    .verifyComplete();
+
+            // submitApproval called
+            verify(approvalService).submitApproval(CONVERSATION_ID, USER_CONTENT);
+            // LLM not called
+            verify(chatModel, times(0)).stream(any(Prompt.class));
+            verify(chatModel, times(0)).call(any(Prompt.class));
+            // User + assistant messages persisted
+            verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), any(List.class));
+        }
+
+        @Test
+        @DisplayName("call(): pending approval → возвращает подтверждение, LLM не вызывается")
+        void call_pendingApprovalInterceptsAndSubmits() {
+            when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(true);
+            when(approvalService.submitApproval(CONVERSATION_ID, USER_CONTENT)).thenReturn(true);
+
+            final String result = chatServiceWithApproval.call(CONVERSATION_ID, USER_CONTENT);
+
+            assertThat(result).isEqualTo(ChatService.APPROVAL_CONFIRMATION);
+            verify(approvalService).submitApproval(CONVERSATION_ID, USER_CONTENT);
+            verify(chatModel, times(0)).call(any(Prompt.class));
+            verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), any(List.class));
+        }
+
+        @Test
+        @DisplayName("stream(): no pending approval → normal chat flow (T17)")
+        void stream_noPendingApprovalProceedsNormally() {
+            when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(false);
+            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+                    .thenReturn(buildAssembledPrompt(USER_CONTENT));
+            when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
+
+            StepVerifier.create(chatServiceWithApproval.stream(CONVERSATION_ID, USER_CONTENT))
+                    .expectNextCount(1)
+                    .verifyComplete();
+
+            verify(approvalService, times(0)).submitApproval(anyString(), anyString());
+            verify(chatModel).stream(any(Prompt.class));
+        }
+
+        @Test
+        @DisplayName("call(): no pending approval → normal chat flow (T17)")
+        void call_noPendingApprovalProceedsNormally() {
+            when(approvalService.hasPendingApproval(CONVERSATION_ID)).thenReturn(false);
+            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+                    .thenReturn(buildAssembledPrompt(USER_CONTENT));
+            when(chatModel.call(any(Prompt.class))).thenReturn(buildChatResponse(ASSISTANT_REPLY));
+
+            final String result = chatServiceWithApproval.call(CONVERSATION_ID, USER_CONTENT);
+
+            assertThat(result).isEqualTo(ASSISTANT_REPLY);
+            verify(approvalService, times(0)).submitApproval(anyString(), anyString());
+            verify(chatModel).call(any(Prompt.class));
+        }
+
+        @Test
+        @DisplayName("stream(): approvalService is null → normal chat flow")
+        void stream_nullApprovalServiceProceedsNormally() {
+            // chatService (from parent setUp) has null approvalService
+            when(messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT))
+                    .thenReturn(buildAssembledPrompt(USER_CONTENT));
+            when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
+
+            StepVerifier.create(chatService.stream(CONVERSATION_ID, USER_CONTENT))
+                    .expectNextCount(1)
+                    .verifyComplete();
+
+            verify(chatModel).stream(any(Prompt.class));
+        }
     }
 
     // -------------------------------------------------------------------------

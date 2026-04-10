@@ -47,7 +47,12 @@ workspace/
 *.private*
 logs/
 .claude/data/sessions/
+.claude/hooks/validators/*.log
 __pycache__/
 build/
 specs/logs/
 specs/.claude/data/sessions/
+
+# Playwright test artifacts
+javaclaw-frontend/playwright-report/
+javaclaw-frontend/test-results/

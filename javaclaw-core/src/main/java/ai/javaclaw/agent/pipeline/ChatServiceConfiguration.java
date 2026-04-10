@@ -2,6 +2,7 @@ package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
 import ai.javaclaw.configuration.ConfigurationManager;
+import ai.javaclaw.tasks.ApprovalService;
 import ai.javaclaw.tools.AutoDiscoveredTool;
 import ai.javaclaw.tools.CheckListTool;
 import ai.javaclaw.tools.McpTool;
@@ -11,9 +12,11 @@ import org.springaicommunity.agent.tools.FileSystemTools;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 
 /**
  * Spring configuration для pipeline компонентов фазы 1. Регистрирует {@link
@@ -87,6 +90,8 @@ public class ChatServiceConfiguration {
      * @param chatMemory хранилище истории
      * @param messageAssembler ассемблер промптов
      * @param toolCallbackResolver резолвер tool callbacks
+     * @param chatAuditService сервис аудита
+     * @param approvalService сервис одобрений (nullable — может отсутствовать)
      * @return новый экземпляр ChatService
      */
     @Bean
@@ -95,7 +100,9 @@ public class ChatServiceConfiguration {
             final ChatMemory chatMemory,
             final MessageAssembler messageAssembler,
             final ToolCallbackResolver toolCallbackResolver,
-            final ChatAuditService chatAuditService) {
-        return new ChatService(chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService);
+            final ChatAuditService chatAuditService,
+            @Autowired(required = false) @Nullable final ApprovalService approvalService) {
+        return new ChatService(
+                chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService, approvalService);
     }
 }
