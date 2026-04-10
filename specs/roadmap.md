@@ -555,22 +555,27 @@
 
 > Цель: пользователи в БД, нормальные роли
 
-### 7.1 User entity в DB (15.1.1)
+### 7.1 User entity в DB (15.1.1) ✅
 
-- Flyway миграция: таблица users
-- UserRepository, UserService
-- Миграция с hardcoded users на DB-backed
+- V23 миграция: password_hash populated для seed users ({noop} format)
+- AppUser расширен: +passwordHash, +active, +create() factory
+- AppUserRepository: +findAllActive, +deactivate, +updatePassword, +updateRole
+- UserService CRUD: create/update/deactivate/list
+- JdbcUserDetailsService: DB-backed Spring Security auth (заменяет InMemoryUserDetailsManager)
+- UserController (admin-only /api/users/**): list, get, create, updateRole, updatePassword, deactivate
+- 6 новых интеграционных тестов в UserManagementIntegrationTest
 
-### 7.2 Роли ADMIN/USER в DB (15.2.1)
+### 7.2 Роли ADMIN/USER в DB (15.2.1) ✅
 
-- Таблицы roles, user_roles
-- Замена Spring Security hardcoded ролей на DB-backed
-- AuthService: реальная реализация вместо заглушки
+- Роли хранятся в колонке role таблицы users (CHECK constraint: ADMIN/USER)
+- JdbcUserDetailsService загружает роль из DB и маппит в Spring Security GrantedAuthority
+- /api/users/{id}/role endpoint для смены роли (admin-only)
+- Отдельные roles/user_roles таблицы не нужны — single-role model достаточен для текущих требований
 
-### 7.3 Conversation ownership в DB (15.5.1, 15.5.2)
+### 7.3 Conversation ownership в DB (15.5.1, 15.5.2) ✅
 
-- Таблица conversation_access
-- Полная изоляция диалогов per-user
+- Реализовано в Phase 4.2: conversations.user_id + ownership check
+- ConversationIsolationIntegrationTest: 8 тестов
 
 ---
 

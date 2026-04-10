@@ -2,21 +2,17 @@ package ai.javaclaw.security;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Spring Security configuration — HTTP Basic with users from {@code javaclaw.security.users[]}.
+ * Spring Security configuration — HTTP Basic with DB-backed users (Phase 7.1).
  *
  * <p>Public endpoints (no auth required):
  * <ul>
@@ -26,11 +22,10 @@ import org.springframework.security.web.SecurityFilterChain;
  * </ul>
  *
  * <p>All other {@code /api/**} require authentication.
- * Admin-only endpoints ({@code /api/skills}, {@code /api/mcp-servers}) require ADMIN role.
+ * Admin-only endpoints ({@code /api/skills}, {@code /api/mcp-servers}, {@code /api/users}) require ADMIN role.
  */
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties(SecurityProperties.class)
 public class SecurityConfig {
 
     @Bean
@@ -51,6 +46,8 @@ public class SecurityConfig {
                         .hasRole("ADMIN")
                         .requestMatchers("/api/mcp-servers/**")
                         .hasRole("ADMIN")
+                        .requestMatchers("/api/users/**")
+                        .hasRole("ADMIN")
                         // All other API endpoints require authentication
                         .requestMatchers("/api/**")
                         .authenticated()
@@ -65,18 +62,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(SecurityProperties properties, PasswordEncoder encoder) {
-        var users = properties.getUsers().stream()
-                .map(entry -> User.builder()
-                        .username(entry.getUsername())
-                        .password(encoder.encode(entry.getPassword()))
-                        .roles(entry.getRole())
-                        .build())
-                .toList();
-
-        return new InMemoryUserDetailsManager(users);
     }
 }

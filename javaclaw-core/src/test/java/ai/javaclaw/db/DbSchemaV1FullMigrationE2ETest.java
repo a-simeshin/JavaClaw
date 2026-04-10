@@ -64,7 +64,7 @@ class DbSchemaV1FullMigrationE2ETest {
                 versions.add(rs.getInt(1));
             }
         }
-        assertThat(versions).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 22);
+        assertThat(versions).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 22, 23);
     }
 
     @Test
@@ -90,11 +90,11 @@ class DbSchemaV1FullMigrationE2ETest {
                 if ("admin".equals(username)) {
                     assertThat(role).isEqualTo("ADMIN");
                     assertThat(active).isTrue();
-                    assertThat(passwordHash).isNull();
+                    assertThat(passwordHash).isEqualTo("{noop}admin");
                 } else if ("user".equals(username)) {
                     assertThat(role).isEqualTo("USER");
                     assertThat(active).isTrue();
-                    assertThat(passwordHash).isNull();
+                    assertThat(passwordHash).isEqualTo("{noop}user");
                 }
             }
 
