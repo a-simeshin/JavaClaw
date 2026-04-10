@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.conversations.ConversationEnsurer;
@@ -57,6 +58,12 @@ class TaskManagerTest {
     @Mock
     ConversationEnsurer conversationEnsurerMock;
 
+    @Mock
+    TaskExecutionRepository taskExecutionRepositoryMock;
+
+    @Mock
+    EventBus eventBusMock;
+
     InMemoryStorageProvider storageProvider;
     TaskManager taskManager;
 
@@ -93,6 +100,9 @@ class TaskManagerTest {
                 null);
         when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
         when(taskRepositoryMock.findById("some-id")).thenReturn(Optional.of(saved));
+        when(taskExecutionRepositoryMock.findByTaskIdOrderByExecutionNumberDesc(anyString()))
+                .thenReturn(List.of());
+        when(taskExecutionRepositoryMock.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(agentMock.prompt(eq("some-id"), anyString(), any()))
                 .thenReturn(new TaskResult(Status.completed, "All mail was summarized!"));
 
@@ -255,9 +265,12 @@ class TaskManagerTest {
                     return (T) new TaskHandler(
                             agentMock,
                             taskRepositoryMock,
+                            taskExecutionRepositoryMock,
                             channelRegistryMock,
                             channelContextServiceMock,
-                            conversationEnsurerMock);
+                            conversationEnsurerMock,
+                            new CancellationTokenRegistry(),
+                            eventBusMock);
                 else if (RecurringTaskHandler.class.equals(type))
                     return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");
