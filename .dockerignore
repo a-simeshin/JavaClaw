@@ -1,0 +1,14 @@
+**/target/
+**/node_modules/
+**/.git/
+**/.idea/
+**/.claude/
+**/.gnhf/
+**/dist/
+*.log
+.env
+docker-compose*.yml
+Dockerfile
+.dockerignore
+specs/
+openspec/
