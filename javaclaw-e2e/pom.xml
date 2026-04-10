@@ -158,6 +158,37 @@
         </profile>
 
         <!--
+            Opt-in SCALING-E2E profile: runs multi-pod scaling integration tests (E29/E30).
+
+            Boots two independent Spring application contexts in the same JVM against a single
+            Testcontainers PostgreSQL. Not part of the default CI run because:
+              - memory pressure (two full Spring contexts + PG container require -Xmx2g)
+              - it asserts real PG NOTIFY/LISTEN delivery across pods
+
+            Activated with: ./mvnw -pl javaclaw-e2e verify -Pscaling-e2e
+            Tests must be tagged with @Tag("scaling-e2e").
+        -->
+        <profile>
+            <id>scaling-e2e</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <groups>scaling-e2e</groups>
+                            <includes combine.self="override">
+                                <include>**/*IntegrationTest.java</include>
+                            </includes>
+                            <excludes combine.self="override"/>
+                            <argLine>-Xmx2g</argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
             Opt-in E2E-MOCK profile: runs Playwright browser tests WITHOUT real LLM.
             Tests tagged requires-backend or gated on OPENROUTER_API_KEY are skipped;
             UI rendering + widget behaviour + visual sweep still run.
