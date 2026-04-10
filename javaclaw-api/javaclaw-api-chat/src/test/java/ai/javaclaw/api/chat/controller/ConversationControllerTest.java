@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import ai.javaclaw.conversations.ConversationRepository;
+import ai.javaclaw.users.UserResolver;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +30,10 @@ class ConversationControllerTest {
     private ConversationEnsurer conversationEnsurer;
     private ConversationQueryService queryService;
     private ConversationRepository conversationRepository;
+    private UserResolver userResolver;
     private MockMvc mockMvc;
+
+    private static final String ADMIN_USER_ID = "admin-uuid";
 
     @BeforeEach
     void setUp() {
@@ -36,16 +41,23 @@ class ConversationControllerTest {
         conversationEnsurer = mock(ConversationEnsurer.class);
         queryService = mock(ConversationQueryService.class);
         conversationRepository = mock(ConversationRepository.class);
+        userResolver = mock(UserResolver.class);
+        when(userResolver.resolveUserId("admin")).thenReturn(ADMIN_USER_ID);
         mockMvc = standaloneSetup(new ConversationController(
-                        chatMemoryRepository, conversationEnsurer, queryService, conversationRepository))
+                        chatMemoryRepository, conversationEnsurer, queryService, conversationRepository, userResolver))
+                .defaultRequest(get("/").principal(adminPrincipal()))
                 .build();
+    }
+
+    private static Principal adminPrincipal() {
+        return () -> "admin";
     }
 
     @Test
     void listReturnsPagedConversationsFromQueryService() throws Exception {
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T09:00:00Z");
-        when(queryService.listConversations(0, 10))
+        when(queryService.listConversationsForUser(ADMIN_USER_ID, 0, 10))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(
                                 new ConversationQueryService.ConversationSummary(
@@ -69,7 +81,7 @@ class ConversationControllerTest {
     @Test
     void listFallsBackToFirstUserMessageWhenTitleIsNull() throws Exception {
         Instant t = Instant.parse("2026-04-05T10:00:00Z");
-        when(queryService.listConversations(0, 20))
+        when(queryService.listConversationsForUser(ADMIN_USER_ID, 0, 20))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(new ConversationQueryService.ConversationSummary("web", null, t, t, 1, "Hello there")),
                         0,
@@ -83,6 +95,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesMapsTypesToRolesWithRealTimestamps() throws Exception {
+        when(conversationRepository.existsByIdAndUserId("web", ADMIN_USER_ID)).thenReturn(true);
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T10:00:05Z");
         when(queryService.listMessages("web", 0, 50))
@@ -106,6 +119,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesRespectsPagination() throws Exception {
+        when(conversationRepository.existsByIdAndUserId("web", ADMIN_USER_ID)).thenReturn(true);
         when(queryService.listMessages("web", 2, 10))
                 .thenReturn(new ConversationQueryService.Page<>(List.of(), 2, 10, 7L));
 
@@ -125,7 +139,7 @@ class ConversationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value("Chat with Claude"));
-        verify(conversationEnsurer).ensureExists(org.mockito.ArgumentMatchers.anyString());
+        verify(conversationEnsurer).ensureExistsForUser(org.mockito.ArgumentMatchers.anyString(), eq(ADMIN_USER_ID));
         verify(conversationEnsurer).touch(org.mockito.ArgumentMatchers.anyString(), eq("Chat with Claude"));
     }
 
@@ -136,13 +150,21 @@ class ConversationControllerTest {
                         .content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists());
-        verify(conversationEnsurer).ensureExists(org.mockito.ArgumentMatchers.anyString());
+        verify(conversationEnsurer).ensureExistsForUser(org.mockito.ArgumentMatchers.anyString(), eq(ADMIN_USER_ID));
     }
 
     @Test
     void deleteReturnsNoContent() throws Exception {
+        when(conversationRepository.existsByIdAndUserId("web", ADMIN_USER_ID)).thenReturn(true);
         mockMvc.perform(delete("/api/conversations/web")).andExpect(status().isNoContent());
         verify(chatMemoryRepository).deleteByConversationId(eq("web"));
         verify(conversationRepository).deleteById(eq("web"));
+    }
+
+    @Test
+    void deleteReturnsNotFoundWhenNotOwned() throws Exception {
+        when(conversationRepository.existsByIdAndUserId("other-conv", ADMIN_USER_ID))
+                .thenReturn(false);
+        mockMvc.perform(delete("/api/conversations/other-conv")).andExpect(status().isNotFound());
     }
 }

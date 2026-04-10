@@ -20,15 +20,27 @@ public class ConversationQueryService {
         this.jdbc = jdbc;
     }
 
-    /** Paginated conversation list, newest-first by {@code updated_at}. */
+    /** Paginated conversation list, newest-first by {@code updated_at}. Returns all conversations. */
     public Page<ConversationSummary> listConversations(final int page, final int size) {
+        return listConversationsForUser(null, page, size);
+    }
+
+    /**
+     * Paginated conversation list filtered by user, newest-first by {@code updated_at}.
+     *
+     * @param userId the owning user's database ID; if {@code null}, returns all conversations
+     */
+    public Page<ConversationSummary> listConversationsForUser(final String userId, final int page, final int size) {
         final int safeSize = size <= 0 ? 20 : size;
         final int safePage = Math.max(page, 0);
         final int offset = safePage * safeSize;
 
+        final String whereClause = userId != null ? "WHERE c.user_id = ?" : "";
+        final String countWhereClause = userId != null ? "WHERE user_id = ?" : "";
+
         // LEFT JOIN with a grouped count so conversations without any message
         // yet still appear (new chats just created from the UI).
-        final List<ConversationSummary> rows = jdbc.query(
+        final String sql =
                 """
                 SELECT c.id, c.title, c.created_at, c.updated_at,
                        COALESCE(m.msg_count, 0) AS msg_count,
@@ -41,20 +53,46 @@ public class ConversationQueryService {
                     FROM SPRING_AI_CHAT_MEMORY
                     GROUP BY conversation_id
                 ) m ON m.conversation_id = c.id
+                %s
                 ORDER BY c.updated_at DESC, c.id ASC
                 OFFSET ? LIMIT ?
-                """,
-                (rs, i) -> new ConversationSummary(
-                        rs.getString("id"),
-                        rs.getString("title"),
-                        rs.getTimestamp("created_at").toInstant(),
-                        rs.getTimestamp("updated_at").toInstant(),
-                        rs.getInt("msg_count"),
-                        rs.getString("first_user")),
-                offset,
-                safeSize);
+                """
+                        .formatted(whereClause);
 
-        final Long total = jdbc.queryForObject("SELECT COUNT(*) FROM conversations", Long.class);
+        final List<ConversationSummary> rows;
+        if (userId != null) {
+            rows = jdbc.query(
+                    sql,
+                    (rs, i) -> new ConversationSummary(
+                            rs.getString("id"),
+                            rs.getString("title"),
+                            rs.getTimestamp("created_at").toInstant(),
+                            rs.getTimestamp("updated_at").toInstant(),
+                            rs.getInt("msg_count"),
+                            rs.getString("first_user")),
+                    userId,
+                    offset,
+                    safeSize);
+        } else {
+            rows = jdbc.query(
+                    sql,
+                    (rs, i) -> new ConversationSummary(
+                            rs.getString("id"),
+                            rs.getString("title"),
+                            rs.getTimestamp("created_at").toInstant(),
+                            rs.getTimestamp("updated_at").toInstant(),
+                            rs.getInt("msg_count"),
+                            rs.getString("first_user")),
+                    offset,
+                    safeSize);
+        }
+
+        final Long total;
+        if (userId != null) {
+            total = jdbc.queryForObject("SELECT COUNT(*) FROM conversations " + countWhereClause, Long.class, userId);
+        } else {
+            total = jdbc.queryForObject("SELECT COUNT(*) FROM conversations", Long.class);
+        }
         return new Page<>(rows, safePage, safeSize, total == null ? 0L : total);
     }
 

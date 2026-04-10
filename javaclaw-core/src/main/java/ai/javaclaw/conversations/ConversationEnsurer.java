@@ -27,7 +27,7 @@ public class ConversationEnsurer {
     private static final int TITLE_MAX_LENGTH = 80;
 
     /**
-     * Creates the conversation row if it does not already exist.
+     * Creates the conversation row if it does not already exist (no user association).
      *
      * @param conversationId the conversation ID — must not be blank
      */
@@ -36,6 +36,22 @@ public class ConversationEnsurer {
         Assert.hasText(conversationId, "conversationId must not be blank");
         if (!repository.existsById(conversationId)) {
             repository.save(Conversation.newWithId(conversationId));
+        }
+    }
+
+    /**
+     * Creates the conversation row if it does not already exist, associating it
+     * with the given user.
+     *
+     * @param conversationId the conversation ID — must not be blank
+     * @param userId         the owning user's database ID — must not be blank
+     */
+    @Transactional
+    public void ensureExistsForUser(final String conversationId, final String userId) {
+        Assert.hasText(conversationId, "conversationId must not be blank");
+        Assert.hasText(userId, "userId must not be blank");
+        if (!repository.existsById(conversationId)) {
+            repository.save(Conversation.newForUser(conversationId, userId));
         }
     }
 

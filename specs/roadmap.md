@@ -80,7 +80,7 @@
 | 3.5 MCP Servers API                 | ✅      | McpServerController CRUD + status (yaml-backed)                                                                |
 | 3.6 Actuator + health               | ✅      | Actuator health/info/metrics exposed; /api/health с реальной DB-проверкой; readiness/liveness probes; 7 тестов |
 | 4.1 Spring Security Basic Auth      | ✅      | SecurityConfig + SecurityProperties, HTTP Basic, RBAC (ADMIN/USER), admin-only skills/mcp endpoints, 13 тестов |
-| 4.2 Per-user conversation isolation | ❌      | DEFAULT_CONVERSATION_ID = "web" для всех                                                                       |
+| 4.2 Per-user conversation isolation | ✅      | UserResolver + AppUserRepository; conversations фильтруются по user_id; ownership check на delete/messages; 8 тестов |
 | 4.3 Per-user virtual FS isolation   | ❌      | Нет virtual_files таблицы                                                                                      |
 | 5.1 Scaffold SPA                    | ✅      | Vite + React 19 + TS + TanStack Router + proxy                                                                 |
 | 5.2 Login page                      | ✅      | login-form.tsx, routes/login.tsx                                                                               |
@@ -96,7 +96,7 @@
 | 6.2 Graceful shutdown               | ✅      | server.shutdown=graceful, lifecycle timeout 30s, 3 теста                                                       |
 | 6.3 Health checks (ready/live)      | ✅      | Actuator readiness/liveness probes enabled, протестированы в ActuatorHealthIntegrationTest                     |
 
-**Итого P0 (48 пунктов):** ✅ 29 · ⚠️ 7 · ❌ 12
+**Итого P0 (48 пунктов):** ✅ 30 · ⚠️ 7 · ❌ 11
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
@@ -362,7 +362,7 @@
 - [x] 13 новых тестов (AuthIntegrationTest): unauthenticated 401, valid/invalid credentials, RBAC
 - **Выход:** без логина ничего не работает, admin и user имеют разный доступ. Все 207 тестов зелёные.
 
-### 4.2 Per-user conversation isolation (базовая) ❌
+### 4.2 Per-user conversation isolation (базовая) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация

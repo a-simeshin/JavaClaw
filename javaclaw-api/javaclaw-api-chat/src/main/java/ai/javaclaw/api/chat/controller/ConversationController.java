@@ -7,7 +7,9 @@ import ai.javaclaw.api.chat.controller.dto.PageResponse;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import ai.javaclaw.conversations.ConversationRepository;
+import ai.javaclaw.users.UserResolver;
 import jakarta.validation.Valid;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +47,16 @@ public class ConversationController {
     private final ConversationEnsurer conversationEnsurer;
     private final ConversationQueryService queryService;
     private final ConversationRepository conversationRepository;
+    private final UserResolver userResolver;
 
     @GetMapping
     public PageResponse<ConversationDto> list(
-            @RequestParam(defaultValue = "0") final int page, @RequestParam(defaultValue = "20") final int size) {
+            @RequestParam(defaultValue = "0") final int page,
+            @RequestParam(defaultValue = "20") final int size,
+            final Principal principal) {
+        final String userId = userResolver.resolveUserId(principal.getName());
         final ConversationQueryService.Page<ConversationQueryService.ConversationSummary> result =
-                queryService.listConversations(page, size);
+                queryService.listConversationsForUser(userId, page, size);
         final List<ConversationDto> dtos = new ArrayList<>(result.content().size());
         for (ConversationQueryService.ConversationSummary row : result.content()) {
             dtos.add(toDto(row));
@@ -62,7 +68,12 @@ public class ConversationController {
     public PageResponse<MessageDto> messages(
             @PathVariable final String id,
             @RequestParam(defaultValue = "0") final int page,
-            @RequestParam(defaultValue = "50") final int size) {
+            @RequestParam(defaultValue = "50") final int size,
+            final Principal principal) {
+        final String userId = userResolver.resolveUserId(principal.getName());
+        if (!conversationRepository.existsByIdAndUserId(id, userId)) {
+            return new PageResponse<>(List.of(), 0, size, 0);
+        }
         final ConversationQueryService.Page<ConversationQueryService.MessageRow> result =
                 queryService.listMessages(id, page, size);
         final List<MessageDto> dtos = new ArrayList<>(result.content().size());
@@ -76,18 +87,19 @@ public class ConversationController {
     }
 
     @PostMapping
-    public ConversationDto create(@Valid @RequestBody(required = false) final CreateConversationRequest request) {
+    public ConversationDto create(
+            @Valid @RequestBody(required = false) final CreateConversationRequest request, final Principal principal) {
         final String id =
                 request != null && request.id() != null && !request.id().isBlank()
                         ? request.id()
                         : "web-" + UUID.randomUUID();
-        conversationEnsurer.ensureExists(id);
+        final String userId = userResolver.resolveUserId(principal.getName());
+        conversationEnsurer.ensureExistsForUser(id, userId);
         final String title =
                 request != null && request.title() != null && !request.title().isBlank()
                         ? truncate(request.title())
                         : null;
         if (title != null) {
-            // touchWithTitle only sets title when NULL — safe after ensureExists.
             conversationEnsurer.touch(id, title);
         }
         final Instant now = Instant.now();
@@ -95,7 +107,11 @@ public class ConversationController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable final String id) {
+    public ResponseEntity<Void> delete(@PathVariable final String id, final Principal principal) {
+        final String userId = userResolver.resolveUserId(principal.getName());
+        if (!conversationRepository.existsByIdAndUserId(id, userId)) {
+            return ResponseEntity.notFound().build();
+        }
         chatMemoryRepository.deleteByConversationId(id);
         conversationRepository.deleteById(id);
         return ResponseEntity.noContent().build();

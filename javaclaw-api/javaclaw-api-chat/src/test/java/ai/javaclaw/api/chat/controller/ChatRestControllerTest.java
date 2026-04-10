@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import ai.javaclaw.api.chat.error.SseExceptionHandler;
 import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
+import ai.javaclaw.users.UserResolver;
+import java.security.Principal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -24,15 +26,23 @@ class ChatRestControllerTest {
 
     private SseStreamingService streamingService;
     private ConversationEnsurer conversationEnsurer;
+    private UserResolver userResolver;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         streamingService = mock(SseStreamingService.class);
         conversationEnsurer = mock(ConversationEnsurer.class);
-        mockMvc = standaloneSetup(new ChatRestController(streamingService, conversationEnsurer))
+        userResolver = mock(UserResolver.class);
+        when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
+        mockMvc = standaloneSetup(new ChatRestController(streamingService, conversationEnsurer, userResolver))
+                .defaultRequest(post("/").principal(adminPrincipal()))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
+    }
+
+    private static Principal adminPrincipal() {
+        return () -> "admin";
     }
 
     @Test
@@ -48,7 +58,7 @@ class ChatRestControllerTest {
                 .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"));
 
         verify(streamingService).stream(any(), anyString(), anyString());
-        verify(conversationEnsurer).ensureExists("web");
+        verify(conversationEnsurer).ensureExistsForUser("web", "admin-uuid");
         verify(conversationEnsurer).touch("web", "hello");
     }
 

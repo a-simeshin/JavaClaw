@@ -16,4 +16,8 @@ public interface ConversationRepository extends ListCrudRepository<Conversation,
     @Modifying
     @Query("UPDATE conversations SET updated_at = now(), " + "title = COALESCE(title, :title) WHERE id = :id")
     int touchWithTitle(@Param("id") String id, @Param("title") String title);
+
+    /** Returns {@code true} if the conversation exists and belongs to the given user. */
+    @Query("SELECT COUNT(*) > 0 FROM conversations WHERE id = :id AND user_id = :userId")
+    boolean existsByIdAndUserId(@Param("id") String id, @Param("userId") String userId);
 }

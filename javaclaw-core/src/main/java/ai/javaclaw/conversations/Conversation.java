@@ -25,10 +25,16 @@ public record Conversation(
         @Column("updated_at") Instant updatedAt)
         implements Persistable<String> {
 
-    /** Creates a minimal conversation row with only the ID set. */
+    /** Creates a minimal conversation row with only the ID set (no user). */
     public static Conversation newWithId(final String id) {
         final Instant now = Instant.now();
         return new Conversation(id, null, null, now, now);
+    }
+
+    /** Creates a conversation row owned by a specific user. */
+    public static Conversation newForUser(final String id, final String userId) {
+        final Instant now = Instant.now();
+        return new Conversation(id, userId, null, now, now);
     }
 
     @Override

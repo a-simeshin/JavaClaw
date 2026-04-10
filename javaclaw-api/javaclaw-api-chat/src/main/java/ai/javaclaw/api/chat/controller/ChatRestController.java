@@ -3,7 +3,9 @@ package ai.javaclaw.api.chat.controller;
 import ai.javaclaw.api.chat.controller.dto.ChatSendRequest;
 import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
+import ai.javaclaw.users.UserResolver;
 import jakarta.validation.Valid;
+import java.security.Principal;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,15 +36,18 @@ public class ChatRestController {
 
     private final SseStreamingService streamingService;
     private final ConversationEnsurer conversationEnsurer;
+    private final UserResolver userResolver;
 
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
-    public ResponseEntity<ResponseBodyEmitter> send(@Valid @RequestBody final ChatSendRequest request) {
+    public ResponseEntity<ResponseBodyEmitter> send(
+            @Valid @RequestBody final ChatSendRequest request, final Principal principal) {
         final ResponseBodyEmitter emitter = streamingService.createEmitter();
         if (emitter == null) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
         final String conversationId = resolveConversationId(request.conversationId());
-        conversationEnsurer.ensureExists(conversationId);
+        final String userId = userResolver.resolveUserId(principal.getName());
+        conversationEnsurer.ensureExistsForUser(conversationId, userId);
         conversationEnsurer.touch(conversationId, request.content());
         streamingService.stream(emitter, conversationId, request.content());
         return ResponseEntity.ok()
@@ -56,12 +61,14 @@ public class ChatRestController {
      * Reconnect endpoint — opens a bare data-stream channel tied to a conversation.
      */
     @PostMapping(value = "/stream/{conversationId}", produces = "text/plain;charset=UTF-8")
-    public ResponseEntity<ResponseBodyEmitter> reconnect(@PathVariable final String conversationId) {
+    public ResponseEntity<ResponseBodyEmitter> reconnect(
+            @PathVariable final String conversationId, final Principal principal) {
         final ResponseBodyEmitter emitter = streamingService.createEmitter();
         if (emitter == null) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
-        conversationEnsurer.ensureExists(conversationId);
+        final String userId = userResolver.resolveUserId(principal.getName());
+        conversationEnsurer.ensureExistsForUser(conversationId, userId);
         return ResponseEntity.ok()
                 .header(VERCEL_STREAM_HEADER, VERCEL_STREAM_VERSION)
                 .contentType(MediaType.parseMediaType("text/plain;charset=UTF-8"))
