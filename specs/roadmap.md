@@ -57,46 +57,46 @@
 
 Маркеры: ✅ сделано · ⚠️ частично · ❌ не сделано
 
-|                Пункт                | Статус |                                             Примечание                                             |
-|-------------------------------------|--------|----------------------------------------------------------------------------------------------------|
-| 0.1 Архитектурные решения           | ✅      | React 19 + Vite + TanStack Router, SSE (Vercel AI SDK), Maven multi-module, PostgreSQL             |
-| 0.2 Чистка кодовой базы             | ✅      | Всё удалено: Onboarding, Playwright, Brave, FileSystemChatMemoryRepository                         |
-| 1.1 Flyway миграции                 | ✅      | V1-V10: users, conversations, virtual_files, skills, mcp_servers, config, seed. 31 тест зелёный.   |
-| 1.2 Virtual filesystem в DB         | ✅      | VirtualFile JDBC entity + Repository + Service + Seeder. FileController DB-backed. 32 новых теста. |
-| 1.3 JDBC Chat Memory                | ✅      | JdbcAppendableChatMemoryRepository реализована, @Primary bean                                      |
-| 1.4 Skills в DB                     | ✅      | Skill JDBC entity + SkillRepository + SkillService. SkillStore удалён. 16 новых тестов.            |
-| 1.5 MCP-серверы в DB                | ✅      | McpServer JDBC entity + Repository + Service + JSONB converter. McpServerStore удалён. 14 тестов.  |
-| 1.6 Tasks в DB                      | ✅      | TaskRepository, RecurringTaskRepository (JDBC) + V1 миграция                                       |
-| 2.1 Agent loop + streaming          | ✅      | DefaultAgent + ChatClient + SseStreamingService (Vercel AI SDK v4)                                 |
-| 2.2 System prompt из DB             | ✅      | SystemPromptProvider читает AGENT.md/SOUL.md/INFO.md из virtual_files (owner_id=NULL). 6 тестов.   |
-| 2.3 Agent environment               | ✅      | AgentEnvironment с user.dir/.git/os/Java                                                           |
-| 2.4 Tool calling + auto-discovery   | ✅      | TaskTool ✅, CheckListTool ✅, McpTool ✅, FileOperationsTool ✅, SkillsTool ✅, AuditTool ✅            |
-| 2.5 Skill management tool           | ✅      | SkillsTool: addSkill/removeSkill/listSkills/enableSkill/disableSkill + 9 тестов                    |
-| 2.6 Web fetch tool                  | ✅      | WebFetchTool (Jsoup): fetchPage + fetchSelector, AutoDiscoveredTool bean, 7 тестов                 |
-| 3.1 API contract (OpenAPI)          | ✅      | `specs/openapi.yaml` (3.1.0) + 39 contract-тестов + 6 Playwright E2E                               |
-| 3.2 Chat API + SSE streaming        | ✅      | ChatRestController, ConversationController, SSE через ResponseBodyEmitter                          |
-| 3.3 Files API                       | ✅      | FileController CRUD + tree (но filesystem-backed)                                                  |
-| 3.4 Skills API                      | ✅      | SkillController CRUD (но yaml-backed)                                                              |
-| 3.5 MCP Servers API                 | ✅      | McpServerController CRUD + status (yaml-backed)                                                    |
+|                Пункт                | Статус |                                                   Примечание                                                   |
+|-------------------------------------|--------|----------------------------------------------------------------------------------------------------------------|
+| 0.1 Архитектурные решения           | ✅      | React 19 + Vite + TanStack Router, SSE (Vercel AI SDK), Maven multi-module, PostgreSQL                         |
+| 0.2 Чистка кодовой базы             | ✅      | Всё удалено: Onboarding, Playwright, Brave, FileSystemChatMemoryRepository                                     |
+| 1.1 Flyway миграции                 | ✅      | V1-V10: users, conversations, virtual_files, skills, mcp_servers, config, seed. 31 тест зелёный.               |
+| 1.2 Virtual filesystem в DB         | ✅      | VirtualFile JDBC entity + Repository + Service + Seeder. FileController DB-backed. 32 новых теста.             |
+| 1.3 JDBC Chat Memory                | ✅      | JdbcAppendableChatMemoryRepository реализована, @Primary bean                                                  |
+| 1.4 Skills в DB                     | ✅      | Skill JDBC entity + SkillRepository + SkillService. SkillStore удалён. 16 новых тестов.                        |
+| 1.5 MCP-серверы в DB                | ✅      | McpServer JDBC entity + Repository + Service + JSONB converter. McpServerStore удалён. 14 тестов.              |
+| 1.6 Tasks в DB                      | ✅      | TaskRepository, RecurringTaskRepository (JDBC) + V1 миграция                                                   |
+| 2.1 Agent loop + streaming          | ✅      | DefaultAgent + ChatClient + SseStreamingService (Vercel AI SDK v4)                                             |
+| 2.2 System prompt из DB             | ✅      | SystemPromptProvider читает AGENT.md/SOUL.md/INFO.md из virtual_files (owner_id=NULL). 6 тестов.               |
+| 2.3 Agent environment               | ✅      | AgentEnvironment с user.dir/.git/os/Java                                                                       |
+| 2.4 Tool calling + auto-discovery   | ✅      | TaskTool ✅, CheckListTool ✅, McpTool ✅, FileOperationsTool ✅, SkillsTool ✅, AuditTool ✅                        |
+| 2.5 Skill management tool           | ✅      | SkillsTool: addSkill/removeSkill/listSkills/enableSkill/disableSkill + 9 тестов                                |
+| 2.6 Web fetch tool                  | ✅      | WebFetchTool (Jsoup): fetchPage + fetchSelector, AutoDiscoveredTool bean, 7 тестов                             |
+| 3.1 API contract (OpenAPI)          | ✅      | `specs/openapi.yaml` (3.1.0) + 39 contract-тестов + 6 Playwright E2E                                           |
+| 3.2 Chat API + SSE streaming        | ✅      | ChatRestController, ConversationController, SSE через ResponseBodyEmitter                                      |
+| 3.3 Files API                       | ✅      | FileController CRUD + tree (но filesystem-backed)                                                              |
+| 3.4 Skills API                      | ✅      | SkillController CRUD (но yaml-backed)                                                                          |
+| 3.5 MCP Servers API                 | ✅      | McpServerController CRUD + status (yaml-backed)                                                                |
 | 3.6 Actuator + health               | ✅      | Actuator health/info/metrics exposed; /api/health с реальной DB-проверкой; readiness/liveness probes; 7 тестов |
-| 4.1 Spring Security Basic Auth      | ❌      | spring-boot-starter-security не подключён                                                          |
-| 4.2 Per-user conversation isolation | ❌      | DEFAULT_CONVERSATION_ID = "web" для всех                                                           |
-| 4.3 Per-user virtual FS isolation   | ❌      | Нет virtual_files таблицы                                                                          |
-| 5.1 Scaffold SPA                    | ✅      | Vite + React 19 + TS + TanStack Router + proxy                                                     |
-| 5.2 Login page                      | ✅      | login-form.tsx, routes/login.tsx                                                                   |
-| 5.3 Chat UI — базовый               | ✅      | chat-page.tsx, useJavaClawChat (@ai-sdk/react), react-markdown, typing-indicator                   |
-| 5.4 Streaming display               | ✅      | AssistantMessage, streaming через useChat                                                          |
-| 5.5 Tool call visualization         | ✅      | tool-call-card.tsx, reasoning-block.tsx                                                            |
-| 5.6 Conversation switcher           | ✅      | conversation-history-menu.tsx, routes/conversations.tsx                                            |
-| 5.7 File manager UI                 | ⚠️     | REST есть, Monaco/CodeMirror editor не подтверждён                                                 |
-| 5.8 Admin UI                        | ✅      | routes/admin/{mcp,skills,prompts}.tsx                                                              |
-| 5.9 User workspace UI               | ✅      | routes/overview.tsx + admin/prompts.tsx                                                            |
-| 5.10 Удаление htmx/Pebble           | ⚠️     | Фронтенд на React; legacy Pebble templates остались в javaclaw-app как deprecated                  |
-| 6.1 Docker image                    | ⚠️     | docker-compose.dev.yml + PostgreSQL 17 есть; Jib plugin в pom.xml не настроен                      |
-| 6.2 Graceful shutdown               | ✅      | server.shutdown=graceful, lifecycle timeout 30s, 3 теста                                           |
-| 6.3 Health checks (ready/live)      | ✅      | Actuator readiness/liveness probes enabled, протестированы в ActuatorHealthIntegrationTest          |
+| 4.1 Spring Security Basic Auth      | ✅      | SecurityConfig + SecurityProperties, HTTP Basic, RBAC (ADMIN/USER), admin-only skills/mcp endpoints, 13 тестов |
+| 4.2 Per-user conversation isolation | ❌      | DEFAULT_CONVERSATION_ID = "web" для всех                                                                       |
+| 4.3 Per-user virtual FS isolation   | ❌      | Нет virtual_files таблицы                                                                                      |
+| 5.1 Scaffold SPA                    | ✅      | Vite + React 19 + TS + TanStack Router + proxy                                                                 |
+| 5.2 Login page                      | ✅      | login-form.tsx, routes/login.tsx                                                                               |
+| 5.3 Chat UI — базовый               | ✅      | chat-page.tsx, useJavaClawChat (@ai-sdk/react), react-markdown, typing-indicator                               |
+| 5.4 Streaming display               | ✅      | AssistantMessage, streaming через useChat                                                                      |
+| 5.5 Tool call visualization         | ✅      | tool-call-card.tsx, reasoning-block.tsx                                                                        |
+| 5.6 Conversation switcher           | ✅      | conversation-history-menu.tsx, routes/conversations.tsx                                                        |
+| 5.7 File manager UI                 | ⚠️     | REST есть, Monaco/CodeMirror editor не подтверждён                                                             |
+| 5.8 Admin UI                        | ✅      | routes/admin/{mcp,skills,prompts}.tsx                                                                          |
+| 5.9 User workspace UI               | ✅      | routes/overview.tsx + admin/prompts.tsx                                                                        |
+| 5.10 Удаление htmx/Pebble           | ⚠️     | Фронтенд на React; legacy Pebble templates остались в javaclaw-app как deprecated                              |
+| 6.1 Docker image                    | ⚠️     | docker-compose.dev.yml + PostgreSQL 17 есть; Jib plugin в pom.xml не настроен                                  |
+| 6.2 Graceful shutdown               | ✅      | server.shutdown=graceful, lifecycle timeout 30s, 3 теста                                                       |
+| 6.3 Health checks (ready/live)      | ✅      | Actuator readiness/liveness probes enabled, протестированы в ActuatorHealthIntegrationTest                     |
 
-**Итого P0 (48 пунктов):** ✅ 28 · ⚠️ 7 · ❌ 13
+**Итого P0 (48 пунктов):** ✅ 29 · ⚠️ 7 · ❌ 12
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
@@ -347,19 +347,20 @@
 
 > Цель: минимальная авторизация — admin/user из конфига, Spring Security
 
-### 4.1 Spring Security + Basic Auth (10.0, 15.1.0) ❌
+### 4.1 Spring Security + Basic Auth (10.0, 15.1.0) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
 
-- Spring Security filter chain
-- Два пользователя из application.yaml: admin/admin, user/user
-- AuthService interface (заглушка для будущего RBAC)
-- Роли: ADMIN, USER
-- Защита всех API endpoints
-- /api/me возвращает текущего пользователя + роль
-- **Выход:** без логина ничего не работает, admin и user имеют разный доступ
+- [x] Spring Security filter chain (SecurityConfig + SecurityFilterChain)
+- [x] Два пользователя из application.yaml: admin/admin, user/user (SecurityProperties + InMemoryUserDetailsManager)
+- [x] Роли: ADMIN, USER — admin-only: /api/skills/**, /api/mcp-servers/**
+- [x] Защита всех API endpoints (кроме /api/health, /actuator/**, статика)
+- [x] /api/me возвращает текущего пользователя + роль (через Authentication principal)
+- [x] Stateless sessions (SessionCreationPolicy.STATELESS), CSRF отключён
+- [x] 13 новых тестов (AuthIntegrationTest): unauthenticated 401, valid/invalid credentials, RBAC
+- **Выход:** без логина ничего не работает, admin и user имеют разный доступ. Все 207 тестов зелёные.
 
 ### 4.2 Per-user conversation isolation (базовая) ❌
 

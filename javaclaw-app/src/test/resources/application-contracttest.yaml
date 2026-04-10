@@ -23,6 +23,14 @@ agent:
     completed: true
 
 javaclaw:
+  security:
+    users:
+      - username: admin
+        password: admin
+        role: ADMIN
+      - username: user
+        password: user
+        role: USER
   chat:
     sse:
       timeout: 5s

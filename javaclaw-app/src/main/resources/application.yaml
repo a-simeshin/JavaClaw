@@ -61,6 +61,14 @@ agent:
     completed: true
   workspace: file:./workspace/
 javaclaw:
+  security:
+    users:
+      - username: admin
+        password: admin
+        role: ADMIN
+      - username: user
+        password: user
+        role: USER
   chat:
     token-budget:
       max-context-tokens: 200000

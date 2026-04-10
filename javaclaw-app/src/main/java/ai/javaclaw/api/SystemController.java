@@ -1,12 +1,12 @@
 package ai.javaclaw.api;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.security.Principal;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
  * Environment / whoami endpoints consumed by the SPA shell
  * ({@code GET /api/me}, {@code GET /api/health}).
  *
- * <p>When Spring Security is absent (current state), {@code /api/me} echoes the
- * servlet principal if present, otherwise falls back to {@code guest / USER}.
+ * <p>With Spring Security active, {@code /api/me} reads the authenticated principal
+ * and returns username + role (ADMIN or USER).
  */
 @RestController
 @RequestMapping("/api")
@@ -29,13 +29,15 @@ public class SystemController {
     }
 
     @GetMapping("/me")
-    public UserInfoDto me(HttpServletRequest request) {
-        Principal principal = request.getUserPrincipal();
-        if (principal == null) {
-            return new UserInfoDto("guest", "USER");
-        }
-        String role = request.isUserInRole("ADMIN") ? "ADMIN" : "USER";
-        return new UserInfoDto(principal.getName(), role);
+    public UserInfoDto me(Authentication authentication) {
+        String username = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(a -> a.startsWith("ROLE_"))
+                .map(a -> a.substring(5))
+                .findFirst()
+                .orElse("USER");
+        return new UserInfoDto(username, role);
     }
 
     @GetMapping("/health")

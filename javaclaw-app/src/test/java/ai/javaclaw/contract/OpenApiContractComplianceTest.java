@@ -13,6 +13,7 @@ import ai.javaclaw.agent.audit.DeliveryAuditLog;
 import ai.javaclaw.agent.audit.DeliveryAuditLogRepository;
 import ai.javaclaw.agent.audit.TaskAuditLog;
 import ai.javaclaw.agent.audit.TaskAuditLogRepository;
+import ai.javaclaw.integration.TestSecurityConfig;
 import ai.javaclaw.tasks.ApprovalRequest;
 import ai.javaclaw.tasks.ApprovalRequestRepository;
 import ai.javaclaw.tasks.NotifyPolicy;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -56,6 +58,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("contracttest")
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(TestSecurityConfig.class)
 class OpenApiContractComplianceTest {
 
     @Container
@@ -486,12 +489,12 @@ class OpenApiContractComplianceTest {
 
     @Test
     @Order(50)
-    void getMe_withNoPrincipal_returnsGuest() throws Exception {
+    void getMe_withAuthenticatedUser_returnsAdminInfo() throws Exception {
         mockMvc.perform(get("/api/me").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.username").value("guest"))
-                .andExpect(jsonPath("$.role").value("USER"));
+                .andExpect(jsonPath("$.username").value("admin"))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
     }
 
     @Test

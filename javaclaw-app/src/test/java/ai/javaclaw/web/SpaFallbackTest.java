@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
         controllers = {},
         useDefaultFilters = false)
 @Import(SpaWebConfig.class)
+@WithMockUser
 class SpaFallbackTest {
 
     @Autowired
