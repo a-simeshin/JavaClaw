@@ -93,10 +93,10 @@
 | 5.9 User workspace UI               | ✅      | routes/overview.tsx + admin/prompts.tsx                                                            |
 | 5.10 Удаление htmx/Pebble           | ⚠️     | Фронтенд на React; legacy Pebble templates остались в javaclaw-app как deprecated                  |
 | 6.1 Docker image                    | ⚠️     | docker-compose.dev.yml + PostgreSQL 17 есть; Jib plugin в pom.xml не настроен                      |
-| 6.2 Graceful shutdown               | ❌      | Нет spring.lifecycle.timeout-per-shutdown-phase                                                    |
-| 6.3 Health checks (ready/live)      | ❌      | Нет readiness/liveness probes                                                                      |
+| 6.2 Graceful shutdown               | ✅      | server.shutdown=graceful, lifecycle timeout 30s, 3 теста                                           |
+| 6.3 Health checks (ready/live)      | ✅      | Actuator readiness/liveness probes enabled, протестированы в ActuatorHealthIntegrationTest          |
 
-**Итого P0 (48 пунктов):** ✅ 26 · ⚠️ 7 · ❌ 15
+**Итого P0 (48 пунктов):** ✅ 28 · ⚠️ 7 · ❌ 13
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
@@ -330,7 +330,7 @@
 - McpServerController: CRUD + status
 - **Выход:** REST API для управления MCP-серверами
 
-### 3.6 Actuator + health (12.0, 11.2) ⚠️
+### 3.6 Actuator + health (12.0, 11.2) ✅
 
 ```
 Разработка → Тест
@@ -516,7 +516,7 @@
 - Environment config (11.4): DB_HOST, DB_PORT, etc.
 - **Выход:** docker compose up → работающий JavaClaw
 
-### 6.2 Graceful shutdown (11.3) ❌
+### 6.2 Graceful shutdown (11.3) ✅
 
 ```
 Разработка → Тест
@@ -526,7 +526,7 @@
 - Дождаться завершения текущих SSE-стримов и JobRunr задач
 - **Выход:** контейнер останавливается без потери данных
 
-### 6.3 Health checks (11.2) ❌
+### 6.3 Health checks (11.2) ✅
 
 ```
 Разработка → Тест

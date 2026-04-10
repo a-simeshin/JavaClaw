@@ -1,8 +1,13 @@
+server:
+  shutdown: graceful
+
 spring:
   application:
     name: JavaClaw
   config:
     import: optional:classpath:application.private.yaml
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   mvc:
     async:
       request-timeout: -1
