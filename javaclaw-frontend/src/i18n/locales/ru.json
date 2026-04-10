@@ -80,6 +80,16 @@
         "bar": "Прогресс задачи",
         "cancel": "Отменить задачу"
       }
+    },
+    "approval": {
+      "approve": "Одобрить",
+      "deny": "Отклонить",
+      "approved": "Одобрено",
+      "denied": "Отклонено",
+      "expired": "Истекло",
+      "timeRemaining": "Осталось времени",
+      "countdown": "Обратный отсчёт",
+      "replyPlaceholder": "Введите ответ..."
     }
   },
   "login": {

@@ -115,6 +115,16 @@
         "bar": "Task progress",
         "cancel": "Cancel task"
       }
+    },
+    "approval": {
+      "approve": "Approve",
+      "deny": "Deny",
+      "approved": "Approved",
+      "denied": "Denied",
+      "expired": "Expired",
+      "timeRemaining": "Time remaining",
+      "countdown": "Approval countdown",
+      "replyPlaceholder": "Type a custom response..."
     }
   },
   "login": {
