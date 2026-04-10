@@ -6,6 +6,8 @@ info:
   description: >
     REST API for the JavaClaw AI platform.
     Covers chat (Vercel AI SDK v4 SSE streaming), conversation management,
+    task management (CRUD, cancellation, parent-child hierarchy), human-in-the-loop approvals,
+    real-time SSE notifications, audit trails (task, chat, delivery),
     workspace file CRUD, MCP server registrations, agent skills, and system endpoints.
   license:
     name: Apache 2.0
@@ -28,6 +30,16 @@ tags:
     description: Agent skill definitions
   - name: system
     description: Health check and current-user info
+  - name: tasks
+    description: Task CRUD, cancellation, and child task hierarchy
+  - name: task-audit
+    description: Task audit trail, execution history, and delivery logs
+  - name: approvals
+    description: Human-in-the-loop approval requests and responses
+  - name: notifications
+    description: Real-time SSE push notifications for task events
+  - name: audit
+    description: Chat audit log queries
   - name: legacy
     description: Deprecated Pebble/htmx view endpoints — do not use in new code
 
@@ -479,6 +491,301 @@ components:
           type: string
           format: date-time
           description: ISO-8601 timestamp of when the error occurred
+
+    # ── Tasks ───────────────────────────────────────────────────────────────
+
+    TaskDto:
+      type: object
+      description: Task summary returned by task CRUD endpoints.
+      required:
+        - id
+        - name
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, completed, failed, awaiting_human_input, cancelled]
+        feedback:
+          type: string
+          description: Result text or error summary
+        conversationId:
+          type: string
+        parentTaskId:
+          type: string
+          nullable: true
+        notifyPolicy:
+          type: string
+          enum: [SILENT, DONE_ONLY, ON_ERROR, ON_SUCCESS, STATE_CHANGES]
+        runtimeType:
+          type: string
+          enum: [INLINE, ASYNC, CRON]
+        timeoutSeconds:
+          type: integer
+          nullable: true
+        carryOverContext:
+          type: boolean
+        userId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        failedAt:
+          type: string
+          format: date-time
+          nullable: true
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    # ── Task Executions ──────────────────────────────────────────────────────
+
+    TaskExecutionDto:
+      type: object
+      description: Single execution record of a task (one per firing for recurring tasks).
+      properties:
+        id:
+          type: string
+        taskId:
+          type: string
+        executionNumber:
+          type: integer
+        status:
+          type: string
+          enum: [running, completed, failed, cancelled]
+        systemPrompt:
+          type: string
+        userPrompt:
+          type: string
+        llmResponse:
+          type: string
+        toolCalls:
+          type: string
+          description: JSON array of tool calls
+        tokenUsage:
+          type: string
+          description: JSON object with prompt/completion/total tokens
+        errorMessage:
+          type: string
+          nullable: true
+        errorTrace:
+          type: string
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        durationMs:
+          type: integer
+          format: int64
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Task Audit ───────────────────────────────────────────────────────────
+
+    TaskAuditLogDto:
+      type: object
+      description: Single audit event in the task lifecycle timeline.
+      properties:
+        id:
+          type: integer
+          format: int64
+        taskId:
+          type: string
+        executionId:
+          type: string
+          nullable: true
+        eventType:
+          type: string
+          enum: [created, started, tool_call, progress, approval_requested, approval_received, completed, failed, cancelled, timeout, delivered]
+        createdAt:
+          type: string
+          format: date-time
+        systemPrompt:
+          type: string
+          nullable: true
+        userPrompt:
+          type: string
+          nullable: true
+        toolName:
+          type: string
+          nullable: true
+        toolArgs:
+          type: string
+          nullable: true
+        toolResult:
+          type: string
+          nullable: true
+        toolDurationMs:
+          type: integer
+          format: int64
+          nullable: true
+        llmRequest:
+          type: string
+          nullable: true
+        llmResponse:
+          type: string
+          nullable: true
+        tokenUsage:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        errorTrace:
+          type: string
+          nullable: true
+        durationMs:
+          type: integer
+          format: int64
+          nullable: true
+        metadata:
+          type: string
+          nullable: true
+
+    # ── Delivery Audit ───────────────────────────────────────────────────────
+
+    DeliveryAuditLogDto:
+      type: object
+      description: Audit record for a notification delivery attempt.
+      properties:
+        id:
+          type: integer
+          format: int64
+        taskId:
+          type: string
+          nullable: true
+        conversationId:
+          type: string
+        channelName:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [delivered, failed]
+        attempts:
+          type: integer
+        errorMessage:
+          type: string
+          nullable: true
+        durationMs:
+          type: integer
+          format: int64
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Approvals ────────────────────────────────────────────────────────────
+
+    ApprovalRequestDto:
+      type: object
+      description: Human-in-the-loop approval request.
+      properties:
+        id:
+          type: string
+        taskId:
+          type: string
+        conversationId:
+          type: string
+        question:
+          type: string
+        response:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, approved, denied, timeout]
+        timeoutAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ApprovalRespondRequest:
+      type: object
+      description: Body for POST /api/chat/approval/{approvalId}/respond.
+      required:
+        - response
+      properties:
+        response:
+          type: string
+          minLength: 1
+          description: User's response text (e.g. "да", "Да, но только эконом класс")
+
+    # ── Chat Audit ───────────────────────────────────────────────────────────
+
+    ChatAuditLogDto:
+      type: object
+      description: Audit record for a chat LLM request/response cycle.
+      properties:
+        id:
+          type: integer
+          format: int64
+        conversationId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        method:
+          type: string
+          description: LLM call method (stream/call)
+        systemPrompt:
+          type: string
+          nullable: true
+        history:
+          type: string
+          nullable: true
+        userContent:
+          type: string
+        toolNames:
+          type: string
+          nullable: true
+        responseText:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        errorTrace:
+          type: string
+          nullable: true
+        durationMs:
+          type: integer
+          format: int64
+          nullable: true
+        userId:
+          type: string
+          nullable: true
+        toolCallsDetail:
+          type: string
+          nullable: true
+          description: "JSON: [{name, args, result, duration_ms}]"
+        tokenUsage:
+          type: string
+          nullable: true
+          description: "JSON: {prompt_tokens, completion_tokens, total}"
 
 # =============================================================================
 # Paths
@@ -1119,6 +1426,327 @@ paths:
         "500":
           $ref: '#/components/responses/Error500'
       security: []
+
+  # ---------------------------------------------------------------------------
+  # Tasks
+  # ---------------------------------------------------------------------------
+
+  /api/tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks with optional filters
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by user ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [todo, in_progress, completed, failed, awaiting_human_input, cancelled]
+          description: Filter by task status
+      responses:
+        "200":
+          description: List of tasks matching filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskDto'
+        "500":
+          $ref: '#/components/responses/Error500'
+
+  /api/tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a single task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        "404":
+          $ref: '#/components/responses/Error404'
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Task deleted successfully
+        "404":
+          $ref: '#/components/responses/Error404'
+
+  /api/tasks/{id}/cancel:
+    post:
+      operationId: cancelTask
+      tags: [tasks]
+      summary: Cancel a running task
+      description: >
+        Sets the task status to cancelled, cancels any pending JobRunr job,
+        and delivers a cancellation notification to the user.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated task after cancellation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        "404":
+          $ref: '#/components/responses/Error404'
+
+  /api/tasks/{id}/children:
+    get:
+      operationId: getChildTasks
+      tags: [tasks]
+      summary: Get child tasks of a parent task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Parent task ID
+      responses:
+        "200":
+          description: List of child tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskDto'
+
+  # ---------------------------------------------------------------------------
+  # Task Audit
+  # ---------------------------------------------------------------------------
+
+  /api/tasks/{taskId}/audit:
+    get:
+      operationId: getTaskAudit
+      tags: [task-audit]
+      summary: Get full audit trail for a task
+      description: >
+        Returns the complete timeline of events for a task: creation, start,
+        tool calls, progress updates, approval requests/responses, completion,
+        failure, cancellation, timeout, and delivery events.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ordered list of audit events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskAuditLogDto'
+
+  /api/tasks/{taskId}/executions:
+    get:
+      operationId: getTaskExecutions
+      tags: [task-audit]
+      summary: Get execution history for a task
+      description: >
+        Returns all execution records for a task, ordered by execution number
+        descending (most recent first). Recurring tasks have multiple executions.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of task executions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskExecutionDto'
+
+  /api/tasks/{taskId}/deliveries:
+    get:
+      operationId: getTaskDeliveries
+      tags: [task-audit]
+      summary: Get delivery audit log for a task
+      description: >
+        Returns all notification delivery attempts for a task, including
+        channel, status, retry count, and any errors.
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of delivery audit records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryAuditLogDto'
+
+  # ---------------------------------------------------------------------------
+  # Approvals
+  # ---------------------------------------------------------------------------
+
+  /api/chat/approval/pending:
+    get:
+      operationId: getPendingApprovals
+      tags: [approvals]
+      summary: Get pending approval requests for a conversation
+      parameters:
+        - name: conversationId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Conversation ID to check for pending approvals
+      responses:
+        "200":
+          description: List of pending approval requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalRequestDto'
+
+  /api/chat/approval/{approvalId}/respond:
+    post:
+      operationId: respondToApproval
+      tags: [approvals]
+      summary: Respond to a pending approval request
+      description: >
+        Submits the user's response to a pending approval request. The task
+        that is blocked waiting for approval will resume with this response.
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRespondRequest'
+            example:
+              response: "Да, покупай"
+      responses:
+        "200":
+          description: Approval response accepted, task will resume
+        "404":
+          $ref: '#/components/responses/Error404'
+
+  # ---------------------------------------------------------------------------
+  # Notifications
+  # ---------------------------------------------------------------------------
+
+  /api/chat/notifications/{conversationId}:
+    get:
+      operationId: subscribeNotifications
+      tags: [notifications]
+      summary: SSE endpoint for real-time task notifications
+      description: >
+        Opens a Server-Sent Events (SSE) connection that pushes task lifecycle
+        events for the given conversation. Events include task completion,
+        failure, approval requests, and progress updates. The frontend
+        EventSource connects here to update the UI without polling.
+
+
+        Cross-pod delivery is handled via PostgreSQL NOTIFY/LISTEN — events
+        from any pod reach the SSE connection on the pod serving this request.
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: >
+                  Newline-delimited SSE frames. Each frame is
+                  `data: {"status":"...","taskName":"...","taskId":"..."}\n\n`
+
+  # ---------------------------------------------------------------------------
+  # Chat Audit
+  # ---------------------------------------------------------------------------
+
+  /api/audit/chat:
+    get:
+      operationId: getChatAudit
+      tags: [audit]
+      summary: Get chat audit log for a conversation
+      description: >
+        Returns recent LLM request/response audit records for a conversation,
+        including tool calls detail and token usage. Ordered by creation time
+        descending (most recent first).
+      parameters:
+        - name: conversationId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Maximum number of audit records to return
+      responses:
+        "200":
+          description: List of chat audit records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatAuditLogDto'
 
   # ---------------------------------------------------------------------------
   # Legacy (deprecated) — Pebble/htmx views, do not use in new code
