@@ -10,6 +10,8 @@ public interface TaskRepository extends ListCrudRepository<Task, String> {
 
     List<Task> findByCreatedAtBetween(Instant from, Instant to);
 
+    List<Task> findByStatus(Task.Status status);
+
     long countByUserIdAndStatus(String userId, Task.Status status);
 
     long countByUserIdAndCreatedAtAfter(String userId, Instant after);
