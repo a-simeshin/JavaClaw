@@ -588,10 +588,13 @@
 - [x] Backward-compatible: существующие no-userId методы делегируют с null (global-only)
 - [x] 4 новых теста в SystemPromptProviderTest: per-user append, missing user files, null userId, DB error graceful skip
 
-### 8.2 Steering / interruption (3.8)
+### 8.2 Steering / interruption (3.8) ✅
 
-- Механизм инъекции сообщений между tool calls
-- Cancel кнопка в UI
+- [x] Cancel infrastructure: per-conversation cancel signals (Sinks.Empty + takeUntilOther) в SseStreamingService
+- [x] POST /api/chat/cancel/{conversationId} endpoint в ChatRestController
+- [x] Frontend: cancelStream() API + useJavaClawChat.stop() вызывает backend cancel для остановки token consumption
+- [x] 4 новых теста: cancel returns false for no stream, cancel terminates active stream, cancel endpoint OK/404
+- Steering (инъекция сообщений между tool calls) требует переключения на manual tool execution — отложено
 
 ### 8.3 Context window management (3.5)
 

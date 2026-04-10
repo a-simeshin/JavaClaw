@@ -75,6 +75,17 @@ public class ChatRestController {
                 .body(emitter);
     }
 
+    /**
+     * Cancels an active stream for the given conversation, stopping LLM token consumption.
+     */
+    @PostMapping("/cancel/{conversationId}")
+    public ResponseEntity<Void> cancel(@PathVariable final String conversationId) {
+        final boolean cancelled = streamingService.cancel(conversationId);
+        return cancelled
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
+    }
+
     private static String resolveConversationId(final String id) {
         if (id == null || id.isBlank()) {
             return DEFAULT_CONVERSATION_ID + "-" + UUID.randomUUID();

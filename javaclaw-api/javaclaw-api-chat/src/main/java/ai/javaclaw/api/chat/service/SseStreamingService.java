@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
+import reactor.core.publisher.Sinks;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -47,6 +49,9 @@ public class SseStreamingService {
 
     /** Набор активных emitter-ов — используется для контроля жизненного цикла. */
     private final Set<ResponseBodyEmitter> emitters = ConcurrentHashMap.newKeySet();
+
+    /** Cancel-сигналы по conversationId — позволяют прервать LLM стрим по запросу пользователя. */
+    private final ConcurrentMap<String, Sinks.Empty<Void>> cancelSignals = new ConcurrentHashMap<>();
 
     /** Семафор, ограничивающий число одновременных SSE-стримов. */
     private final Semaphore concurrencyLimit;
@@ -170,6 +175,8 @@ public class SseStreamingService {
             final String userContent) {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
+        final Sinks.Empty<Void> cancelSink = Sinks.empty();
+        cancelSignals.put(conversationId, cancelSink);
         try {
             channelContextService.saveContext(
                     conversationId, "Web Chat Channel", java.util.Map.of("conversationId", conversationId));
@@ -184,6 +191,7 @@ public class SseStreamingService {
                     VercelSseEvent.TextStart.builder().id(textBlockId).build());
 
             chatService.stream(conversationId, userId, userContent)
+                    .takeUntilOther(cancelSink.asMono())
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(text -> text != null && !text.isEmpty())
                     .doOnNext(delta -> trySendEvent(
@@ -215,6 +223,8 @@ public class SseStreamingService {
             synchronized (lock) {
                 emitter.completeWithError(ex);
             }
+        } finally {
+            cancelSignals.remove(conversationId);
         }
     }
 
@@ -352,6 +362,24 @@ public class SseStreamingService {
         } catch (IllegalStateException completed) {
             // Emitter already completed — benign race with runStream finishing.
         }
+    }
+
+    /**
+     * Cancels an active stream for the given conversation. Emits a complete signal
+     * to the {@code takeUntilOther} operator, causing the Flux pipeline to terminate
+     * and stop consuming LLM tokens.
+     *
+     * @param conversationId идентификатор разговора для отмены
+     * @return true если стрим был найден и отменён, false если стрим не был активен
+     */
+    public boolean cancel(final String conversationId) {
+        final Sinks.Empty<Void> sink = cancelSignals.remove(conversationId);
+        if (sink != null) {
+            sink.tryEmitEmpty();
+            log.info("Cancelled active stream for conversation {}", conversationId);
+            return true;
+        }
+        return false;
     }
 
     /**

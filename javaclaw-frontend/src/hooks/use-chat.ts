@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAtom } from "jotai"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { CHAT_SEND_ENDPOINT, createChatFetch } from "@/api/chat"
+import { CHAT_SEND_ENDPOINT, cancelStream, createChatFetch } from "@/api/chat"
 import {
   listConversationMessages,
   type MessageDto,
@@ -157,5 +157,16 @@ export function useJavaClawChat(options: UseJavaClawChatOptions = {}) {
     setStreaming(isBusy)
   }, [helpers.status, setStreaming])
 
-  return helpers
+  // Wrap stop to also cancel the backend LLM stream, saving tokens.
+  const wrappedStop = useCallback(() => {
+    helpers.stop()
+    const cid = conversationId ?? pendingIdRef.current
+    if (cid) {
+      cancelStream(cid).catch(() => {
+        /* best-effort — backend stream will eventually time out */
+      })
+    }
+  }, [helpers.stop, conversationId])
+
+  return { ...helpers, stop: wrappedStop }
 }

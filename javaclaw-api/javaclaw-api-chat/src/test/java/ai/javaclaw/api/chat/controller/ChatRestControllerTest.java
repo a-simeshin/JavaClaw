@@ -93,4 +93,20 @@ class ChatRestControllerTest {
                         .content("{\"content\":\"x\"}"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void cancelReturnsOkWhenStreamActive() throws Exception {
+        when(streamingService.cancel("conv-123")).thenReturn(true);
+
+        mockMvc.perform(post("/api/chat/cancel/conv-123")).andExpect(status().isOk());
+
+        verify(streamingService).cancel("conv-123");
+    }
+
+    @Test
+    void cancelReturnsNotFoundWhenNoActiveStream() throws Exception {
+        when(streamingService.cancel("conv-999")).thenReturn(false);
+
+        mockMvc.perform(post("/api/chat/cancel/conv-999")).andExpect(status().isNotFound());
+    }
 }
