@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * JDBC-backed file service. Replaces {@link WorkspaceFileService} as the backend for
- * {@link FileController}. All operations work on global files (owner_id = NULL) until
- * Spring Security is wired in Phase 4.3.
+ * JDBC-backed file service. Supports both global files (owner_id = NULL)
+ * and per-user files (owner_id = user_id). User files include global files
+ * as read-only in the tree view.
  */
 @Service
 public class VirtualFileService {
@@ -21,6 +21,8 @@ public class VirtualFileService {
     public VirtualFileService(final VirtualFileRepository repository) {
         this.repository = repository;
     }
+
+    // ── global operations (backward-compatible, used by system/agent) ──────
 
     public FileNodeDto tree() {
         final List<VirtualFile> files = repository.findAllByOwnerIdIsNull();
@@ -64,6 +66,62 @@ public class VirtualFileService {
         final String safeContent = content == null ? "" : content;
         final VirtualFile saved = repository.save(VirtualFile.newGlobalFile(path, safeContent, inferContentType(path)));
         return new FileContentDto(saved.path(), saved.content());
+    }
+
+    // ── per-user operations (Phase 4.3) ────────────────────────────────────
+
+    public FileNodeDto treeForUser(final String userId) {
+        final List<VirtualFile> userFiles = repository.findAllByOwnerId(userId);
+        final List<VirtualFile> globalFiles = repository.findAllByOwnerIdIsNull();
+        final List<VirtualFile> merged = new ArrayList<>();
+        merged.addAll(userFiles);
+        merged.addAll(globalFiles);
+        return buildTree(merged);
+    }
+
+    public FileContentDto readForUser(final String userId, final String path) {
+        validatePath(path);
+        // Try user file first, then fall back to global
+        final Optional<VirtualFile> userFile = repository.findByOwnerIdAndPath(userId, path);
+        if (userFile.isPresent()) {
+            return new FileContentDto(userFile.get().path(), userFile.get().content());
+        }
+        final Optional<VirtualFile> globalFile = repository.findByOwnerIdIsNullAndPath(path);
+        if (globalFile.isPresent()) {
+            return new FileContentDto(globalFile.get().path(), globalFile.get().content());
+        }
+        throw new IllegalArgumentException("File not found: " + path);
+    }
+
+    public FileContentDto writeForUser(final String userId, final String path, final String content) {
+        validatePath(path);
+        final Optional<VirtualFile> existing = repository.findByOwnerIdAndPath(userId, path);
+        final String safeContent = content == null ? "" : content;
+        final VirtualFile toSave;
+        if (existing.isPresent()) {
+            toSave = existing.get().withUpdatedContent(safeContent);
+        } else {
+            toSave = VirtualFile.newUserFile(userId, path, safeContent, inferContentType(path));
+        }
+        final VirtualFile saved = repository.save(toSave);
+        return new FileContentDto(saved.path(), saved.content());
+    }
+
+    public FileContentDto createForUser(final String userId, final String path, final String content) {
+        validatePath(path);
+        if (repository.existsByOwnerIdAndPath(userId, path)) {
+            throw new IllegalStateException("File already exists: " + path);
+        }
+        final String safeContent = content == null ? "" : content;
+        final VirtualFile saved =
+                repository.save(VirtualFile.newUserFile(userId, path, safeContent, inferContentType(path)));
+        return new FileContentDto(saved.path(), saved.content());
+    }
+
+    public void deleteForUser(final String userId, final String path) {
+        validatePath(path);
+        // Only delete user-owned files, not global files
+        repository.deleteByOwnerIdAndPath(userId, path);
     }
 
     private static void validatePath(final String path) {

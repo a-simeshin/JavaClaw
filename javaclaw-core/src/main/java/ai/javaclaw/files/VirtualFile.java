@@ -23,6 +23,13 @@ public record VirtualFile(
         return new VirtualFile(null, null, path, safeContent, contentType, size, Instant.now(), Instant.now());
     }
 
+    public static VirtualFile newUserFile(
+            final String ownerId, final String path, final String content, final String contentType) {
+        final String safeContent = content == null ? "" : content;
+        final long size = safeContent.getBytes(StandardCharsets.UTF_8).length;
+        return new VirtualFile(null, ownerId, path, safeContent, contentType, size, Instant.now(), Instant.now());
+    }
+
     public VirtualFile withUpdatedContent(final String newContent) {
         final String safeContent = newContent == null ? "" : newContent;
         final long size = safeContent.getBytes(StandardCharsets.UTF_8).length;
