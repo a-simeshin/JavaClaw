@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.AgentEvent;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.agent.event.EventKind;
@@ -58,6 +59,9 @@ class TaskHandlerTest {
     @Mock
     private EventBus eventBus;
 
+    @Mock
+    private TaskAuditService taskAuditService;
+
     @Captor
     private ArgumentCaptor<AgentEvent> eventCaptor;
 
@@ -79,7 +83,8 @@ class TaskHandlerTest {
                 channelContextService,
                 conversationEnsurer,
                 cancellationTokenRegistry,
-                eventBus);
+                eventBus,
+                taskAuditService);
     }
 
     @Test
@@ -355,6 +360,73 @@ class TaskHandlerTest {
                 null,
                 null,
                 conversationId);
+    }
+
+    /** Audit: successful execution logs started + llmCall + completed */
+    @Test
+    void auditLogsStartedLlmCallAndCompletedOnSuccess() {
+        final Task task = taskWithConversationId("conv-1");
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any()))
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done"));
+
+        taskHandler.executeTask("task-1");
+
+        verify(taskAuditService).logStarted(eq("task-1"), any());
+        verify(taskAuditService)
+                .logLlmCall(
+                        eq("task-1"), any(), any(), argThat(p -> p.contains("Do something")), eq("Done"), any(), any());
+        verify(taskAuditService).logCompleted(eq("task-1"), any(), any());
+        verify(taskAuditService, never()).logFailed(any(), any(), any(), any(), any());
+        verify(taskAuditService, never()).logCancelled(any(), any());
+    }
+
+    /** Audit: failed execution logs started + failed (no completed) */
+    @Test
+    void auditLogsStartedAndFailedOnError() {
+        final Task task = taskWithConversationId("conv-1");
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any())).thenThrow(new RuntimeException("LLM error"));
+
+        try {
+            taskHandler.executeTask("task-1");
+        } catch (RuntimeException ignored) {
+        }
+
+        verify(taskAuditService).logStarted(eq("task-1"), any());
+        verify(taskAuditService)
+                .logFailed(eq("task-1"), any(), eq("LLM error"), argThat(t -> t.contains("RuntimeException")), any());
+        verify(taskAuditService, never()).logCompleted(any(), any(), any());
+        verify(taskAuditService, never()).logCancelled(any(), any());
+    }
+
+    /** Audit: cancelled execution logs started + cancelled (no completed, no failed) */
+    @Test
+    void auditLogsStartedAndCancelledOnCancellation() {
+        final Task task = taskWithConversationId("conv-1");
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> {
+            cancellationTokenRegistry.cancel("task-1");
+            return inv.getArgument(0);
+        });
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        taskHandler.executeTask("task-1");
+
+        verify(taskAuditService).logStarted(eq("task-1"), any());
+        verify(taskAuditService).logCancelled(eq("task-1"), any());
+        verify(taskAuditService, never()).logCompleted(any(), any(), any());
+        verify(taskAuditService, never()).logFailed(any(), any(), any(), any(), any());
     }
 
     private Task taskWithSourceChannelName(final String sourceChannelName) {

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
@@ -63,6 +64,9 @@ class TaskManagerTest {
 
     @Mock
     EventBus eventBusMock;
+
+    @Mock
+    TaskAuditService taskAuditServiceMock;
 
     InMemoryStorageProvider storageProvider;
     TaskManager taskManager;
@@ -270,7 +274,8 @@ class TaskManagerTest {
                             channelContextServiceMock,
                             conversationEnsurerMock,
                             new CancellationTokenRegistry(),
-                            eventBusMock);
+                            eventBusMock,
+                            taskAuditServiceMock);
                 else if (RecurringTaskHandler.class.equals(type))
                     return (T) new RecurringTaskHandler(taskManager, recurringTaskRepositoryMock);
                 else throw new IllegalStateException("Type " + type + " is unknown");

@@ -4,6 +4,7 @@ import static ai.javaclaw.tasks.Task.Status.awaiting_human_input;
 import static ai.javaclaw.tasks.Task.Status.completed;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.AgentEvent;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.agent.event.EventKind;
@@ -36,6 +37,7 @@ public class TaskHandler {
     private final ConversationEnsurer conversationEnsurer;
     private final CancellationTokenRegistry cancellationTokenRegistry;
     private final EventBus eventBus;
+    private final TaskAuditService taskAuditService;
 
     public TaskHandler(
             final Agent agent,
@@ -45,7 +47,8 @@ public class TaskHandler {
             final ChannelContextService channelContextService,
             final ConversationEnsurer conversationEnsurer,
             final CancellationTokenRegistry cancellationTokenRegistry,
-            final EventBus eventBus) {
+            final EventBus eventBus,
+            final TaskAuditService taskAuditService) {
         this.agent = agent;
         this.taskRepository = taskRepository;
         this.taskExecutionRepository = taskExecutionRepository;
@@ -54,6 +57,7 @@ public class TaskHandler {
         this.conversationEnsurer = conversationEnsurer;
         this.cancellationTokenRegistry = cancellationTokenRegistry;
         this.eventBus = eventBus;
+        this.taskAuditService = taskAuditService;
     }
 
     @Job(name = "%0", retries = 3)
@@ -78,6 +82,11 @@ public class TaskHandler {
         final int executionNumber = nextExecutionNumber(taskId);
         TaskExecution execution =
                 taskExecutionRepository.save(TaskExecution.start(taskId, executionNumber, null, agentInput));
+        final String executionId = execution.getId();
+
+        taskAuditService.logStarted(taskId, executionId);
+
+        final long startTime = System.currentTimeMillis();
 
         try {
             cancellationToken.checkCancelled();
@@ -89,12 +98,19 @@ public class TaskHandler {
 
             cancellationToken.checkCancelled();
 
+            final long llmStart = System.currentTimeMillis();
             final TaskResult result = agent.prompt(conversationId, agentInput, TaskResult.class);
+            final long llmDuration = System.currentTimeMillis() - llmStart;
 
             eventBus.emit(AgentEvent.of(EventKind.LLM_RESPONSE, meta, Map.of("feedback", nullSafe(result.feedback()))));
 
+            taskAuditService.logLlmCall(taskId, executionId, null, agentInput, result.feedback(), null, llmDuration);
+
             taskRepository.save(inProgress.withFeedback(result.feedback()).withStatus(result.newStatus()));
             taskExecutionRepository.save(execution.withCompleted(result.feedback(), null, null));
+
+            final long totalDuration = System.currentTimeMillis() - startTime;
+            taskAuditService.logCompleted(taskId, executionId, totalDuration);
 
             eventBus.emit(AgentEvent.of(
                     EventKind.TASK_STATUS_CHANGE,
@@ -107,11 +123,14 @@ public class TaskHandler {
         } catch (TaskCancelledException e) {
             taskRepository.save(inProgress.withStatus(Task.Status.cancelled));
             taskExecutionRepository.save(execution.withCancelled());
+            taskAuditService.logCancelled(taskId, executionId);
             eventBus.emit(AgentEvent.of(EventKind.TASK_CANCELLED, meta));
             LOGGER.info("Task cancelled: {}", task.getName());
         } catch (Exception e) {
+            final long totalDuration = System.currentTimeMillis() - startTime;
             taskRepository.save(inProgress.withStatus(Task.Status.failed));
             taskExecutionRepository.save(execution.withFailed(e.getMessage(), stackTraceToString(e)));
+            taskAuditService.logFailed(taskId, executionId, e.getMessage(), stackTraceToString(e), totalDuration);
             eventBus.emit(AgentEvent.of(EventKind.ERROR, meta, Map.of("error", nullSafe(e.getMessage()))));
             LOGGER.error("Task failed: {}", task.getName(), e);
             throw e;
