@@ -48,6 +48,10 @@ class MessageAssemblerTest {
     @Mock
     private ChatMemoryRepository chatMemoryRepository;
 
+    /** Mock conversation summary service for context window management. */
+    @Mock
+    private ConversationSummaryService summaryService;
+
     /** The assembler under test. */
     private MessageAssembler messageAssembler;
 
@@ -69,7 +73,8 @@ class MessageAssemblerTest {
                 new MessageSanitizer(),
                 new TurnBoundaryWindower(),
                 budgetProperties,
-                tokenEstimator);
+                tokenEstimator,
+                summaryService);
     }
 
     @Test
@@ -232,7 +237,8 @@ class MessageAssemblerTest {
                 new MessageSanitizer(),
                 new TurnBoundaryWindower(),
                 tightBudget,
-                tokenEstimator);
+                tokenEstimator,
+                summaryService);
 
         final List<Message> bigHistory = buildHistory(41);
         when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(bigHistory);

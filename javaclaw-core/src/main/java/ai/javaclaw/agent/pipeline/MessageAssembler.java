@@ -67,6 +67,9 @@ public class MessageAssembler {
     /** Token estimator used to measure message costs in characters-to-tokens approximation. */
     private final TokenEstimator tokenEstimator;
 
+    /** Service for retrieving and creating conversation summaries when turns are dropped. */
+    private final ConversationSummaryService summaryService;
+
     /**
      * Creates a {@code MessageAssembler} with all required dependencies.
      *
@@ -78,6 +81,7 @@ public class MessageAssembler {
      * @param windower              turn-boundary windower for history trimming, must not be null
      * @param budgetProperties      token budget configuration, must not be null
      * @param tokenEstimator        token estimator for measuring message costs, must not be null
+     * @param summaryService        service for conversation summaries, must not be null
      */
     public MessageAssembler(
             final SystemPromptProvider systemPromptProvider,
@@ -87,7 +91,8 @@ public class MessageAssembler {
             final MessageSanitizer messageSanitizer,
             final TurnBoundaryWindower windower,
             final TokenBudgetProperties budgetProperties,
-            final TokenEstimator tokenEstimator) {
+            final TokenEstimator tokenEstimator,
+            final ConversationSummaryService summaryService) {
         Assert.notNull(systemPromptProvider, "systemPromptProvider must not be null");
         Assert.notNull(activeSkillsProvider, "activeSkillsProvider must not be null");
         Assert.notNull(chatMemory, "chatMemory must not be null");
@@ -96,6 +101,7 @@ public class MessageAssembler {
         Assert.notNull(windower, "windower must not be null");
         Assert.notNull(budgetProperties, "budgetProperties must not be null");
         Assert.notNull(tokenEstimator, "tokenEstimator must not be null");
+        Assert.notNull(summaryService, "summaryService must not be null");
         this.systemPromptProvider = systemPromptProvider;
         this.activeSkillsProvider = activeSkillsProvider;
         this.chatMemory = chatMemory;
@@ -104,6 +110,7 @@ public class MessageAssembler {
         this.windower = windower;
         this.budgetProperties = budgetProperties;
         this.tokenEstimator = tokenEstimator;
+        this.summaryService = summaryService;
     }
 
     /**
@@ -135,18 +142,25 @@ public class MessageAssembler {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
 
-        final SystemMessage systemMessage = buildSystemMessage(userId);
+        final SystemMessage systemMessage = buildSystemMessage(userId, conversationId);
         final int systemTokens = tokenEstimator.estimate(systemMessage);
         final TokenBudget budget = budgetProperties.toBudget().withSystemTokens(systemTokens);
 
         final List<Message> rawHistory = loadFilteredHistory(conversationId);
         final List<Message> sanitizedHistory = messageSanitizer.sanitize(rawHistory);
         final int availableTokens = budget.availableForHistory();
-        final List<Message> windowedHistory = sanitizedHistory.isEmpty() || availableTokens <= 0
-                ? List.of()
-                : windower.window(sanitizedHistory, availableTokens, tokenEstimator);
 
-        return new AssembledPrompt(systemMessage, windowedHistory, new UserMessage(userContent));
+        if (sanitizedHistory.isEmpty() || availableTokens <= 0) {
+            return new AssembledPrompt(systemMessage, List.of(), new UserMessage(userContent));
+        }
+
+        final WindowingResult result = windower.windowWithResult(sanitizedHistory, availableTokens, tokenEstimator);
+
+        if (result.hasDroppedMessages()) {
+            summaryService.summarizeDroppedMessages(conversationId, result.dropped());
+        }
+
+        return new AssembledPrompt(systemMessage, result.retained(), new UserMessage(userContent));
     }
 
     /**
@@ -154,8 +168,8 @@ public class MessageAssembler {
      *
      * @return system message containing all available prompt sections
      */
-    private SystemMessage buildSystemMessage(@Nullable final String userId) {
-        final List<String> sections = new ArrayList<>(4);
+    private SystemMessage buildSystemMessage(@Nullable final String userId, final String conversationId) {
+        final List<String> sections = new ArrayList<>(5);
 
         final String identity = systemPromptProvider.loadIdentity(userId);
         if (identity != null && !identity.isBlank()) {
@@ -175,6 +189,15 @@ public class MessageAssembler {
         final String envInfo = AgentEnvironment.info().toString();
         if (envInfo != null && !envInfo.isBlank()) {
             sections.add("# Environment\n" + envInfo);
+        }
+
+        try {
+            final String summary = summaryService.getExistingSummary(conversationId);
+            if (summary != null && !summary.isBlank()) {
+                sections.add("# Previous Conversation Summary\n" + summary);
+            }
+        } catch (final Exception e) {
+            // graceful skip — summary is optional
         }
 
         final String combined = String.join("\n\n", sections);

@@ -596,10 +596,14 @@
 - [x] 4 новых теста: cancel returns false for no stream, cancel terminates active stream, cancel endpoint OK/404
 - Steering (инъекция сообщений между tool calls) требует переключения на manual tool execution — отложено
 
-### 8.3 Context window management (3.5)
+### 8.3 Context window management (3.5) ✅
 
-- Auto-compaction при превышении окна
-- Суммаризация старых сообщений
+- [x] V24 миграция: conversation_summaries таблица для хранения LLM-суммаризаций
+- [x] ConversationSummary entity + ConversationSummaryRepository (findLatest, deleteByConversationId)
+- [x] ConversationSummaryService: async LLM-суммаризация дропнутых turns, merge с existing summary
+- [x] TurnBoundaryWindower.windowWithResult() — возвращает WindowingResult с retained + dropped
+- [x] MessageAssembler: инъекция existing summary в system prompt ("# Previous Conversation Summary"), trigger суммаризации при dropped turns
+- [x] 7 новых тестов: ConversationSummaryServiceTest (5), TurnBoundaryWindowerTest (2)
 
 ### 8.4 FewShotExamples (3.2a)
 

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -77,6 +78,19 @@ public class TurnBoundaryWindower {
      *                                  or {@code maxTokens} is not positive
      */
     public List<Message> window(final List<Message> messages, final int maxTokens, final TokenEstimator estimator) {
+        return windowWithResult(messages, maxTokens, estimator).retained();
+    }
+
+    /**
+     * Windows {@code messages} by token budget and returns both retained and dropped messages.
+     *
+     * @param messages  full message history, must not be {@code null}
+     * @param maxTokens maximum token budget; must be &gt; 0
+     * @param estimator token estimator, must not be {@code null}
+     * @return {@link WindowingResult} with retained and dropped message lists
+     */
+    public WindowingResult windowWithResult(
+            final List<Message> messages, final int maxTokens, final TokenEstimator estimator) {
         if (messages == null) {
             throw new IllegalArgumentException("messages must not be null");
         }
@@ -88,8 +102,9 @@ public class TurnBoundaryWindower {
         }
 
         final List<List<Message>> turns = groupIntoTurns(messages);
-        final List<List<Message>> retained = dropOldestTurnsByTokens(turns, maxTokens, estimator);
-        return flatten(retained);
+        final List<List<Message>> dropped = new ArrayList<>();
+        final List<List<Message>> retained = dropOldestTurnsByTokens(turns, maxTokens, estimator, dropped);
+        return new WindowingResult(flatten(retained), flatten(dropped));
     }
 
     /**
@@ -103,6 +118,14 @@ public class TurnBoundaryWindower {
      */
     private List<List<Message>> dropOldestTurnsByTokens(
             final List<List<Message>> turns, final int maxTokens, final TokenEstimator estimator) {
+        return dropOldestTurnsByTokens(turns, maxTokens, estimator, null);
+    }
+
+    private List<List<Message>> dropOldestTurnsByTokens(
+            final List<List<Message>> turns,
+            final int maxTokens,
+            final TokenEstimator estimator,
+            @Nullable final List<List<Message>> droppedCollector) {
         final List<List<Message>> retained = new ArrayList<>(turns);
         while (retained.size() > 1) {
             final List<Message> flat = new ArrayList<>();
@@ -113,6 +136,9 @@ public class TurnBoundaryWindower {
                 break;
             }
             final List<Message> dropped = retained.remove(0);
+            if (droppedCollector != null) {
+                droppedCollector.add(dropped);
+            }
             log.debug(
                     "TurnBoundaryWindower: dropped oldest turn by token budget ({} messages), {} turns remain",
                     dropped.size(),

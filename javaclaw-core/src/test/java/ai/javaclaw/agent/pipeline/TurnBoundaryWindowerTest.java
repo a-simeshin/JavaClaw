@@ -245,4 +245,41 @@ class TurnBoundaryWindowerTest {
 
         assertThatThrownBy(() -> result.add(user("extra"))).isInstanceOf(UnsupportedOperationException.class);
     }
+
+    // -------------------------------------------------------------------------
+    // windowWithResult() tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("windowWithResult: returns dropped messages when turns are trimmed")
+    void windowWithResult_returnsDroppedMessages() {
+        final TokenEstimator estimator = new TokenEstimator();
+        // 3 turns, budget allows only last turn
+        final UserMessage u1 = user("question one");
+        final AssistantMessage a1 = assistant("answer one");
+        final UserMessage u2 = user("question two");
+        final AssistantMessage a2 = assistant("answer two");
+        final UserMessage u3 = user("q3");
+        final AssistantMessage a3 = assistant("a3");
+
+        final WindowingResult result = windower.windowWithResult(List.of(u1, a1, u2, a2, u3, a3), 3, estimator);
+
+        assertThat(result.retained()).hasSize(2);
+        assertThat(result.retained().get(0)).isSameAs(u3);
+        assertThat(result.hasDroppedMessages()).isTrue();
+        assertThat(result.dropped()).contains(u1, a1, u2, a2);
+    }
+
+    @Test
+    @DisplayName("windowWithResult: no dropped messages when all fit within budget")
+    void windowWithResult_noDroppedMessages_whenAllFit() {
+        final TokenEstimator estimator = new TokenEstimator();
+        final List<Message> messages = List.of(user("hi"), assistant("hello"));
+
+        final WindowingResult result = windower.windowWithResult(messages, 100_000, estimator);
+
+        assertThat(result.retained()).containsExactlyElementsOf(messages);
+        assertThat(result.hasDroppedMessages()).isFalse();
+        assertThat(result.dropped()).isEmpty();
+    }
 }
