@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobRunrDashboardLogger;
 import org.slf4j.Logger;
@@ -169,12 +170,45 @@ public class TaskHandler {
     }
 
     private String formatTaskForAgent(final Task task) {
-        return String.format(
+        final StringBuilder sb = new StringBuilder();
+        sb.append(String.format(
                 """
                 Handle the following task and report the new status ('completed' or 'awaiting_human_input') with the feedback what was done
                 Task '%s': %s
                 """,
-                task.getName(), task.getDescription());
+                task.getName(), task.getDescription()));
+
+        if (Boolean.TRUE.equals(task.getCarryOverContext())) {
+            final String previousSummaries = buildPreviousExecutionSummaries(task.getId());
+            if (!previousSummaries.isEmpty()) {
+                sb.append("\n--- Previous executions (for context, do not repeat the same results) ---\n");
+                sb.append(previousSummaries);
+                sb.append("\n--- End of previous executions ---\n");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private String buildPreviousExecutionSummaries(final String taskId) {
+        final List<TaskExecution> executions = taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(taskId);
+        if (executions.isEmpty()) {
+            return "";
+        }
+
+        // Take up to 5 most recent completed executions to keep context manageable
+        return executions.stream()
+                .filter(e -> e.getStatus() == TaskExecution.Status.completed)
+                .limit(5)
+                .map(e -> "Execution #%d: %s".formatted(e.getExecutionNumber(), truncate(e.getLlmResponse(), 500)))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private static String truncate(final String text, final int maxLength) {
+        if (text == null) {
+            return "(no response)";
+        }
+        return text.length() <= maxLength ? text : text.substring(0, maxLength) + "...";
     }
 
     public record TaskResult(Task.Status newStatus, String feedback) {}

@@ -340,6 +340,95 @@ class TaskHandlerTest {
                         exec -> exec.getStatus() == TaskExecution.Status.running && exec.getExecutionNumber() == 3));
     }
 
+    /** T7: executeTask with carryOverContext=true → includes previous execution summaries in prompt */
+    @Test
+    void carryOverContextIncludesPreviousExecutionSummaries() {
+        final Task task = taskWithCarryOverContext("conv-1", true);
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // Two previous completed executions
+        final TaskExecution prev1 =
+                TaskExecution.start("task-1", 1, null, "old prompt").withCompleted("Told joke about cats", null, null);
+        final TaskExecution prev2 =
+                TaskExecution.start("task-1", 2, null, "old prompt").withCompleted("Told joke about dogs", null, null);
+        // Return in desc order (newest first)
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of(prev2, prev1));
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any()))
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Told joke about fish"));
+
+        taskHandler.executeTask("task-1");
+
+        // Verify prompt includes previous execution summaries
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(agent).prompt(anyString(), promptCaptor.capture(), any());
+        final String prompt = promptCaptor.getValue();
+
+        assertThat(prompt).contains("Previous executions");
+        assertThat(prompt).contains("Told joke about cats");
+        assertThat(prompt).contains("Told joke about dogs");
+        assertThat(prompt).contains("do not repeat the same results");
+    }
+
+    /** T7 variant: carryOverContext=false → no previous summaries in prompt */
+    @Test
+    void noCarryOverContextDoesNotIncludePreviousSummaries() {
+        final Task task = taskWithCarryOverContext("conv-1", false);
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any()))
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done"));
+
+        taskHandler.executeTask("task-1");
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(agent).prompt(anyString(), promptCaptor.capture(), any());
+        assertThat(promptCaptor.getValue()).doesNotContain("Previous executions");
+    }
+
+    /** T7 variant: carryOverContext=true but no previous executions → no summary section */
+    @Test
+    void carryOverContextWithNoPreviousExecutionsOmitsSummary() {
+        final Task task = taskWithCarryOverContext("conv-1", true);
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any()))
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "First joke"));
+
+        taskHandler.executeTask("task-1");
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(agent).prompt(anyString(), promptCaptor.capture(), any());
+        assertThat(promptCaptor.getValue()).doesNotContain("Previous executions");
+    }
+
+    /** T7 variant: carryOverContext=null (default) → treated as false */
+    @Test
+    void nullCarryOverContextTreatedAsFalse() {
+        final Task task = taskWithConversationId("conv-1"); // null carryOverContext
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc("task-1"))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any()))
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done"));
+
+        taskHandler.executeTask("task-1");
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(agent).prompt(anyString(), promptCaptor.capture(), any());
+        assertThat(promptCaptor.getValue()).doesNotContain("Previous executions");
+    }
+
     private Task taskWithConversationId(final String conversationId) {
         return new Task(
                 "task-1",
@@ -351,6 +440,28 @@ class TaskHandlerTest {
                 null,
                 null,
                 conversationId);
+    }
+
+    private Task taskWithCarryOverContext(final String conversationId, final boolean carryOver) {
+        return new Task(
+                "task-1",
+                "test-task",
+                Instant.now(),
+                Instant.now(),
+                Task.Status.todo,
+                "Do something",
+                null,
+                null,
+                conversationId,
+                null,
+                null,
+                null,
+                null,
+                carryOver,
+                null,
+                null,
+                null,
+                null);
     }
 
     /** Audit: successful execution logs started + llmCall + completed */
