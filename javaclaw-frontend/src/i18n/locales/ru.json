@@ -158,6 +158,41 @@
     "recentActivity": "Последняя активность",
     "noRecentEvents": "Нет недавних событий."
   },
+  "tasks": {
+    "title": "Задачи",
+    "empty": "Нет задач",
+    "refresh": "Обновить",
+    "toggleChildren": "Раскрыть дочерние",
+    "tab": {
+      "all": "Все",
+      "active": "Активные",
+      "recurring": "Повторяющиеся",
+      "completed": "Завершённые",
+      "failed": "С ошибками"
+    },
+    "runtime": {
+      "cron": "Cron",
+      "async": "Async",
+      "inline": "Inline"
+    },
+    "detail": {
+      "title": "Детали задачи",
+      "timeline": "Хронология",
+      "modelRequest": "Запрос к модели",
+      "modelResponse": "Ответ модели",
+      "tools": "Инструменты",
+      "deliveries": "Доставка",
+      "noEvents": "Нет записей",
+      "eventType": "Событие",
+      "duration": "Длительность",
+      "toolName": "Инструмент",
+      "toolArgs": "Аргументы",
+      "toolResult": "Результат",
+      "channel": "Канал",
+      "attempts": "Попытки",
+      "status": "Статус"
+    }
+  },
   "errors": {
     "unknown": "Что-то пошло не так",
     "unauthorized": "Пожалуйста, войдите для продолжения"
