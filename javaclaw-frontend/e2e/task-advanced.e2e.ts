@@ -758,6 +758,91 @@ test.describe("Pending Approval Cross-Conversation (E20)", () => {
   });
 });
 
+test.describe("E18 — chat audit viewer", () => {
+  test.beforeEach(async ({ page }) => {
+    await mockBaseApis(page);
+    await page.goto("/");
+  });
+
+  test("fetches last 5 chat audit entries with correct fields", async ({
+    page,
+  }) => {
+    const mockAuditList = Array.from({ length: 5 }, (_, i) => ({
+      id: i + 1,
+      conversationId: "conv-audit-1",
+      method: "POST",
+      userContent: `User message ${i}`,
+      response: `Agent response ${i}`,
+      error: null,
+      durationMs: 100 + i * 50,
+      userId: "admin",
+      toolCallsDetail: i % 2 === 0 ? '[{"name":"weatherTool"}]' : null,
+      tokenUsage: JSON.stringify({ prompt: 100, completion: 50, total: 150 }),
+      createdAt: new Date(Date.now() - i * 60_000).toISOString(),
+    }));
+
+    await page.route(
+      "**/api/audit/chat**",
+      (route) => route.fulfill({ json: mockAuditList }),
+    );
+
+    const result = await page.evaluate(async () => {
+      const resp = await fetch(
+        "/api/audit/chat?conversationId=conv-audit-1&limit=5",
+      );
+      return resp.json() as Promise<unknown[]>;
+    });
+
+    expect(result).toHaveLength(5);
+    expect((result[0] as Record<string, unknown>)).toHaveProperty("createdAt");
+    expect((result[0] as Record<string, unknown>)).toHaveProperty("durationMs");
+    expect((result[0] as Record<string, unknown>)).toHaveProperty(
+      "toolCallsDetail",
+    );
+    expect((result[0] as Record<string, unknown>)).toHaveProperty("tokenUsage");
+    expect((result[0] as Record<string, unknown>).durationMs).toBe(100);
+    expect((result[0] as Record<string, unknown>).conversationId).toBe(
+      "conv-audit-1",
+    );
+  });
+
+  test("filter by conversationId returns user-scoped list", async ({
+    page,
+  }) => {
+    const mockUserAudit = Array.from({ length: 2 }, (_, i) => ({
+      id: 10 + i,
+      conversationId: "conv-user-42",
+      method: "POST",
+      userContent: `Scoped message ${i}`,
+      response: `Scoped response ${i}`,
+      error: null,
+      durationMs: 200 + i * 30,
+      userId: "user-42",
+      toolCallsDetail: null,
+      tokenUsage: JSON.stringify({ prompt: 80, completion: 40, total: 120 }),
+      createdAt: new Date(Date.now() - i * 120_000).toISOString(),
+    }));
+
+    await page.route("**/api/audit/chat?conversationId=conv-user-42**", (route) =>
+      route.fulfill({ json: mockUserAudit }),
+    );
+
+    const result = await page.evaluate(async () => {
+      const resp = await fetch(
+        "/api/audit/chat?conversationId=conv-user-42&limit=20",
+      );
+      return resp.json() as Promise<unknown[]>;
+    });
+
+    expect(result).toHaveLength(2);
+    expect(
+      (result as Array<Record<string, unknown>>).every(
+        (entry) => entry.conversationId === "conv-user-42",
+      ),
+    ).toBe(true);
+  });
+});
+
 test.describe("Rate Limiting (E21)", () => {
   test.beforeEach(async ({ page }) => {
     await mockBaseApis(page);

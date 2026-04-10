@@ -100,8 +100,12 @@ public class TaskHandler {
 
             taskAuditService.logLlmCall(taskId, executionId, null, agentInput, result.feedback(), null, llmDuration);
 
+            // Re-read from DB to get the latest version: the task may have been updated
+            // concurrently during an approval pause (awaiting_human_input → in_progress),
+            // which would cause an OptimisticLockingFailureException if we save the stale inProgress.
+            final Task currentTask = taskRepository.findById(taskId).orElse(inProgress);
             final Task completedTask = taskRepository.save(
-                    inProgress.withFeedback(result.feedback()).withStatus(result.newStatus()));
+                    currentTask.withFeedback(result.feedback()).withStatus(result.newStatus()));
             taskExecutionRepository.save(execution.withCompleted(result.feedback(), null, null));
 
             final long totalDuration = System.currentTimeMillis() - startTime;
