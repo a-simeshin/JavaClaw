@@ -18,4 +18,7 @@ public record ChatAuditLog(
         @Column("response_text") String responseText,
         @Column("error_message") String errorMessage,
         @Column("error_trace") String errorTrace,
-        @Column("duration_ms") Long durationMs) {}
+        @Column("duration_ms") Long durationMs,
+        @Column("user_id") String userId,
+        @Column("tool_calls_detail") String toolCallsDetail,
+        @Column("token_usage") String tokenUsage) {}

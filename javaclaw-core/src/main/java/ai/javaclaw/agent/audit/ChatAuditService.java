@@ -29,7 +29,30 @@ public class ChatAuditService {
             final Prompt prompt,
             final String responseText,
             final long durationMs) {
-        repository.save(buildEntry(conversationId, method, prompt, responseText, null, null, durationMs));
+        logSuccess(conversationId, method, prompt, responseText, durationMs, null, null, null);
+    }
+
+    @Async
+    public void logSuccess(
+            final String conversationId,
+            final String method,
+            final Prompt prompt,
+            final String responseText,
+            final long durationMs,
+            final String userId,
+            final String toolCallsDetail,
+            final String tokenUsage) {
+        repository.save(buildEntry(
+                conversationId,
+                method,
+                prompt,
+                responseText,
+                null,
+                null,
+                durationMs,
+                userId,
+                toolCallsDetail,
+                tokenUsage));
     }
 
     @Async
@@ -39,10 +62,32 @@ public class ChatAuditService {
             final Prompt prompt,
             final Throwable error,
             final long durationMs) {
+        logError(conversationId, method, prompt, error, durationMs, null, null, null);
+    }
+
+    @Async
+    public void logError(
+            final String conversationId,
+            final String method,
+            final Prompt prompt,
+            final Throwable error,
+            final long durationMs,
+            final String userId,
+            final String toolCallsDetail,
+            final String tokenUsage) {
         final StringWriter sw = new StringWriter();
         error.printStackTrace(new PrintWriter(sw));
-        repository.save(
-                buildEntry(conversationId, method, prompt, null, error.getMessage(), sw.toString(), durationMs));
+        repository.save(buildEntry(
+                conversationId,
+                method,
+                prompt,
+                null,
+                error.getMessage(),
+                sw.toString(),
+                durationMs,
+                userId,
+                toolCallsDetail,
+                tokenUsage));
     }
 
     private ChatAuditLog buildEntry(
@@ -52,7 +97,10 @@ public class ChatAuditService {
             final String responseText,
             final String errorMessage,
             final String errorTrace,
-            final long durationMs) {
+            final long durationMs,
+            final String userId,
+            final String toolCallsDetail,
+            final String tokenUsage) {
 
         String systemPrompt = null;
         final StringBuilder history = new StringBuilder();
@@ -95,6 +143,9 @@ public class ChatAuditService {
                 responseText,
                 errorMessage,
                 errorTrace,
-                durationMs);
+                durationMs,
+                userId,
+                toolCallsDetail,
+                tokenUsage);
     }
 }
