@@ -48,6 +48,9 @@ public class SecurityConfig {
                         .hasRole("ADMIN")
                         .requestMatchers("/api/users/**")
                         .hasRole("ADMIN")
+                        // MCP server endpoint — authenticated
+                        .requestMatchers("/api/mcp/**")
+                        .authenticated()
                         // All other API endpoints require authentication
                         .requestMatchers("/api/**")
                         .authenticated()

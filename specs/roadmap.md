@@ -657,9 +657,14 @@
 - [x] GET /api/mcp-servers/tools endpoint — ToolCacheInfoDto (toolNames, count)
 - [x] 8 новых тестов (ToolCallbackResolverTest: TTL expiry, invalidate, cachedToolCount/Names) + 5 новых тестов (McpServerServiceTest: create/update/delete invalidation, toolCacheInfo, null resolver)
 
-### 9.3 MCP as server (5.7)
+### 9.3 MCP as server (5.7) ✅
 
-- JavaClaw выставляет свои инструменты по Streamable HTTP MCP
+- [x] spring-ai-starter-mcp-server-webmvc dependency + STREAMABLE protocol конфигурация
+- [x] McpServerToolsService @Component с @McpTool аннотациями: readFile, writeFile, listFiles, deleteFile, listSkills, listConversations
+- [x] MCP endpoint /api/mcp с HTTP Basic аутентификацией (authenticated users)
+- [x] application.yaml + test profiles: spring.ai.mcp.server.* конфигурация
+- [x] 7 новых интеграционных тестов: bean registration, initialize, tools/list, auth 401, capabilities, tools/call listSkills+listConversations
+- [x] Все 850 тестов зелёные
 
 ### 9.4 A2A — server (5.8)
 

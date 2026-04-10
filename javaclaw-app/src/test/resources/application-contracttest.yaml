@@ -6,6 +6,15 @@ spring:
       chat:
         options:
           model: test-model
+    mcp:
+      server:
+        enabled: true
+        protocol: STREAMABLE
+        name: javaclaw-test
+        version: 1.0.0
+        type: SYNC
+        streamable-http:
+          mcp-endpoint: /api/mcp
   datasource:
     url: jdbc:tc:postgresql:15:///javaclaw?TC_TMPFS=/var/lib/postgresql/data:rw
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver

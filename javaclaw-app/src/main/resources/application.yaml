@@ -28,6 +28,16 @@ spring:
       chat:
         options:
           model: ${OPENROUTER_MODEL:minimax/minimax-m2.7}
+    mcp:
+      server:
+        enabled: ${MCP_SERVER_ENABLED:true}
+        protocol: STREAMABLE
+        name: javaclaw
+        version: 1.0.0
+        type: SYNC
+        instructions: "JavaClaw AI Agent Platform — provides file management, skills, and conversation tools"
+        streamable-http:
+          mcp-endpoint: /api/mcp
     chat:
       memory:
         repository:
