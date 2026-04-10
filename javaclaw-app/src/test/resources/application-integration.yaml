@@ -29,6 +29,9 @@ javaclaw:
         password: user
         role: USER
   chat:
+    thinking:
+      enabled: false
+      budget-tokens: 10000
     sse:
       timeout: 5s
       heartbeat-interval: 60s

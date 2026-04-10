@@ -613,10 +613,16 @@
 - [x] Инъекция в system prompt через MessageAssembler (секция "# Tool Calling Examples" между Environment и Summary)
 - [x] 6 новых тестов в FewShotExamplesProviderTest: empty, formatted, per-user, grouping, optional fields, DB error
 
-### 8.5 Thinking/reasoning mode (2.11)
+### 8.5 Thinking/reasoning mode (2.11) ✅
 
-- Поддержка extended thinking в streaming
-- Отображение в UI (1.10b)
+- [x] SseStreamingService: детекция thinking/signature metadata в ChatResponse, эмиссия reasoning events (wire code `g`/`j`)
+- [x] VercelSseEvent.ReasoningDelta → wire code `g` (Vercel AI SDK v4 data stream protocol)
+- [x] Reasoning signature → wire code `j` ({signature: string})
+- [x] Автоматическое управление reasoning block lifecycle (start→deltas→signature→end)
+- [x] Закрытие unclosed reasoning blocks при отсутствии signature
+- [x] ThinkingProperties: `javaclaw.chat.thinking.enabled` + `budget-tokens` конфигурация
+- [x] Frontend уже готов: ReasoningBlock + chat-page reasoning parts rendering
+- [x] 5 новых тестов: thinking metadata → reasoning events, text-only flow, unclosed reasoning, wire code g, ThinkingProperties defaults
 
 ### 8.6 Model fallback chain (2.7)
 

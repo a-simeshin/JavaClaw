@@ -160,11 +160,16 @@ public class SseStreamingService {
     }
 
     /**
-     * Выполняет стриминг: публикует события о начале, дельты текста и финальные события.
+     * Выполняет стриминг: публикует события о начале, дельты текста/reasoning и финальные события.
+     *
+     * <p>Поддерживает extended thinking (Claude) и reasoning (o1/o3): если ChatResponse содержит
+     * метаданные {@code "thinking"}, дельта эмитится как reasoning event (wire code {@code g});
+     * при появлении {@code "signature"} reasoning блок закрывается; обычный текст идёт как text delta.
      *
      * @param emitter цель для записи SSE-событий
      * @param lock объект синхронизации, общий с heartbeat-потоком
      * @param conversationId идентификатор разговора
+     * @param userId идентификатор пользователя (nullable)
      * @param userContent сообщение пользователя
      */
     private void runStream(
@@ -175,8 +180,12 @@ public class SseStreamingService {
             final String userContent) {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
+        final String reasoningBlockId = "reasoning_" + UUID.randomUUID();
         final Sinks.Empty<Void> cancelSink = Sinks.empty();
         cancelSignals.put(conversationId, cancelSink);
+        // Mutable state for reasoning block lifecycle — accessed only from the stream thread.
+        final boolean[] reasoningStarted = {false};
+        final boolean[] textStartSent = {false};
         try {
             channelContextService.saveContext(
                     conversationId, "Web Chat Channel", java.util.Map.of("conversationId", conversationId));
@@ -185,28 +194,104 @@ public class SseStreamingService {
                     emitter,
                     lock,
                     VercelSseEvent.MessageStart.builder().messageId(messageId).build());
-            sendEvent(
-                    emitter,
-                    lock,
-                    VercelSseEvent.TextStart.builder().id(textBlockId).build());
 
             chatService.stream(conversationId, userId, userContent)
                     .takeUntilOther(cancelSink.asMono())
-                    .map(response -> response.getResult().getOutput().getText())
-                    .filter(text -> text != null && !text.isEmpty())
-                    .doOnNext(delta -> trySendEvent(
-                            emitter,
-                            lock,
-                            VercelSseEvent.TextDelta.builder()
-                                    .id(textBlockId)
-                                    .delta(delta)
-                                    .build()))
+                    .doOnNext(response -> {
+                        if (response == null
+                                || response.getResult() == null
+                                || response.getResult().getOutput() == null) {
+                            return;
+                        }
+                        final var output = response.getResult().getOutput();
+                        final var metadata = output.getMetadata();
+                        final String text = output.getText();
+
+                        if (metadata != null && metadata.containsKey("thinking")) {
+                            // Thinking delta — emit as reasoning event
+                            if (text != null && !text.isEmpty()) {
+                                if (!reasoningStarted[0]) {
+                                    trySendEvent(
+                                            emitter,
+                                            lock,
+                                            VercelSseEvent.ReasoningStart.builder()
+                                                    .id(reasoningBlockId)
+                                                    .build());
+                                    reasoningStarted[0] = true;
+                                }
+                                trySendEvent(
+                                        emitter,
+                                        lock,
+                                        VercelSseEvent.ReasoningDelta.builder()
+                                                .id(reasoningBlockId)
+                                                .delta(text)
+                                                .build());
+                            }
+                        } else if (metadata != null && metadata.containsKey("signature")) {
+                            // Signature marks end of thinking block
+                            if (reasoningStarted[0]) {
+                                final Object signature = metadata.get("signature");
+                                if (signature instanceof String sig) {
+                                    trySendReasoningSignature(emitter, lock, sig);
+                                }
+                                trySendEvent(
+                                        emitter,
+                                        lock,
+                                        VercelSseEvent.ReasoningEnd.builder()
+                                                .id(reasoningBlockId)
+                                                .build());
+                                reasoningStarted[0] = false;
+                            }
+                        } else {
+                            // Regular text delta
+                            if (text != null && !text.isEmpty()) {
+                                if (!textStartSent[0]) {
+                                    trySendEvent(
+                                            emitter,
+                                            lock,
+                                            VercelSseEvent.TextStart.builder()
+                                                    .id(textBlockId)
+                                                    .build());
+                                    textStartSent[0] = true;
+                                }
+                                trySendEvent(
+                                        emitter,
+                                        lock,
+                                        VercelSseEvent.TextDelta.builder()
+                                                .id(textBlockId)
+                                                .delta(text)
+                                                .build());
+                            }
+                        }
+                    })
                     .blockLast();
 
-            sendEvent(
-                    emitter,
-                    lock,
-                    VercelSseEvent.TextEnd.builder().id(textBlockId).build());
+            // Close any unclosed reasoning block (e.g. if signature was missing)
+            if (reasoningStarted[0]) {
+                sendEvent(
+                        emitter,
+                        lock,
+                        VercelSseEvent.ReasoningEnd.builder()
+                                .id(reasoningBlockId)
+                                .build());
+            }
+            // Close text block if it was opened
+            if (textStartSent[0]) {
+                sendEvent(
+                        emitter,
+                        lock,
+                        VercelSseEvent.TextEnd.builder().id(textBlockId).build());
+            } else {
+                // If no text was sent (pure reasoning response), still emit empty text block
+                sendEvent(
+                        emitter,
+                        lock,
+                        VercelSseEvent.TextStart.builder().id(textBlockId).build());
+                sendEvent(
+                        emitter,
+                        lock,
+                        VercelSseEvent.TextEnd.builder().id(textBlockId).build());
+            }
             sendEvent(emitter, lock, VercelSseEvent.FinishStep.builder().build());
             sendEvent(emitter, lock, VercelSseEvent.Finish.builder().build());
             synchronized (lock) {
@@ -261,6 +346,7 @@ public class SseStreamingService {
         }
         switch (event) {
             case VercelSseEvent.TextDelta d -> writeLine(emitter, lock, '0', d.delta());
+            case VercelSseEvent.ReasoningDelta d -> writeLine(emitter, lock, 'g', d.delta());
             case VercelSseEvent.Error e -> writeLine(emitter, lock, '3', e.errorText());
             case VercelSseEvent.Finish ignored -> writeLine(emitter, lock, 'd', FinishLine.stop());
             case VercelSseEvent.FinishStep ignored -> writeLine(emitter, lock, 'e', StepLine.stop());
@@ -268,7 +354,7 @@ public class SseStreamingService {
                 writeLine(emitter, lock, '9', new ToolCallLine(t.toolCallId(), t.toolName(), t.input()));
             case VercelSseEvent.ToolOutputAvailable t ->
                 writeLine(emitter, lock, 'a', new ToolResultLine(t.toolCallId(), t.output()));
-            // Structural events (message-start, text-start/end, reasoning-*, tool-input-start/delta)
+            // Structural events (message-start, text-start/end, reasoning-start/end, tool-input-start/delta)
             // have no v4 data stream equivalent — they are folded into higher-level lines.
             default -> {
                 /* no-op */
@@ -298,6 +384,22 @@ public class SseStreamingService {
 
     /** v4 {@code a:} tool-result line payload. */
     private record ToolResultLine(String toolCallId, Object result) {}
+
+    /**
+     * Отправляет reasoning signature в формате Vercel AI SDK v4 (wire code {@code j}).
+     *
+     * @param emitter цель для записи
+     * @param lock объект синхронизации
+     * @param signature cryptographic signature строка
+     */
+    private void trySendReasoningSignature(
+            final ResponseBodyEmitter emitter, final Object lock, final String signature) {
+        try {
+            writeLine(emitter, lock, 'j', java.util.Map.of("signature", signature));
+        } catch (IOException io) {
+            throw new ClientDisconnectedException(io);
+        }
+    }
 
     /**
      * Отправляет событие, преобразуя {@link IOException} в {@link ClientDisconnectedException}.

@@ -70,6 +70,9 @@ javaclaw:
         password: user
         role: USER
   chat:
+    thinking:
+      enabled: ${THINKING_ENABLED:false}
+      budget-tokens: ${THINKING_BUDGET_TOKENS:10000}
     token-budget:
       max-context-tokens: 200000
       reserved-for-response: 8000
