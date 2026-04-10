@@ -1,5 +1,6 @@
 import {
   IconBolt,
+  IconChecklist,
   IconClock,
   IconDashboard,
   IconFileText,
@@ -28,6 +29,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/chat", labelKey: "nav.chat", fallback: "Chat", icon: IconMessage },
+  { to: "/tasks", labelKey: "nav.tasks", fallback: "Tasks", icon: IconChecklist },
   { to: "/overview", labelKey: "nav.overview", fallback: "Overview", icon: IconDashboard },
 ]
 
