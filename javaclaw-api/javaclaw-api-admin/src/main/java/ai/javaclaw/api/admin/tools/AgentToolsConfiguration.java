@@ -25,4 +25,9 @@ public class AgentToolsConfiguration {
         return new AutoDiscoveredTool<>(
                 SkillsTool.builder().skillRepository(skillRepository).build());
     }
+
+    @Bean
+    public AutoDiscoveredTool<WebFetchTool> webFetchTool() {
+        return new AutoDiscoveredTool<>(WebFetchTool.builder().build());
+    }
 }

@@ -70,9 +70,9 @@
 | 2.1 Agent loop + streaming          | ✅      | DefaultAgent + ChatClient + SseStreamingService (Vercel AI SDK v4)                                 |
 | 2.2 System prompt из DB             | ✅      | SystemPromptProvider читает AGENT.md/SOUL.md/INFO.md из virtual_files (owner_id=NULL). 6 тестов.   |
 | 2.3 Agent environment               | ✅      | AgentEnvironment с user.dir/.git/os/Java                                                           |
-| 2.4 Tool calling + auto-discovery   | ⚠️     | TaskTool ✅, CheckListTool ✅, McpTool ✅; FileOperationsTool ❌, SkillsTool ❌                         |
-| 2.5 Skill management tool           | ❌      | Есть REST SkillController, но нет @Tool методов addSkill/removeSkill/listSkills                    |
-| 2.6 Web fetch tool                  | ❌      | SmartWebFetchTool не реализован                                                                    |
+| 2.4 Tool calling + auto-discovery   | ✅      | TaskTool ✅, CheckListTool ✅, McpTool ✅, FileOperationsTool ✅, SkillsTool ✅, AuditTool ✅            |
+| 2.5 Skill management tool           | ✅      | SkillsTool: addSkill/removeSkill/listSkills/enableSkill/disableSkill + 9 тестов                    |
+| 2.6 Web fetch tool                  | ✅      | WebFetchTool (Jsoup): fetchPage + fetchSelector, AutoDiscoveredTool bean, 7 тестов                 |
 | 3.1 API contract (OpenAPI)          | ✅      | `specs/openapi.yaml` (3.1.0) + 39 contract-тестов + 6 Playwright E2E                               |
 | 3.2 Chat API + SSE streaming        | ✅      | ChatRestController, ConversationController, SSE через ResponseBodyEmitter                          |
 | 3.3 Files API                       | ✅      | FileController CRUD + tree (но filesystem-backed)                                                  |
@@ -96,7 +96,7 @@
 | 6.2 Graceful shutdown               | ❌      | Нет spring.lifecycle.timeout-per-shutdown-phase                                                    |
 | 6.3 Health checks (ready/live)      | ❌      | Нет readiness/liveness probes                                                                      |
 
-**Итого P0 (48 пунктов):** ✅ 22 · ⚠️ 11 · ❌ 15
+**Итого P0 (48 пунктов):** ✅ 25 · ⚠️ 8 · ❌ 15
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
@@ -247,24 +247,26 @@
 - Проверить: TaskTool, CheckListTool, McpTool, FileOperationsTool (DB-backed), SkillsTool (DB-backed)
 - **Выход:** все P0 инструменты работают, agent loop вызывает их корректно
 
-### 2.5 Skill management tool (4.9a) ❌
+### 2.5 Skill management tool (4.9a) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
 
-- Новый @Tool: addSkill, removeSkill, listSkills
-- Сохраняет в SkillRepository
-- **Выход:** агент может добавлять/удалять скиллы через чат
+- SkillsTool: addSkill, removeSkill, listSkills, enableSkill, disableSkill
+- Сохраняет в SkillRepository, зарегистрирован как AutoDiscoveredTool
+- **Выход:** агент может добавлять/удалять скиллы через чат — 9 тестов зелёные
 
-### 2.6 Web fetch tool (4.4) ❌
+### 2.6 Web fetch tool (4.4) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
 ```
 
-- Переписать SmartWebFetchTool на Jsoup
-- **Выход:** агент парсит веб-ст��аницы серверно
+- WebFetchTool на Jsoup: fetchPage (полная страница) + fetchSelector (по CSS-селектору)
+- Валидация URL, очистка от nav/footer/script/style, truncation до 20K символов
+- Зарегистрирован как AutoDiscoveredTool bean
+- **Выход:** агент парсит веб-страницы серверно — 7 тестов зелёные
 
 ---
 
