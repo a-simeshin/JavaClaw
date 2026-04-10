@@ -648,9 +648,14 @@
 - [x] McpServerStatusDto: +checkedAt поле (backward-compatible)
 - [x] 9 новых тестов (McpHealthCheckerTest) + 3 новых теста status (McpServerServiceTest), все 831 тестов зелёные
 
-### 9.2 Tool discovery caching (5.5)
+### 9.2 Tool discovery caching (5.5) ✅
 
-- Кэш списка инструментов
+- [x] TTL-based кэш в ToolCallbackResolver (default 5 min) с CacheEntry record (callbacks + createdAt)
+- [x] invalidate() для ручной инвалидации кэша при create/update/delete MCP-серверов
+- [x] cachedToolNames() / cachedToolCount() для интроспекции кэша
+- [x] McpServerService: auto-invalidation при create/update/delete, toolCacheInfo() метод
+- [x] GET /api/mcp-servers/tools endpoint — ToolCacheInfoDto (toolNames, count)
+- [x] 8 новых тестов (ToolCallbackResolverTest: TTL expiry, invalidate, cachedToolCount/Names) + 5 новых тестов (McpServerServiceTest: create/update/delete invalidation, toolCacheInfo, null resolver)
 
 ### 9.3 MCP as server (5.7)
 

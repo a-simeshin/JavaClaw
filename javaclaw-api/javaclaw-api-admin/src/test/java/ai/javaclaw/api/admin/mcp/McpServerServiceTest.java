@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ai.javaclaw.agent.pipeline.ToolCallbackResolver;
 import ai.javaclaw.mcp.McpServer;
 import ai.javaclaw.mcp.McpServerRepository;
 import java.time.Instant;
@@ -24,6 +25,9 @@ class McpServerServiceTest {
 
     @Mock
     private McpServerRepository repository;
+
+    @Mock
+    private ToolCallbackResolver toolCallbackResolver;
 
     @InjectMocks
     private McpServerService service;
@@ -156,6 +160,61 @@ class McpServerServiceTest {
 
         assertThat(result.status()).isEqualTo("unknown");
         assertThat(result.checkedAt()).isNull();
+    }
+
+    // ── cache invalidation ─────────────────────────────────────────────────────
+
+    @Test
+    void create_invalidatesToolCache() {
+        final McpServerDto dto = new McpServerDto(null, "test", "stdio", "cmd", null, null, true);
+        when(repository.save(any(McpServer.class))).thenReturn(server("id-1", "test", "stdio", true));
+
+        service.create(dto);
+
+        verify(toolCallbackResolver).invalidate();
+    }
+
+    @Test
+    void update_invalidatesToolCache() {
+        final McpServer existing = server("id-x", "old", "stdio", false);
+        when(repository.findByIdAndOwnerIdIsNull("id-x")).thenReturn(Optional.of(existing));
+        when(repository.save(any(McpServer.class))).thenReturn(server("id-x", "new", "http", true));
+
+        service.update("id-x", new McpServerDto(null, "new", "http", null, "https://x.com", null, true));
+
+        verify(toolCallbackResolver).invalidate();
+    }
+
+    @Test
+    void delete_invalidatesToolCache() {
+        final McpServer existing = server("id-del", "to-delete", "stdio", true);
+        when(repository.findByIdAndOwnerIdIsNull("id-del")).thenReturn(Optional.of(existing));
+
+        service.delete("id-del");
+
+        verify(toolCallbackResolver).invalidate();
+    }
+
+    @Test
+    void toolCacheInfo_delegatesToResolver() {
+        when(toolCallbackResolver.cachedToolNames()).thenReturn(List.of("tool1", "tool2"));
+        when(toolCallbackResolver.cachedToolCount()).thenReturn(2);
+
+        final ToolCacheInfoDto info = service.toolCacheInfo();
+
+        assertThat(info.toolNames()).containsExactly("tool1", "tool2");
+        assertThat(info.count()).isEqualTo(2);
+    }
+
+    @Test
+    void toolCacheInfo_nullResolver_returnsEmpty() {
+        // Service with null resolver (no ToolCallbackResolver bean available)
+        final McpServerService serviceNoResolver = new McpServerService(repository, null);
+
+        final ToolCacheInfoDto info = serviceNoResolver.toolCacheInfo();
+
+        assertThat(info.toolNames()).isEmpty();
+        assertThat(info.count()).isZero();
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

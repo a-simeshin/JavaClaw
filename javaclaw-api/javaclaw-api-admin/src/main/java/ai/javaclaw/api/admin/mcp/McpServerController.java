@@ -48,4 +48,9 @@ public class McpServerController {
     public McpServerStatusDto status(@PathVariable final String id) {
         return service.status(id);
     }
+
+    @GetMapping("/tools")
+    public ToolCacheInfoDto tools() {
+        return service.toolCacheInfo();
+    }
 }
