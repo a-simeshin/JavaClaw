@@ -1,9 +1,10 @@
 import { IconPlus, IconSearch, IconTrash } from "@tabler/icons-react"
-import { useAtom } from "jotai"
+import { useAtom, useAtomValue } from "jotai"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import type { ConversationDto } from "@/api/conversations"
+import { ConversationBadge } from "@/components/chat/conversation-badge"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { useConversationHistory } from "@/hooks/use-conversation-history"
 import { cn } from "@/lib/utils"
 import { activeConversationIdAtom } from "@/store/chat"
 import { conversationSearchAtom } from "@/store/conversations"
+import { pendingApprovalsAtom, unreadNotificationsAtom, activeTaskCountAtom } from "@/store/tasks"
 
 interface ConversationHistoryMenuProps {
   className?: string
@@ -54,6 +56,10 @@ export function ConversationHistoryMenu({
     isError,
     deleteConversation,
   } = useConversationHistory()
+
+  const unreadMap = useAtomValue(unreadNotificationsAtom)
+  const pendingApprovals = useAtomValue(pendingApprovalsAtom)
+  const activeTaskCount = useAtomValue(activeTaskCountAtom)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -160,8 +166,17 @@ export function ConversationHistoryMenu({
                       : undefined
                   }
                 >
-                  <span className="line-clamp-2 text-[14px] leading-[1.35] text-foreground">
-                    {conv.title || conv.id.slice(0, 8)}
+                  <span className="flex items-center gap-1.5">
+                    <span className="line-clamp-2 min-w-0 flex-1 text-[14px] leading-[1.35] text-foreground">
+                      {conv.title || conv.id.slice(0, 8)}
+                    </span>
+                    <ConversationBadge
+                      unreadCount={unreadMap[conv.id] ?? 0}
+                      hasPendingApproval={pendingApprovals.some(
+                        (a) => a.conversationId === conv.id,
+                      )}
+                      hasActiveTask={active && activeTaskCount > 0}
+                    />
                   </span>
                   <span className="mt-0.5 font-mono text-[11px] tracking-[0.02em] text-muted-foreground tabular-nums">
                     {formatRelative(conv.updatedAt)}

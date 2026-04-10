@@ -1,18 +1,27 @@
 import type { Message } from "@ai-sdk/react"
-import { useEffect, useRef, useState } from "react"
+import { useAtomValue } from "jotai"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import { cancelTask } from "@/api/tasks"
+import { ApprovalRequestCard } from "@/components/chat/approval-request-card"
 import { AssistantMessage } from "@/components/chat/assistant-message"
 import { ChatComposer } from "@/components/chat/chat-composer"
 import { ChatEmptyState } from "@/components/chat/chat-empty-state"
 import { ReasoningBlock } from "@/components/chat/reasoning-block"
+import { TaskErrorCard } from "@/components/chat/task-error-card"
+import { TaskNotificationMessage } from "@/components/chat/task-notification-message"
+import { TaskProgressCard } from "@/components/chat/task-progress-card"
 import {
   ToolCallCard,
   type ToolCallStatus,
 } from "@/components/chat/tool-call-card"
 import { TypingIndicator } from "@/components/chat/typing-indicator"
 import { UserMessage } from "@/components/chat/user-message"
+import { useApproval } from "@/hooks/use-approval"
 import { useJavaClawChat } from "@/hooks/use-chat"
+import { useTaskNotifications } from "@/hooks/use-task-notifications"
+import { activeConversationIdAtom } from "@/store/chat"
 
 interface ToolInvocationLike {
   toolCallId: string
@@ -20,6 +29,69 @@ interface ToolInvocationLike {
   state: "partial-call" | "call" | "result"
   args?: unknown
   result?: unknown
+}
+
+interface TaskNotificationPart {
+  type: "task-notification"
+  taskId: string
+  taskName: string
+  status: "completed" | "failed" | "cancelled" | "in_progress" | "awaiting_input" | "todo"
+  message?: string
+  durationMs?: number
+}
+
+interface TaskErrorPart {
+  type: "task-error"
+  taskId: string
+  taskName: string
+  errorMessage: string
+  errorTrace?: string
+  llmRequest?: string
+  durationMs?: number
+}
+
+interface TaskProgressPart {
+  type: "task-progress"
+  taskId: string
+  taskName: string
+  progressText?: string
+  progressPercent?: number
+}
+
+interface ApprovalRequestPart {
+  type: "approval-request"
+  approvalId: string
+  taskName: string
+  question: string
+  timeoutAt: string
+  resolved?: "approved" | "denied" | "timeout" | null
+}
+
+/** Wrapper component that wires useApproval hook to ApprovalRequestCard. */
+function ApprovalRequestCardWrapper({ part }: { part: ApprovalRequestPart }) {
+  const approval = useApproval({
+    id: part.approvalId,
+    taskId: "",
+    conversationId: "",
+    question: part.question,
+    status: part.resolved ?? "pending",
+    timeoutAt: part.timeoutAt,
+    createdAt: new Date().toISOString(),
+  })
+
+  return (
+    <ApprovalRequestCard
+      approvalId={part.approvalId}
+      taskName={part.taskName}
+      question={part.question}
+      timeoutAt={part.timeoutAt}
+      resolved={part.resolved ?? approval.resolved}
+      isSubmitting={approval.isSubmitting}
+      onApprove={approval.approve}
+      onDeny={approval.deny}
+      onRespond={approval.respond}
+    />
+  )
 }
 
 function toolStatus(state: ToolInvocationLike["state"]): ToolCallStatus {
@@ -98,6 +170,7 @@ function renderAssistantParts(
   message: Message,
   status: AssistantStatus,
   isStreaming: boolean,
+  onCancelTask?: (taskId: string) => void,
 ) {
   // Concatenate text parts but interleave tool invocations at their position.
   const nodes: React.ReactNode[] = []
@@ -128,6 +201,21 @@ function renderAssistantParts(
     text?: string
     reasoning?: string
     toolInvocation?: ToolInvocationLike
+    // Task-specific part fields (flattened union)
+    taskId?: string
+    taskName?: string
+    status?: string
+    message?: string
+    durationMs?: number
+    errorMessage?: string
+    errorTrace?: string
+    llmRequest?: string
+    progressText?: string
+    progressPercent?: number
+    approvalId?: string
+    question?: string
+    timeoutAt?: string
+    resolved?: "approved" | "denied" | "timeout" | null
   }>
 
   if (parts.length === 0 && message.content) {
@@ -181,6 +269,52 @@ function renderAssistantParts(
           output={inv.state === "result" ? inv.result : undefined}
         />,
       )
+    } else if (part.type === "task-notification" && part.taskId) {
+      flushText()
+      nodes.push(
+        <TaskNotificationMessage
+          key={`task-notif-${part.taskId}`}
+          taskId={part.taskId}
+          taskName={part.taskName ?? "Task"}
+          status={(part.status as TaskNotificationPart["status"]) ?? "todo"}
+          message={part.message}
+          durationMs={part.durationMs}
+          timestamp={ts}
+        />,
+      )
+    } else if (part.type === "task-error" && part.taskId) {
+      flushText()
+      nodes.push(
+        <TaskErrorCard
+          key={`task-err-${part.taskId}`}
+          taskId={part.taskId}
+          taskName={part.taskName ?? "Task"}
+          errorMessage={part.errorMessage ?? "Unknown error"}
+          errorTrace={part.errorTrace}
+          llmRequest={part.llmRequest}
+          durationMs={part.durationMs}
+        />,
+      )
+    } else if (part.type === "task-progress" && part.taskId) {
+      flushText()
+      nodes.push(
+        <TaskProgressCard
+          key={`task-prog-${part.taskId}`}
+          taskId={part.taskId}
+          taskName={part.taskName ?? "Task"}
+          progressText={part.progressText}
+          progressPercent={part.progressPercent}
+          onCancel={onCancelTask}
+        />,
+      )
+    } else if (part.type === "approval-request" && part.approvalId) {
+      flushText()
+      nodes.push(
+        <ApprovalRequestCardWrapper
+          key={`approval-${part.approvalId}`}
+          part={part as unknown as ApprovalRequestPart}
+        />,
+      )
     }
   }
   flushText()
@@ -191,8 +325,23 @@ export function ChatPage() {
   const { t } = useTranslation()
   const { messages, input, handleInputChange, handleSubmit, status, stop } =
     useJavaClawChat()
+  const conversationId = useAtomValue(activeConversationIdAtom)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [autoScroll, setAutoScroll] = useState(true)
+
+  // SSE subscription for real-time task notifications
+  useTaskNotifications(conversationId)
+
+  const handleCancelTask = useCallback(
+    async (taskId: string) => {
+      try {
+        await cancelTask(taskId)
+      } catch {
+        // cancel failure is non-critical
+      }
+    },
+    [],
+  )
 
   const isStreaming = status === "submitted" || status === "streaming"
 
@@ -266,6 +415,7 @@ export function ChatPage() {
                         message,
                         deriveAssistantStatus(message, status, isLast),
                         isLast && isStreaming,
+                        handleCancelTask,
                       )}
                     </div>
                   ) : message.role === "user" ? (
