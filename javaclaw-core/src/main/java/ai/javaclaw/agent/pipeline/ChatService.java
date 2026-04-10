@@ -1,6 +1,7 @@
 package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.tasks.ApprovalService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +10,11 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,6 +46,13 @@ public class ChatService {
     /** Сервис аудита запросов/ответов LLM. */
     private final ChatAuditService chatAuditService;
 
+    /** Сервис одобрений (human-in-the-loop). Nullable — если не задан, approval routing отключён. */
+    @Nullable
+    private final ApprovalService approvalService;
+
+    /** Сообщение-подтверждение при перехвате ответа на approval. */
+    static final String APPROVAL_CONFIRMATION = "Ваш ответ передан задаче.";
+
     /**
      * Создаёт ChatService с полным набором зависимостей.
      *
@@ -51,13 +61,15 @@ public class ChatService {
      * @param messageAssembler ассемблер промптов, не может быть null
      * @param toolCallbackResolver резолвер tool callbacks, не может быть null
      * @param chatAuditService сервис аудита, не может быть null
+     * @param approvalService сервис одобрений, может быть null
      */
     public ChatService(
             final ChatModel chatModel,
             final ChatMemory chatMemory,
             final MessageAssembler messageAssembler,
             final ToolCallbackResolver toolCallbackResolver,
-            final ChatAuditService chatAuditService) {
+            final ChatAuditService chatAuditService,
+            @Nullable final ApprovalService approvalService) {
         Assert.notNull(chatModel, "chatModel must not be null");
         Assert.notNull(chatMemory, "chatMemory must not be null");
         Assert.notNull(messageAssembler, "messageAssembler must not be null");
@@ -68,6 +80,19 @@ public class ChatService {
         this.messageAssembler = messageAssembler;
         this.toolCallbackResolver = toolCallbackResolver;
         this.chatAuditService = chatAuditService;
+        this.approvalService = approvalService;
+    }
+
+    /**
+     * Backward-compatible constructor без ApprovalService.
+     */
+    public ChatService(
+            final ChatModel chatModel,
+            final ChatMemory chatMemory,
+            final MessageAssembler messageAssembler,
+            final ToolCallbackResolver toolCallbackResolver,
+            final ChatAuditService chatAuditService) {
+        this(chatModel, chatMemory, messageAssembler, toolCallbackResolver, chatAuditService, null);
     }
 
     /**
@@ -84,6 +109,11 @@ public class ChatService {
     public Flux<ChatResponse> stream(final String conversationId, final String userContent) {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
+
+        // Check for pending approval before normal chat flow (S6 human-in-the-loop)
+        if (approvalService != null && approvalService.hasPendingApproval(conversationId)) {
+            return handleApprovalResponse(conversationId, userContent);
+        }
 
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
@@ -133,6 +163,14 @@ public class ChatService {
     public String call(final String conversationId, final String userContent) {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
+
+        // Check for pending approval before normal chat flow (S6 human-in-the-loop)
+        if (approvalService != null && approvalService.hasPendingApproval(conversationId)) {
+            chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+            approvalService.submitApproval(conversationId, userContent);
+            persistAssistantMessage(conversationId, APPROVAL_CONFIRMATION);
+            return APPROVAL_CONFIRMATION;
+        }
 
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
@@ -184,6 +222,23 @@ public class ChatService {
             chatAuditService.logError(conversationId, "call<T>", prompt, e, System.currentTimeMillis() - startTime);
             throw e;
         }
+    }
+
+    /**
+     * Обрабатывает ответ пользователя на pending approval в streaming режиме. Персистит оба
+     * сообщения (user + assistant) и возвращает подтверждение как streaming Flux.
+     *
+     * @param conversationId идентификатор разговора
+     * @param userContent текст ответа пользователя
+     * @return Flux с одним ChatResponse-подтверждением
+     */
+    private Flux<ChatResponse> handleApprovalResponse(final String conversationId, final String userContent) {
+        chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+        approvalService.submitApproval(conversationId, userContent);
+        persistAssistantMessage(conversationId, APPROVAL_CONFIRMATION);
+        final ChatResponse confirmationResponse =
+                new ChatResponse(List.of(new Generation(new AssistantMessage(APPROVAL_CONFIRMATION))));
+        return Flux.just(confirmationResponse);
     }
 
     /**
