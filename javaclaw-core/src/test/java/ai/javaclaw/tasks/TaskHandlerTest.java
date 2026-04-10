@@ -15,14 +15,10 @@ import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.AgentEvent;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.agent.event.EventKind;
-import ai.javaclaw.channels.Channel;
-import ai.javaclaw.channels.ChannelContextService;
-import ai.javaclaw.channels.ChannelRegistry;
-import ai.javaclaw.channels.RoutingContext;
 import ai.javaclaw.conversations.ConversationEnsurer;
+import ai.javaclaw.delivery.DeliveryService;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,22 +41,16 @@ class TaskHandlerTest {
     private TaskExecutionRepository taskExecutionRepository;
 
     @Mock
-    private ChannelRegistry channelRegistry;
-
-    @Mock
-    private ChannelContextService channelContextService;
-
-    @Mock
     private ConversationEnsurer conversationEnsurer;
-
-    @Mock
-    private Channel channel;
 
     @Mock
     private EventBus eventBus;
 
     @Mock
     private TaskAuditService taskAuditService;
+
+    @Mock
+    private DeliveryService deliveryService;
 
     @Captor
     private ArgumentCaptor<AgentEvent> eventCaptor;
@@ -79,18 +69,16 @@ class TaskHandlerTest {
                 agent,
                 taskRepository,
                 taskExecutionRepository,
-                channelRegistry,
-                channelContextService,
                 conversationEnsurer,
                 cancellationTokenRegistry,
                 eventBus,
-                taskAuditService);
+                taskAuditService,
+                deliveryService);
     }
 
     @Test
-    void notifiesUserViaRoutingContextWhenConversationIdPresent() {
+    void deliversNotificationOnCompletion() {
         final Task task = taskWithConversationId("conv-42");
-        final RoutingContext ctx = new RoutingContext("TelegramChannel", Map.of("chatId", "42"));
         when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
         when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
@@ -98,64 +86,67 @@ class TaskHandlerTest {
         when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(agent.prompt(anyString(), anyString(), any()))
                 .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done!"));
-        when(channelContextService.getContext("conv-42")).thenReturn(Optional.of(ctx));
-        when(channelRegistry.getChannel("TelegramChannel")).thenReturn(channel);
 
         taskHandler.executeTask("task-1");
 
-        verify(channel).sendMessage(eq(ctx), argThat(msg -> msg.contains("completed") || msg.contains("Done!")));
+        verify(deliveryService)
+                .deliver(any(Task.class), argThat(msg -> msg.contains("completed") && msg.contains("Done!")));
     }
 
     @Test
-    void fallsBackToSourceChannelNameWhenNoConversationId() {
-        final Task task = taskWithSourceChannelName("TelegramChannel");
-        when(taskRepository.findById("task-2")).thenReturn(Optional.of(task));
-        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
-                .thenReturn(List.of());
-        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(agent.prompt(anyString(), anyString(), any()))
-                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done!"));
-        when(channelContextService.getContext(null)).thenReturn(Optional.empty());
-        when(channelRegistry.getChannel("TelegramChannel")).thenReturn(channel);
-
-        taskHandler.executeTask("task-2");
-
-        verify(channel).sendMessage(any(RoutingContext.class), anyString());
-    }
-
-    @Test
-    void doesNotSendWhenNoChannelFound() {
-        final Task task = taskWithConversationId("conv-99");
-        when(taskRepository.findById("task-3")).thenReturn(Optional.of(task));
-        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
-                .thenReturn(List.of());
-        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(agent.prompt(anyString(), anyString(), any()))
-                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done!"));
-        when(channelContextService.getContext("conv-99")).thenReturn(Optional.empty());
-        when(channelRegistry.getChannel(null)).thenReturn(null);
-
-        taskHandler.executeTask("task-3");
-
-        verify(channel, never()).sendMessage(any(RoutingContext.class), anyString());
-    }
-
-    @Test
-    void doesNotNotifyForInProgressStatus() {
+    void deliversNotificationOnFailure() {
         final Task task = taskWithConversationId("conv-42");
-        when(taskRepository.findById("task-4")).thenReturn(Optional.of(task));
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(agent.prompt(anyString(), anyString(), any())).thenThrow(new RuntimeException("LLM boom"));
+
+        try {
+            taskHandler.executeTask("task-1");
+        } catch (RuntimeException ignored) {
+        }
+
+        verify(deliveryService)
+                .deliver(any(Task.class), argThat(msg -> msg.contains("failed") && msg.contains("LLM boom")));
+    }
+
+    @Test
+    void deliversNotificationOnCancellation() {
+        final Task task = taskWithConversationId("conv-42");
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
+        when(taskRepository.save(any())).thenAnswer(inv -> {
+            cancellationTokenRegistry.cancel("task-1");
+            return inv.getArgument(0);
+        });
+        when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
+                .thenReturn(List.of());
+        when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        taskHandler.executeTask("task-1");
+
+        verify(deliveryService).deliver(any(Task.class), argThat(msg -> msg.contains("cancelled")));
+    }
+
+    @Test
+    void deliveryExceptionDoesNotBreakExecution() {
+        final Task task = taskWithConversationId("conv-42");
+        when(taskRepository.findById("task-1")).thenReturn(Optional.of(task));
         when(taskRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(taskExecutionRepository.findByTaskIdOrderByExecutionNumberDesc(anyString()))
                 .thenReturn(List.of());
         when(taskExecutionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(agent.prompt(anyString(), anyString(), any()))
-                .thenReturn(new TaskHandler.TaskResult(Task.Status.in_progress, "Still working"));
+                .thenReturn(new TaskHandler.TaskResult(Task.Status.completed, "Done!"));
+        org.mockito.Mockito.doThrow(new RuntimeException("delivery error"))
+                .when(deliveryService)
+                .deliver(any(), any());
 
-        taskHandler.executeTask("task-4");
+        // Should NOT throw — delivery failure is caught
+        taskHandler.executeTask("task-1");
 
-        verify(channel, never()).sendMessage(any(RoutingContext.class), anyString());
+        verify(deliveryService).deliver(any(Task.class), anyString());
     }
 
     /** T1: executeTask → prompt goes to task_executions, NOT to spring_ai_chat_memory */
@@ -427,18 +418,5 @@ class TaskHandlerTest {
         verify(taskAuditService).logCancelled(eq("task-1"), any());
         verify(taskAuditService, never()).logCompleted(any(), any(), any());
         verify(taskAuditService, never()).logFailed(any(), any(), any(), any(), any());
-    }
-
-    private Task taskWithSourceChannelName(final String sourceChannelName) {
-        return new Task(
-                "task-2",
-                "test-task",
-                Instant.now(),
-                Instant.now(),
-                Task.Status.todo,
-                "Do something",
-                null,
-                sourceChannelName,
-                null);
     }
 }

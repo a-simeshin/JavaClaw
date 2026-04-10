@@ -11,6 +11,7 @@ import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.AgentEvent;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.agent.event.EventKind;
+import ai.javaclaw.delivery.DeliveryService;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,9 @@ class TaskWatchdogTest {
     @Mock
     private EventBus eventBus;
 
+    @Mock
+    private DeliveryService deliveryService;
+
     @Captor
     private ArgumentCaptor<Task> taskCaptor;
 
@@ -53,7 +57,12 @@ class TaskWatchdogTest {
     @BeforeEach
     void setUp() {
         watchdog = new TaskWatchdog(
-                taskRepository, approvalRequestRepository, cancellationTokenRegistry, taskAuditService, eventBus);
+                taskRepository,
+                approvalRequestRepository,
+                cancellationTokenRegistry,
+                taskAuditService,
+                eventBus,
+                deliveryService);
     }
 
     /** T31: task in_progress past timeout -> marked failed + audit logged + event emitted. */
@@ -98,6 +107,47 @@ class TaskWatchdogTest {
         assertThat(event.kind()).isEqualTo(EventKind.TASK_STATUS_CHANGE);
         assertThat(event.meta().taskId()).isEqualTo("task-1");
         assertThat(event.payload()).containsEntry("status", "failed").containsEntry("reason", "timeout");
+
+        verify(deliveryService)
+                .deliver(
+                        any(Task.class),
+                        org.mockito.ArgumentMatchers.argThat(msg -> msg.contains("timed out") && msg.contains("300")));
+    }
+
+    /** Timed-out task delivers notification even if delivery throws. */
+    @Test
+    void timedOutTaskDeliveryFailureDoesNotBreak() {
+        final Task stuckTask = new Task(
+                "task-d",
+                "Delivery Fail Task",
+                Instant.now().minusSeconds(600),
+                Instant.now().minusSeconds(400),
+                Task.Status.in_progress,
+                "desc",
+                null,
+                null,
+                "conv-1",
+                null,
+                null,
+                null,
+                300,
+                null,
+                "user-1",
+                null,
+                null,
+                0);
+
+        when(taskRepository.findByStatus(Task.Status.in_progress)).thenReturn(List.of(stuckTask));
+        when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
+        org.mockito.Mockito.doThrow(new RuntimeException("delivery error"))
+                .when(deliveryService)
+                .deliver(any(), any());
+
+        // Should not throw — delivery failure is caught
+        watchdog.checkTimedOutTasks();
+
+        verify(taskRepository).save(any(Task.class));
+        verify(cancellationTokenRegistry).cancel("task-d");
     }
 
     /** T32: approval_request past timeout -> auto-denied (timed out). */

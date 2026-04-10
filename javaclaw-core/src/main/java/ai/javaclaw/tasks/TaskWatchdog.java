@@ -4,6 +4,7 @@ import ai.javaclaw.agent.audit.TaskAuditService;
 import ai.javaclaw.agent.event.AgentEvent;
 import ai.javaclaw.agent.event.EventBus;
 import ai.javaclaw.agent.event.EventKind;
+import ai.javaclaw.delivery.DeliveryService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -31,18 +32,21 @@ public class TaskWatchdog {
     private final CancellationTokenRegistry cancellationTokenRegistry;
     private final TaskAuditService taskAuditService;
     private final EventBus eventBus;
+    private final DeliveryService deliveryService;
 
     public TaskWatchdog(
             final TaskRepository taskRepository,
             final ApprovalRequestRepository approvalRequestRepository,
             final CancellationTokenRegistry cancellationTokenRegistry,
             final TaskAuditService taskAuditService,
-            final EventBus eventBus) {
+            final EventBus eventBus,
+            final DeliveryService deliveryService) {
         this.taskRepository = taskRepository;
         this.approvalRequestRepository = approvalRequestRepository;
         this.cancellationTokenRegistry = cancellationTokenRegistry;
         this.taskAuditService = taskAuditService;
         this.eventBus = eventBus;
+        this.deliveryService = deliveryService;
     }
 
     @Scheduled(fixedRate = 30_000)
@@ -79,7 +83,7 @@ public class TaskWatchdog {
     private void timeoutTask(final Task task) {
         try {
             final Task failed = task.withStatus(Task.Status.failed).withFeedback("Timed out");
-            taskRepository.save(failed);
+            final Task savedTask = taskRepository.save(failed);
 
             cancellationTokenRegistry.cancel(task.getId());
 
@@ -90,10 +94,23 @@ public class TaskWatchdog {
                     AgentEvent.EventMeta.ofTask(null, task.getId()),
                     Map.of("status", "failed", "reason", "timeout")));
 
+            deliverSafely(
+                    savedTask,
+                    "Task '%s' timed out after %ds and was stopped."
+                            .formatted(task.getName(), task.getTimeoutSeconds()));
+
             LOGGER.info(
                     "Task '{}' (id={}) timed out after {}s", task.getName(), task.getId(), task.getTimeoutSeconds());
         } catch (Exception e) {
             LOGGER.error("Failed to timeout task {}: {}", task.getId(), e.getMessage(), e);
+        }
+    }
+
+    private void deliverSafely(final Task task, final String message) {
+        try {
+            deliveryService.deliver(task, message);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to deliver timeout notification for task '{}': {}", task.getName(), e.getMessage());
         }
     }
 
