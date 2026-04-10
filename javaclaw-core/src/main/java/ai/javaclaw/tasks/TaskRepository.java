@@ -17,4 +17,8 @@ public interface TaskRepository extends ListCrudRepository<Task, String> {
     long countByUserIdAndCreatedAtAfter(String userId, Instant after);
 
     List<Task> findByParentTaskId(String parentTaskId);
+
+    List<Task> findByUserId(String userId);
+
+    List<Task> findByUserIdAndStatus(String userId, Task.Status status);
 }
