@@ -32,6 +32,7 @@ public class TaskManager {
     private final CancellationTokenRegistry cancellationTokenRegistry;
     private final EventBus eventBus;
     private final TaskAuditService taskAuditService;
+    private final TaskRateLimiter rateLimiter;
 
     public TaskManager(
             JobScheduler jobScheduler,
@@ -40,7 +41,8 @@ public class TaskManager {
             RecurringTaskRepository recurringTaskRepository,
             CancellationTokenRegistry cancellationTokenRegistry,
             EventBus eventBus,
-            TaskAuditService taskAuditService) {
+            TaskAuditService taskAuditService,
+            TaskRateLimiter rateLimiter) {
         this.jobScheduler = jobScheduler;
         this.storageProvider = storageProvider;
         this.taskRepository = taskRepository;
@@ -48,6 +50,7 @@ public class TaskManager {
         this.cancellationTokenRegistry = cancellationTokenRegistry;
         this.eventBus = eventBus;
         this.taskAuditService = taskAuditService;
+        this.rateLimiter = rateLimiter;
     }
 
     public void create(final String name, final String description) {
@@ -55,7 +58,19 @@ public class TaskManager {
     }
 
     public void create(final String name, final String description, final String conversationId) {
-        final Task task = taskRepository.save(Task.newTask(name, description).withConversationId(conversationId));
+        create(name, description, conversationId, null);
+    }
+
+    /**
+     * Creates a task with userId. When userId is provided, rate limits are checked before creation.
+     *
+     * @throws RateLimitExceededException if user's rate limit is exceeded
+     */
+    public void create(final String name, final String description, final String conversationId, final String userId) {
+        checkRateLimit(userId);
+        final Task task = taskRepository.save(Task.newTask(name, description)
+                .withConversationId(conversationId)
+                .withUserId(userId));
         jobScheduler.<TaskHandler>enqueue(x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been created.", task.getName(), task.getId());
     }
@@ -69,9 +84,25 @@ public class TaskManager {
             final String name,
             final String description,
             final String conversationId) {
+        schedule(executionTime, name, description, conversationId, null);
+    }
+
+    /**
+     * Schedules a task with userId. When userId is provided, rate limits are checked before scheduling.
+     *
+     * @throws RateLimitExceededException if user's rate limit is exceeded
+     */
+    public void schedule(
+            final LocalDateTime executionTime,
+            final String name,
+            final String description,
+            final String conversationId,
+            final String userId) {
+        checkRateLimit(userId);
         final Instant createdAt = executionTime.atZone(ZoneId.systemDefault()).toInstant();
-        final Task task =
-                taskRepository.save(Task.newTask(name, createdAt, description).withConversationId(conversationId));
+        final Task task = taskRepository.save(Task.newTask(name, createdAt, description)
+                .withConversationId(conversationId)
+                .withUserId(userId));
         jobScheduler.<TaskHandler>schedule(executionTime, x -> x.executeTask(task.getId()));
         log.info("Task '{}' ({}) has been scheduled at {}.", task.getName(), task.getId(), executionTime);
     }
@@ -84,6 +115,21 @@ public class TaskManager {
     /** Планирует повторяющуюся задачу с привязкой к conversation. */
     public void scheduleRecurrently(
             final String cronExpression, final String name, final String description, final String conversationId) {
+        scheduleRecurrently(cronExpression, name, description, conversationId, null);
+    }
+
+    /**
+     * Планирует повторяющуюся задачу с userId. Проверяет recurring rate limit.
+     *
+     * @throws RateLimitExceededException if user's recurring task limit is exceeded
+     */
+    public void scheduleRecurrently(
+            final String cronExpression,
+            final String name,
+            final String description,
+            final String conversationId,
+            final String userId) {
+        checkRecurringRateLimit(userId);
         final RecurringTask recurringTask = recurringTaskRepository.save(
                 RecurringTask.newRecurringTask(name, description, cronExpression, conversationId));
         jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
@@ -103,6 +149,8 @@ public class TaskManager {
         final Task parent = taskRepository
                 .findById(parentTaskId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent task not found: " + parentTaskId));
+
+        checkRateLimit(parent.getUserId());
 
         int depth = calculateDepth(parent);
         if (depth >= MAX_TASK_DEPTH) {
@@ -205,6 +253,18 @@ public class TaskManager {
 
     public List<RecurringTask> getAllRecurringTasks() {
         return recurringTaskRepository.findAll();
+    }
+
+    private void checkRateLimit(final String userId) {
+        if (userId != null && rateLimiter != null) {
+            rateLimiter.checkLimit(userId);
+        }
+    }
+
+    private void checkRecurringRateLimit(final String userId) {
+        if (userId != null && rateLimiter != null) {
+            rateLimiter.checkRecurringLimit(userId);
+        }
     }
 
     public List<Task> getTasks(LocalDate date, Task.Status status) {

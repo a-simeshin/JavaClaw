@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +66,9 @@ class TaskManagerTest {
     @Mock
     ai.javaclaw.delivery.DeliveryService deliveryServiceMock;
 
+    @Mock
+    TaskRateLimiter rateLimiterMock;
+
     CancellationTokenRegistry cancellationTokenRegistry;
 
     InMemoryStorageProvider storageProvider;
@@ -89,7 +93,8 @@ class TaskManagerTest {
                 recurringTaskRepositoryMock,
                 cancellationTokenRegistry,
                 eventBusMock,
-                taskAuditServiceMock);
+                taskAuditServiceMock,
+                rateLimiterMock);
     }
 
     @AfterEach
@@ -631,6 +636,129 @@ class TaskManagerTest {
         assertThatThrownBy(() -> taskManager.cancel("missing"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Task not found");
+    }
+
+    // --- T13: create with userId → rateLimiter.checkLimit called → throws when exceeded ---
+    @Test
+    void createWithUserIdChecksRateLimit() {
+        final String userId = "user-1";
+        final Task saved = new Task(
+                "task-id",
+                "task",
+                Instant.now(),
+                Instant.now(),
+                Status.todo,
+                "desc",
+                null,
+                null,
+                "conv-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                userId,
+                null,
+                null,
+                null);
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
+
+        taskManager.create("task", "desc", "conv-1", userId);
+
+        verify(rateLimiterMock).checkLimit(userId);
+
+        ArgumentCaptor<Task> captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskRepositoryMock).save(captor.capture());
+        assertThat(captor.getValue().getUserId()).isEqualTo(userId);
+    }
+
+    @Test
+    void createWithUserIdThrowsWhenRateLimitExceeded() {
+        final String userId = "user-1";
+        Mockito.doThrow(new RateLimitExceededException(userId, "max_concurrent_tasks", 10, 10))
+                .when(rateLimiterMock)
+                .checkLimit(userId);
+
+        assertThatThrownBy(() -> taskManager.create("task", "desc", "conv-1", userId))
+                .isInstanceOf(RateLimitExceededException.class)
+                .hasMessageContaining("max_concurrent_tasks");
+
+        verify(taskRepositoryMock, never()).save(any());
+    }
+
+    @Test
+    void createWithoutUserIdSkipsRateLimit() {
+        final Task saved =
+                new Task("task-id", "task", Instant.now(), Instant.now(), Status.todo, "desc", null, null, "conv-1");
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(saved);
+
+        taskManager.create("task", "desc", "conv-1", null);
+
+        verify(rateLimiterMock, never()).checkLimit(any());
+    }
+
+    @Test
+    void scheduleRecurrentlyWithUserIdChecksRecurringRateLimit() {
+        final String userId = "user-1";
+        final String cron = "0 9 * * *";
+        final RecurringTask saved =
+                new RecurringTask("rt-id", "daily", "Daily task", cron, null, "conv-1", Instant.now());
+        when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
+
+        taskManager.scheduleRecurrently(cron, "daily", "Daily task", "conv-1", userId);
+
+        verify(rateLimiterMock).checkRecurringLimit(userId);
+    }
+
+    @Test
+    void spawnChecksRateLimitWithParentUserId() {
+        final String parentId = "parent-id";
+        final String userId = "user-1";
+        final Task parent = new Task(
+                parentId,
+                "parent",
+                Instant.now(),
+                Instant.now(),
+                Status.in_progress,
+                "Parent",
+                null,
+                null,
+                "conv-1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                userId,
+                null,
+                null,
+                null);
+        final Task savedChild = new Task(
+                "child-id",
+                "child",
+                Instant.now(),
+                Instant.now(),
+                Status.todo,
+                "Child",
+                null,
+                null,
+                "conv-1",
+                parentId,
+                null,
+                TaskRuntime.async,
+                null,
+                null,
+                userId,
+                null,
+                null,
+                null);
+
+        when(taskRepositoryMock.findById(parentId)).thenReturn(Optional.of(parent));
+        when(taskRepositoryMock.save(any(Task.class))).thenReturn(savedChild);
+
+        taskManager.spawn(parentId, "child", "Child");
+
+        verify(rateLimiterMock).checkLimit(userId);
     }
 
     private @NonNull JobActivator getJobActivator() {
