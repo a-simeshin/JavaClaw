@@ -624,10 +624,14 @@
 - [x] Frontend уже готов: ReasoningBlock + chat-page reasoning parts rendering
 - [x] 5 новых тестов: thinking metadata → reasoning events, text-only flow, unclosed reasoning, wire code g, ThinkingProperties defaults
 
-### 8.6 Model fallback chain (2.7)
+### 8.6 Model fallback chain (2.7) ✅
 
-- Fallback при недоступности основной модели
-- Конфигурация цепочки в application.yaml
+- [x] FallbackChatModel — декоратор ChatModel с fallback-цепочкой: при ошибке основной модели последовательно пробуются fallback-модели
+- [x] ModelFallbackProperties: `javaclaw.chat.fallback.enabled`, `models` (список), `max-retries-per-model` конфигурация через application.yaml / env vars
+- [x] Поддержка call() и stream() с fallback; ModelFallbackExhaustedException при исчерпании всех моделей
+- [x] @Primary FallbackChatModel bean через ObjectProvider (избегает circular dependency с auto-configured ChatModel)
+- [x] withModel() — пересоздание Prompt с новой моделью, сохраняя ToolCallingChatOptions (tool callbacks + internalToolExecutionEnabled)
+- [x] 9 новых тестов: primary success, disabled fallback throw, fallback on primary failure, exhausted chain, retries per model, stream fallback, withModel preservation, properties defaults
 
 ---
 

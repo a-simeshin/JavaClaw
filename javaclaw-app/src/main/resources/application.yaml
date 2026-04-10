@@ -77,6 +77,10 @@ javaclaw:
       max-context-tokens: 200000
       reserved-for-response: 8000
       reserved-for-tools: 4000
+    fallback:
+      enabled: ${MODEL_FALLBACK_ENABLED:false}
+      models: ${MODEL_FALLBACK_MODELS:}
+      max-retries-per-model: ${MODEL_FALLBACK_MAX_RETRIES:1}
     sse:
       timeout: 30m
       heartbeat-interval: 15s

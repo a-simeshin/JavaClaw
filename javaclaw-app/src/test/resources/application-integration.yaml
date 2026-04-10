@@ -32,6 +32,10 @@ javaclaw:
     thinking:
       enabled: false
       budget-tokens: 10000
+    fallback:
+      enabled: false
+      models: []
+      max-retries-per-model: 1
     sse:
       timeout: 5s
       heartbeat-interval: 60s

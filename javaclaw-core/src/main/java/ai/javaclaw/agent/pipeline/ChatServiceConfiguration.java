@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.lang.Nullable;
 
 /**
@@ -26,7 +27,7 @@ import org.springframework.lang.Nullable;
  * которые ранее создавались inline в {@code JavaClawConfiguration.chatClient()}.
  */
 @Configuration
-@EnableConfigurationProperties(TokenBudgetProperties.class)
+@EnableConfigurationProperties({TokenBudgetProperties.class, ModelFallbackProperties.class})
 public class ChatServiceConfiguration {
 
     /**
@@ -94,6 +95,19 @@ public class ChatServiceConfiguration {
      * @param approvalService сервис одобрений (nullable — может отсутствовать)
      * @return новый экземпляр ChatService
      */
+    @Bean
+    @Primary
+    public ChatModel fallbackChatModel(
+            final org.springframework.beans.factory.ObjectProvider<ChatModel> chatModelProvider,
+            final ModelFallbackProperties fallbackProperties) {
+        // Use ObjectProvider to get the non-primary ChatModel (avoids circular @Primary resolution)
+        final ChatModel delegate = chatModelProvider.stream()
+                .filter(m -> !(m instanceof FallbackChatModel))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No ChatModel bean found for FallbackChatModel delegate"));
+        return new FallbackChatModel(delegate, fallbackProperties);
+    }
+
     @Bean
     public ChatService chatService(
             final ChatModel chatModel,
