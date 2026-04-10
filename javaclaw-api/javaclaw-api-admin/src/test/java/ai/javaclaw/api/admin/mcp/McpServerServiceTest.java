@@ -120,10 +120,61 @@ class McpServerServiceTest {
                 .hasMessageContaining("gone");
     }
 
+    // ── status ─────────────────────────────────────────────────────────────────
+
+    @Test
+    void status_disabledServer_returnsDisabled() {
+        final McpServer disabled = server("id-dis", "test-server", "http", false);
+        when(repository.findByIdAndOwnerIdIsNull("id-dis")).thenReturn(Optional.of(disabled));
+
+        final McpServerStatusDto result = service.status("id-dis");
+
+        assertThat(result.status()).isEqualTo("disabled");
+        assertThat(result.checkedAt()).isNull();
+    }
+
+    @Test
+    void status_enabledServerWithHealthData_returnsRealHealth() {
+        final Instant checkedAt = Instant.parse("2026-04-10T12:00:00Z");
+        final McpServer healthy =
+                serverWithHealth("id-ok", "http-server", "http", true, "connected", "HTTP 200", checkedAt);
+        when(repository.findByIdAndOwnerIdIsNull("id-ok")).thenReturn(Optional.of(healthy));
+
+        final McpServerStatusDto result = service.status("id-ok");
+
+        assertThat(result.status()).isEqualTo("connected");
+        assertThat(result.detail()).isEqualTo("HTTP 200");
+        assertThat(result.checkedAt()).isEqualTo(checkedAt.toString());
+    }
+
+    @Test
+    void status_enabledServerNoHealthCheck_returnsUnknown() {
+        final McpServer unchecked = server("id-uc", "new-server", "http", true);
+        when(repository.findByIdAndOwnerIdIsNull("id-uc")).thenReturn(Optional.of(unchecked));
+
+        final McpServerStatusDto result = service.status("id-uc");
+
+        assertThat(result.status()).isEqualTo("unknown");
+        assertThat(result.checkedAt()).isNull();
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private static McpServer server(final String id, final String name, final String transport, final boolean enabled) {
-        return new McpServer(id, null, name, transport, null, null, Map.of(), enabled, Instant.now(), Instant.now());
+        return new McpServer(
+                id,
+                null,
+                name,
+                transport,
+                null,
+                null,
+                Map.of(),
+                enabled,
+                Instant.now(),
+                Instant.now(),
+                "unknown",
+                null,
+                null);
     }
 
     private static McpServer serverWithHeaders(
@@ -132,6 +183,43 @@ class McpServerServiceTest {
             final String transport,
             final boolean enabled,
             final Map<String, String> headers) {
-        return new McpServer(id, null, name, transport, null, null, headers, enabled, Instant.now(), Instant.now());
+        return new McpServer(
+                id,
+                null,
+                name,
+                transport,
+                null,
+                null,
+                headers,
+                enabled,
+                Instant.now(),
+                Instant.now(),
+                "unknown",
+                null,
+                null);
+    }
+
+    private static McpServer serverWithHealth(
+            final String id,
+            final String name,
+            final String transport,
+            final boolean enabled,
+            final String healthStatus,
+            final String healthDetail,
+            final Instant lastCheck) {
+        return new McpServer(
+                id,
+                null,
+                name,
+                transport,
+                null,
+                "https://example.com",
+                Map.of(),
+                enabled,
+                Instant.now(),
+                Instant.now(),
+                healthStatus,
+                healthDetail,
+                lastCheck);
     }
 }

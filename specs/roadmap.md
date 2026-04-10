@@ -637,10 +637,16 @@
 
 ## PHASE 9: P1 — MCP и интеграции
 
-### 9.1 MCP health check (5.4)
+### 9.1 MCP health check (5.4) ✅
 
-- Периодическая проверка доступности
-- Auto-reconnect
+- [x] V26 миграция: health_status, health_detail, last_health_check_at колонки в mcp_servers
+- [x] McpServer entity: +healthStatus, +healthDetail, +lastHealthCheckAt, +withHealthCheck() factory
+- [x] McpHealthChecker @Service: @Scheduled(60s) проверка всех enabled серверов
+- [x] HTTP probe: HEAD request с 5s timeout, connected (2xx-4xx) / unreachable / error
+- [x] Stdio probe: `which` проверка наличия binary на PATH
+- [x] McpServerService.status() возвращает реальные health данные из DB (вместо fake enabled→connected)
+- [x] McpServerStatusDto: +checkedAt поле (backward-compatible)
+- [x] 9 новых тестов (McpHealthCheckerTest) + 3 новых теста status (McpServerServiceTest), все 831 тестов зелёные
 
 ### 9.2 Tool discovery caching (5.5)
 

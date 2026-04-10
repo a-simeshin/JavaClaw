@@ -45,8 +45,12 @@ public class McpServerService {
         final McpServer server = repository
                 .findByIdAndOwnerIdIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("mcp server not found: " + id));
-        final String statusValue = server.enabled() ? "connected" : "disabled";
-        return new McpServerStatusDto(id, statusValue, null);
+        if (!server.enabled()) {
+            return new McpServerStatusDto(id, "disabled", null);
+        }
+        final String checkedAt =
+                server.lastHealthCheckAt() != null ? server.lastHealthCheckAt().toString() : null;
+        return new McpServerStatusDto(id, server.healthStatus(), server.healthDetail(), checkedAt);
     }
 
     private McpServerDto toDto(final McpServer server) {

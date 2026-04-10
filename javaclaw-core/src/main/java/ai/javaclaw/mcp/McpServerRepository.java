@@ -9,4 +9,6 @@ public interface McpServerRepository extends ListCrudRepository<McpServer, Strin
     List<McpServer> findAllByOwnerIdIsNull();
 
     Optional<McpServer> findByIdAndOwnerIdIsNull(String id);
+
+    List<McpServer> findAllByEnabledTrue();
 }

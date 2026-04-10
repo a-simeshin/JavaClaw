@@ -17,7 +17,10 @@ public record McpServer(
         @Column("headers") Map<String, String> headers,
         @Column("enabled") boolean enabled,
         @Column("created_at") Instant createdAt,
-        @Column("updated_at") Instant updatedAt) {
+        @Column("updated_at") Instant updatedAt,
+        @Column("health_status") String healthStatus,
+        @Column("health_detail") String healthDetail,
+        @Column("last_health_check_at") Instant lastHealthCheckAt) {
 
     public static McpServer newGlobal(
             final String name,
@@ -36,7 +39,10 @@ public record McpServer(
                 headers != null ? headers : Map.of(),
                 enabled,
                 Instant.now(),
-                Instant.now());
+                Instant.now(),
+                "unknown",
+                null,
+                null);
     }
 
     public McpServer withUpdate(
@@ -56,6 +62,26 @@ public record McpServer(
                 newHeaders != null ? newHeaders : Map.of(),
                 newEnabled,
                 this.createdAt,
+                Instant.now(),
+                this.healthStatus,
+                this.healthDetail,
+                this.lastHealthCheckAt);
+    }
+
+    public McpServer withHealthCheck(final String status, final String detail) {
+        return new McpServer(
+                this.id,
+                this.ownerId,
+                this.name,
+                this.transport,
+                this.command,
+                this.url,
+                this.headers,
+                this.enabled,
+                this.createdAt,
+                this.updatedAt,
+                status,
+                detail,
                 Instant.now());
     }
 }
