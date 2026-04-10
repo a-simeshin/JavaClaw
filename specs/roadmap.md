@@ -78,7 +78,7 @@
 | 3.3 Files API                       | ✅      | FileController CRUD + tree (но filesystem-backed)                                                  |
 | 3.4 Skills API                      | ✅      | SkillController CRUD (но yaml-backed)                                                              |
 | 3.5 MCP Servers API                 | ✅      | McpServerController CRUD + status (yaml-backed)                                                    |
-| 3.6 Actuator + health               | ⚠️     | Кастомный /api/health в SystemController; Spring Boot Actuator явно не подключён                   |
+| 3.6 Actuator + health               | ✅      | Actuator health/info/metrics exposed; /api/health с реальной DB-проверкой; readiness/liveness probes; 7 тестов |
 | 4.1 Spring Security Basic Auth      | ❌      | spring-boot-starter-security не подключён                                                          |
 | 4.2 Per-user conversation isolation | ❌      | DEFAULT_CONVERSATION_ID = "web" для всех                                                           |
 | 4.3 Per-user virtual FS isolation   | ❌      | Нет virtual_files таблицы                                                                          |
@@ -96,7 +96,7 @@
 | 6.2 Graceful shutdown               | ❌      | Нет spring.lifecycle.timeout-per-shutdown-phase                                                    |
 | 6.3 Health checks (ready/live)      | ❌      | Нет readiness/liveness probes                                                                      |
 
-**Итого P0 (48 пунктов):** ✅ 25 · ⚠️ 8 · ❌ 15
+**Итого P0 (48 пунктов):** ✅ 26 · ⚠️ 7 · ❌ 15
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста

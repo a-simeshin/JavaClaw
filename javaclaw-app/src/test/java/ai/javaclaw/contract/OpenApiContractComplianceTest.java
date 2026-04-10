@@ -502,7 +502,7 @@ class OpenApiContractComplianceTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.timestamp").isString())
-                .andExpect(jsonPath("$.components").isArray());
+                .andExpect(jsonPath("$.components").isMap());
     }
 
     // =========================================================================

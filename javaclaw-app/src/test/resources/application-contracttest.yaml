@@ -36,9 +36,17 @@ jobrunr:
     enabled: false
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
   endpoint:
     restart:
       enabled: false
+    health:
+      show-details: always
+      probes:
+        enabled: true
 
 logging:
   level:

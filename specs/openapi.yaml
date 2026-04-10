@@ -464,10 +464,11 @@ components:
           format: date-time
           description: ISO-8601 timestamp of the health check
         components:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             type: string
-          description: Names of healthy sub-components (e.g. ["chat", "memory"])
+            enum: [UP, DOWN]
+          description: Per-component health status (e.g. {"chat":"UP","memory":"UP","db":"UP"})
 
     # ── Error envelope ────────────────────────────────────────────────────────
 
@@ -1408,7 +1409,8 @@ paths:
       tags: [system]
       summary: Application health check
       description: >
-        Returns `{ "status": "UP", "timestamp": "<iso>", "components": ["chat", "memory"] }`.
+        Returns per-component health status with real DB connectivity check.
+        Returns 503 when any critical component is DOWN.
         Intended for load-balancer probes.
       responses:
         "200":
@@ -1421,8 +1423,15 @@ paths:
                 status: "UP"
                 timestamp: "2026-04-05T10:00:00Z"
                 components:
-                  - chat
-                  - memory
+                  chat: "UP"
+                  memory: "UP"
+                  db: "UP"
+        "503":
+          description: One or more components are DOWN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
         "500":
           $ref: '#/components/responses/Error500'
       security: []

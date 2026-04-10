@@ -3,8 +3,10 @@ package ai.javaclaw.api;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.sql.DataSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class SystemController {
 
+    private final DataSource dataSource;
+
+    public SystemController(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     @GetMapping("/me")
     public UserInfoDto me(HttpServletRequest request) {
         Principal principal = request.getUserPrincipal();
@@ -31,8 +39,31 @@ public class SystemController {
     }
 
     @GetMapping("/health")
-    public Map<String, Object> health() {
-        return Map.of("status", "UP", "timestamp", Instant.now().toString(), "components", List.of("chat", "memory"));
+    public ResponseEntity<Map<String, Object>> health() {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("timestamp", Instant.now().toString());
+
+        var components = new LinkedHashMap<String, String>();
+        components.put("chat", "UP");
+        components.put("memory", "UP");
+
+        boolean dbUp = checkDatabase();
+        components.put("db", dbUp ? "UP" : "DOWN");
+
+        String overallStatus = dbUp ? "UP" : "DOWN";
+        result.put("status", overallStatus);
+        result.put("components", components);
+
+        int httpStatus = dbUp ? 200 : 503;
+        return ResponseEntity.status(httpStatus).body(result);
+    }
+
+    private boolean checkDatabase() {
+        try (var conn = dataSource.getConnection()) {
+            return conn.isValid(2);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public record UserInfoDto(String username, String role) {}

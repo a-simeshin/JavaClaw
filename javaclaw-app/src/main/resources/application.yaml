@@ -30,9 +30,26 @@ spring:
             initialize-schema: never
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
   endpoint:
     restart:
       enabled: true
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: JavaClaw
+    description: Enterprise AI Agent Platform
+    version: 1.0.0-SNAPSHOT
 
 agent:
   onboarding:
