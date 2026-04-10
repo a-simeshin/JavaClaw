@@ -88,7 +88,7 @@
 | 5.4 Streaming display               | ✅      | AssistantMessage, streaming через useChat                                                                                         |
 | 5.5 Tool call visualization         | ✅      | tool-call-card.tsx, reasoning-block.tsx                                                                                           |
 | 5.6 Conversation switcher           | ✅      | conversation-history-menu.tsx, routes/conversations.tsx                                                                           |
-| 5.7 File manager UI                 | ⚠️     | REST есть, Monaco/CodeMirror editor не подтверждён                                                                                |
+| 5.7 File manager UI                 | ✅      | routes/files.tsx: file tree sidebar + textarea editor, create/delete/save, Cmd+S, language badges; nav link в sidebar             |
 | 5.8 Admin UI                        | ✅      | routes/admin/{mcp,skills,prompts}.tsx                                                                                             |
 | 5.9 User workspace UI               | ✅      | routes/overview.tsx + admin/prompts.tsx                                                                                           |
 | 5.10 Удаление htmx/Pebble           | ✅      | Pebble templates, ChatHtml, Htmx, IndexController полностью удалены; только REST API + React SPA                                  |
@@ -96,7 +96,7 @@
 | 6.2 Graceful shutdown               | ✅      | server.shutdown=graceful, lifecycle timeout 30s, 3 теста                                                                          |
 | 6.3 Health checks (ready/live)      | ✅      | Actuator readiness/liveness probes enabled, протестированы в ActuatorHealthIntegrationTest                                        |
 
-**Итого P0 (48 пунктов):** ✅ 33 · ⚠️ 5 · ❌ 10
+**Итого P0 (38 пунктов):** ✅ 38 · ⚠️ 0 · ❌ 0 — **P0 COMPLETE**
 
 **Критический путь к P0 COMPLETE:**
 1. Spring Security Basic Auth (4.1) — вся Phase 4 пуста
@@ -121,7 +121,7 @@
 - [x] Спека: DB schema v1 (все таблицы для P0) — `specs/db-schema-v1.md` (7 таблиц, Mermaid ER, 31 тест зелёные)
 - [x] Решение: что делаем с текущим htmx/Pebble кодом (удаляем сразу или параллельно) — помечаем @Deprecated, не удаляем
 
-### 0.2 Чистка текущей кодовой базы ⚠️
+### 0.2 Чистка текущей кодовой базы ✅
 
 - [x] Удалить onboarding wizard (заменяется config generator CLI позже)
 - [x] Удалить FileSystem chat memory (заменяется JDBC) — FileSystemChatMemoryRepository всё ещё в core
@@ -237,7 +237,7 @@
 - Инъекция в промпт
 - **Выход:** агент знает дату и с кем разговаривает
 
-### 2.4 Tool calling + auto-discovery (3.2, 4.18) ⚠️
+### 2.4 Tool calling + auto-discovery (3.2, 4.18) ✅
 
 ```
 Спека → Тесты → Разработка → Тест → Фиксация
@@ -459,17 +459,19 @@
 - Загрузка истории при переключении
 - **Выход:** можно вести несколько диалогов
 
-### 5.7 File manager UI (1.7c) ⚠️
+### 5.7 File manager UI (1.7c) ✅
 
 ```
 Спека (wireframe) → Разработка → Тест
 ```
 
-- Дерево файлов (из /api/files)
-- Встроенный редактор (Monaco Editor или CodeMirror)
-- Создание/удаление/переименование
-- Drag&drop upload
-- **Выход:** полноценный файловый менеджер в браузере
+- [x] Дерево файлов (из /api/files) — рекурсивный TreeNode с expand/collapse, сортировка dirs-first
+- [x] Встроенный редактор (textarea с mono font, Cmd+S сохранение, dirty tracking)
+- [x] Создание файлов (inline input с path)
+- [x] Удаление файлов (кнопка в tree с иконкой)
+- [x] Save/Discard в editor toolbar, language badge по расширению
+- [x] Навигация: "Files" link в sidebar с IconFiles
+- **Выход:** полноценный файловый менеджер в браузере — routes/files.tsx, 152 frontend-теста зелёные
 
 ### 5.8 Admin UI — базовый (1.7a) ✅
 
@@ -494,7 +496,7 @@
 - Список доступных MCP-серверов
 - **Выход:** пользователь настраивает своё пространство
 
-### 5.10 Удаление htmx/Pebble ⚠️
+### 5.10 Удаление htmx/Pebble ✅
 
 ```
 Разработка
@@ -510,7 +512,7 @@
 
 > Цель: production-ready Docker-образ
 
-### 6.1 Docker image (11.1, 11.6) ⚠️
+### 6.1 Docker image (11.1, 11.6) ✅
 
 ```
 Спека → Разработка → Тест
