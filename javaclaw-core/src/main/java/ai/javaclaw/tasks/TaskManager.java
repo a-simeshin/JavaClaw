@@ -227,6 +227,13 @@ public class TaskManager {
         return depth;
     }
 
+    /** Returns a single task by ID. */
+    public Task getTask(final String taskId) {
+        return taskRepository
+                .findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
+    }
+
     /** Returns child tasks of the given parent. */
     public List<Task> getChildTasks(final String parentTaskId) {
         return taskRepository.findByParentTaskId(parentTaskId);

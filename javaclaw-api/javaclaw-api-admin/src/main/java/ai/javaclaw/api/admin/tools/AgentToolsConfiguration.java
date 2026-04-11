@@ -56,4 +56,10 @@ public class AgentToolsConfiguration {
         return new AutoDiscoveredTool<>(
                 CronTool.builder().taskManager(taskManager).build());
     }
+
+    @Bean
+    public AutoDiscoveredTool<DelegationTool> delegationTool(final TaskManager taskManager) {
+        return new AutoDiscoveredTool<>(
+                DelegationTool.builder().taskManager(taskManager).build());
+    }
 }

@@ -781,7 +781,9 @@ V29 миграция auth_audit_log (event_type/username/remote_addr/request_uri
 
 V30 миграция agent_quotas (user_id/daily_limit/daily_used/reset_date), AgentQuota entity + AgentQuotaRepository (incrementDailyUsed/resetDaily/updateDailyLimit) + AgentQuotaService (checkAndIncrement с auto-reset по дате, ensureQuota с lazy creation, setDailyLimit, enabled/disabled toggle), интеграция в ChatRestController (429 TOO_MANY_REQUESTS при превышении), 18 новых тестов (6 unit AgentQuota + 12 unit AgentQuotaService), конфигурация: javaclaw.agent.quota.default-daily-limit=100, javaclaw.agent.quota.enabled=true.
 
-### 12.3 Sub-agent / delegation (3.6)
+### 12.3 Sub-agent / delegation (3.6) ✅
+
+DelegationTool с 4 @Tool методами: delegateTask (spawn child через TaskManager.spawn с depth≤3), checkDelegatedTask (статус + feedback), listDelegatedTasks (все children parent task), cancelDelegatedTask; TaskManager.getTask() public accessor, зарегистрирован как AutoDiscoveredTool, 17 unit-тестов.
 
 ---
 
