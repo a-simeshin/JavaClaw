@@ -696,13 +696,16 @@
 - [x] 13 новых тестов (MemoryToolTest), все 882 теста зелёные
 - UI для просмотра/редактирования — отложено до Phase 11
 
-### 10.2 Auto-summarization (6.6)
+### 10.2 Auto-summarization (6.6) ✅
 
-- Сжатие длинных историй
+- [x] ConversationSummaryService с async LLM-суммаризацией dropped turns (реализовано в Phase 8.3)
+- [x] V24 миграция conversation_summaries, WindowingResult, инъекция summary в system prompt
 
-### 10.3 Message tool (4.12)
+### 10.3 Message tool (4.12) ✅
 
-- Отправка сообщений из фоновых задач
+- [x] MessageTool: sendMessage (broadcast SSE + persist to chat memory) + notify (urgent prefix)
+- [x] Зарегистрирован как AutoDiscoveredTool в AgentToolsConfiguration
+- [x] 11 unit-тестов (MessageToolTest): validation, broadcast, persistence failure graceful, urgent prefix
 
 ### 10.4 Tool deny patterns (4.17)
 
