@@ -14,13 +14,16 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.http.MediaType;
 
 /**
- * Integration test verifying per-user conversation isolation (roadmap 4.2).
+ * Integration test verifying per-user conversation isolation (roadmap 4.2)
+ * and admin conversation access (roadmap 15.5.5).
  *
  * <p>Two users (admin and user) create conversations and verify:
  * <ul>
- *   <li>Each user only sees their own conversations in the list</li>
+ *   <li>Admin with CONVERSATION_ACCESS_ALL sees all conversations</li>
+ *   <li>Regular user only sees their own conversations</li>
  *   <li>A user cannot read messages from another user's conversation</li>
  *   <li>A user cannot delete another user's conversation</li>
+ *   <li>Admin can delete any conversation</li>
  * </ul>
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -57,7 +60,8 @@ class ConversationIsolationIntegrationTest extends IntegrationTestBase {
 
     @Test
     @Order(3)
-    void adminSeesOnlyOwnConversations() throws Exception {
+    void adminSeesAllConversationsIncludingOtherUsers() throws Exception {
+        // Admin has CONVERSATION_ACCESS_ALL permission and can see all conversations
         mockMvc.perform(get("/api/conversations")
                         .with(httpBasic("admin", "admin"))
                         .accept(MediaType.APPLICATION_JSON))
@@ -65,7 +69,7 @@ class ConversationIsolationIntegrationTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.content[?(@.id == '" + ADMIN_CONV_ID + "')]")
                         .exists())
                 .andExpect(
-                        jsonPath("$.content[?(@.id == '" + USER_CONV_ID + "')]").doesNotExist());
+                        jsonPath("$.content[?(@.id == '" + USER_CONV_ID + "')]").exists());
     }
 
     @Test

@@ -63,9 +63,11 @@ class ConversationControllerTest {
 
     @Test
     void listReturnsPagedConversationsFromQueryService() throws Exception {
+        // admin has CONVERSATION_ACCESS_ALL → listConversations (all)
+        when(sharingService.isAdmin("admin")).thenReturn(true);
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T09:00:00Z");
-        when(queryService.listConversationsWithShared(ADMIN_USER_ID, 0, 10))
+        when(queryService.listConversations(0, 10))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(
                                 new ConversationQueryService.ConversationSummary(
@@ -88,8 +90,9 @@ class ConversationControllerTest {
 
     @Test
     void listFallsBackToFirstUserMessageWhenTitleIsNull() throws Exception {
+        when(sharingService.isAdmin("admin")).thenReturn(true);
         Instant t = Instant.parse("2026-04-05T10:00:00Z");
-        when(queryService.listConversationsWithShared(ADMIN_USER_ID, 0, 20))
+        when(queryService.listConversations(0, 20))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(new ConversationQueryService.ConversationSummary("web", null, t, t, 1, "Hello there")),
                         0,
@@ -103,7 +106,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesMapsTypesToRolesWithRealTimestamps() throws Exception {
-        when(sharingService.hasAccess("web", ADMIN_USER_ID)).thenReturn(true);
+        when(sharingService.hasAccess("web", ADMIN_USER_ID, "admin")).thenReturn(true);
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T10:00:05Z");
         when(queryService.listMessages("web", 0, 50))
@@ -127,7 +130,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesRespectsPagination() throws Exception {
-        when(sharingService.hasAccess("web", ADMIN_USER_ID)).thenReturn(true);
+        when(sharingService.hasAccess("web", ADMIN_USER_ID, "admin")).thenReturn(true);
         when(queryService.listMessages("web", 2, 10))
                 .thenReturn(new ConversationQueryService.Page<>(List.of(), 2, 10, 7L));
 
@@ -171,8 +174,17 @@ class ConversationControllerTest {
 
     @Test
     void deleteReturnsNotFoundWhenNotOwned() throws Exception {
+        when(sharingService.isAdmin("admin")).thenReturn(false);
         when(conversationRepository.existsByIdAndUserId("other-conv", ADMIN_USER_ID))
                 .thenReturn(false);
         mockMvc.perform(delete("/api/conversations/other-conv")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminCanDeleteAnyConversation() throws Exception {
+        when(sharingService.isAdmin("admin")).thenReturn(true);
+        mockMvc.perform(delete("/api/conversations/other-user-conv")).andExpect(status().isNoContent());
+        verify(chatMemoryRepository).deleteByConversationId(eq("other-user-conv"));
+        verify(conversationRepository).deleteById(eq("other-user-conv"));
     }
 }

@@ -58,9 +58,13 @@ public class ConversationController {
             @RequestParam(defaultValue = "0") final int page,
             @RequestParam(defaultValue = "20") final int size,
             final Principal principal) {
-        final String userId = userResolver.resolveUserId(principal.getName());
+        final String username = principal.getName();
+        final String userId = userResolver.resolveUserId(username);
+        // Admins with CONVERSATION_ACCESS_ALL see all conversations
         final ConversationQueryService.Page<ConversationQueryService.ConversationSummary> result =
-                queryService.listConversationsWithShared(userId, page, size);
+                sharingService.isAdmin(username)
+                        ? queryService.listConversations(page, size)
+                        : queryService.listConversationsWithShared(userId, page, size);
         final List<ConversationDto> dtos = new ArrayList<>(result.content().size());
         for (ConversationQueryService.ConversationSummary row : result.content()) {
             dtos.add(toDto(row));
@@ -74,8 +78,9 @@ public class ConversationController {
             @RequestParam(defaultValue = "0") final int page,
             @RequestParam(defaultValue = "50") final int size,
             final Principal principal) {
-        final String userId = userResolver.resolveUserId(principal.getName());
-        if (!sharingService.hasAccess(id, userId)) {
+        final String username = principal.getName();
+        final String userId = userResolver.resolveUserId(username);
+        if (!sharingService.hasAccess(id, userId, username)) {
             return new PageResponse<>(List.of(), 0, size, 0);
         }
         final ConversationQueryService.Page<ConversationQueryService.MessageRow> result =
@@ -112,8 +117,12 @@ public class ConversationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable final String id, final Principal principal) {
-        final String userId = userResolver.resolveUserId(principal.getName());
-        if (!conversationRepository.existsByIdAndUserId(id, userId)) {
+        final String username = principal.getName();
+        final String userId = userResolver.resolveUserId(username);
+        // Admin with CONVERSATION_ACCESS_ALL can delete any conversation
+        final boolean canDelete =
+                sharingService.isAdmin(username) || conversationRepository.existsByIdAndUserId(id, userId);
+        if (!canDelete) {
             return ResponseEntity.notFound().build();
         }
         chatMemoryRepository.deleteByConversationId(id);
@@ -135,16 +144,18 @@ public class ConversationController {
     @DeleteMapping("/{id}/share/{username}")
     public ResponseEntity<Void> unshare(
             @PathVariable final String id, @PathVariable final String username, final Principal principal) {
-        final String ownerId = userResolver.resolveUserId(principal.getName());
+        final String callerUsername = principal.getName();
+        final String ownerId = userResolver.resolveUserId(callerUsername);
         final String targetUserId = userResolver.resolveUserId(username);
-        sharingService.unshare(id, ownerId, targetUserId);
+        sharingService.unshare(id, ownerId, targetUserId, callerUsername);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/shares")
     public List<ShareResponse> listShares(@PathVariable final String id, final Principal principal) {
-        final String ownerId = userResolver.resolveUserId(principal.getName());
-        return sharingService.listShares(id, ownerId).stream()
+        final String callerUsername = principal.getName();
+        final String ownerId = userResolver.resolveUserId(callerUsername);
+        return sharingService.listShares(id, ownerId, callerUsername).stream()
                 .map(s -> new ShareResponse(s.conversationId(), s.sharedWith(), s.permission()))
                 .toList();
     }
@@ -152,9 +163,10 @@ public class ConversationController {
     @PutMapping("/{id}/share")
     public ResponseEntity<?> updateSharePermission(
             @PathVariable final String id, @RequestBody final ShareRequest request, final Principal principal) {
-        final String ownerId = userResolver.resolveUserId(principal.getName());
+        final String callerUsername = principal.getName();
+        final String ownerId = userResolver.resolveUserId(callerUsername);
         final String targetUserId = userResolver.resolveUserId(request.username());
-        sharingService.unshare(id, ownerId, targetUserId);
+        sharingService.unshare(id, ownerId, targetUserId, callerUsername);
         final String permission =
                 request.permission() != null ? request.permission() : ConversationShare.PERMISSION_READ;
         ConversationShare share = sharingService.share(id, ownerId, targetUserId, permission);

@@ -3,9 +3,12 @@ package ai.javaclaw.conversations;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ai.javaclaw.users.Permission;
+import ai.javaclaw.users.PermissionService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -25,11 +28,14 @@ class ConversationSharingServiceTest {
     @Mock
     private ConversationRepository conversationRepository;
 
+    @Mock
+    private PermissionService permissionService;
+
     private ConversationSharingService service;
 
     @BeforeEach
     void setUp() {
-        service = new ConversationSharingService(shareRepository, conversationRepository);
+        service = new ConversationSharingService(shareRepository, conversationRepository, permissionService);
     }
 
     @Nested
@@ -263,6 +269,104 @@ class ConversationSharingServiceTest {
             when(shareRepository.findBySharedWith("user-2")).thenReturn(List.of());
 
             assertThat(service.getSharedConversationIds("user-2")).isEmpty();
+        }
+    }
+
+    @Nested
+    class AdminConversationAccess {
+
+        @Test
+        void adminHasAccessToAnyConversation() {
+            when(permissionService.userHasPermission("admin", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(true);
+
+            assertThat(service.hasAccess("conv-1", "admin-id", "admin")).isTrue();
+            // Should not even check ownership or shares
+            verify(conversationRepository, never()).existsByIdAndUserId(any(), any());
+            verify(shareRepository, never()).existsByConversationIdAndSharedWith(any(), any());
+        }
+
+        @Test
+        void nonAdminFallsBackToNormalAccessCheck() {
+            when(permissionService.userHasPermission("user", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(false);
+            when(conversationRepository.existsByIdAndUserId("conv-1", "user-id"))
+                    .thenReturn(false);
+            when(shareRepository.existsByConversationIdAndSharedWith("conv-1", "user-id"))
+                    .thenReturn(false);
+
+            assertThat(service.hasAccess("conv-1", "user-id", "user")).isFalse();
+        }
+
+        @Test
+        void adminHasWriteAccessToAnyConversation() {
+            when(permissionService.userHasPermission("admin", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(true);
+
+            assertThat(service.hasWriteAccess("conv-1", "admin-id", "admin")).isTrue();
+        }
+
+        @Test
+        void nonAdminWriteAccessChecksNormally() {
+            when(permissionService.userHasPermission("user", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(false);
+            when(conversationRepository.existsByIdAndUserId("conv-1", "user-id"))
+                    .thenReturn(false);
+            when(shareRepository.findByConversationIdAndSharedWith("conv-1", "user-id"))
+                    .thenReturn(Optional.empty());
+
+            assertThat(service.hasWriteAccess("conv-1", "user-id", "user")).isFalse();
+        }
+
+        @Test
+        void adminCanListSharesOfAnyConversation() {
+            when(permissionService.userHasPermission("admin", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(true);
+            var share = new ConversationShare(1L, "conv-1", "user-2", "READ", "owner-1", Instant.now());
+            when(shareRepository.findByConversationId("conv-1")).thenReturn(List.of(share));
+
+            List<ConversationShare> result = service.listShares("conv-1", "admin-id", "admin");
+
+            assertThat(result).hasSize(1);
+            // Should NOT check ownership
+            verify(conversationRepository, never()).existsByIdAndUserId(any(), any());
+        }
+
+        @Test
+        void adminCanUnshareFromAnyConversation() {
+            when(permissionService.userHasPermission("admin", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(true);
+
+            service.unshare("conv-1", "admin-id", "user-2", "admin");
+
+            verify(shareRepository).deleteByConversationIdAndSharedWith("conv-1", "user-2");
+            // Should NOT check ownership
+            verify(conversationRepository, never()).existsByIdAndUserId(any(), any());
+        }
+
+        @Test
+        void isAdminReturnsTrueForAdminUser() {
+            when(permissionService.userHasPermission("admin", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(true);
+
+            assertThat(service.isAdmin("admin")).isTrue();
+        }
+
+        @Test
+        void isAdminReturnsFalseForRegularUser() {
+            when(permissionService.userHasPermission("user", Permission.CONVERSATION_ACCESS_ALL))
+                    .thenReturn(false);
+
+            assertThat(service.isAdmin("user")).isFalse();
+        }
+
+        @Test
+        void hasAccessWithNullUsernameFallsBackToNormalCheck() {
+            when(conversationRepository.existsByIdAndUserId("conv-1", "user-id"))
+                    .thenReturn(true);
+
+            assertThat(service.hasAccess("conv-1", "user-id", null)).isTrue();
+            verify(permissionService, never()).userHasPermission(any(), any());
         }
     }
 }
