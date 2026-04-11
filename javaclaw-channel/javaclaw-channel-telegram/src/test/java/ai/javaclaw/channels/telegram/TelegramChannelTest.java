@@ -101,7 +101,7 @@ class TelegramChannelTest {
     // -----------------------------------------------------------------------
 
     @Test
-    void usernameMatchingIsCaseInsensitive() throws TelegramApiException {
+    void usernameMatchingIsCaseInsensitive() {
         TelegramChannel channel = channel("Allowed_User");
         when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
 
@@ -111,7 +111,7 @@ class TelegramChannelTest {
     }
 
     @Test
-    void stripsLeadingAtFromConfiguredUsername() throws TelegramApiException {
+    void stripsLeadingAtFromConfiguredUsername() {
         TelegramChannel channel = channel("@Allowed_User");
         when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
 
@@ -121,7 +121,7 @@ class TelegramChannelTest {
     }
 
     @Test
-    void stripsLeadingAtFromIncomingUsername() throws TelegramApiException {
+    void stripsLeadingAtFromIncomingUsername() {
         TelegramChannel channel = channel("allowed_user");
         when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
 
@@ -135,7 +135,7 @@ class TelegramChannelTest {
     // -----------------------------------------------------------------------
 
     @Test
-    void usesChannelChatIdAsConversationId() throws TelegramApiException {
+    void usesChannelChatIdAsConversationId() {
         TelegramChannel channel = channel("allowed_user");
         when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
 
@@ -145,7 +145,7 @@ class TelegramChannelTest {
     }
 
     @Test
-    void includesMessageThreadIdInConversationId() throws TelegramApiException {
+    void includesMessageThreadIdInConversationId() {
         TelegramChannel channel = channel("allowed_user");
         when(agent.respondTo(anyString(), anyString())).thenReturn("hi");
 
