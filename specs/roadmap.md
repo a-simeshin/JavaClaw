@@ -687,11 +687,14 @@
 
 ## PHASE 10: P1 — Memory и Tools
 
-### 10.1 Dreamin — long-term memory (6.7)
+### 10.1 Dreamin — long-term memory (6.7) ✅
 
-- Memory tools: store/recall/forget/list (4.11)
-- Автоматическое извлечение фактов
-- UI для просмотра/редактирования памяти
+- [x] V27 миграция: memories таблица (id, owner_id, key, content, category, created_at, updated_at) с unique index по owner+key
+- [x] Memory entity record + MemoryRepository (CRUD + ILIKE search по key/content)
+- [x] MemoryService: store (upsert), recall (user→global fallback), forget, list, search
+- [x] MemoryTool (5 @Tool методов: store/recall/forget/list/search) зарегистрирован как AutoDiscoveredTool
+- [x] 13 новых тестов (MemoryToolTest), все 882 теста зелёные
+- UI для просмотра/редактирования — отложено до Phase 11
 
 ### 10.2 Auto-summarization (6.6)
 

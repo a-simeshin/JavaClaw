@@ -1,6 +1,7 @@
 package ai.javaclaw.api.admin.tools;
 
 import ai.javaclaw.api.admin.files.VirtualFileService;
+import ai.javaclaw.memory.MemoryService;
 import ai.javaclaw.skills.SkillRepository;
 import ai.javaclaw.tools.AutoDiscoveredTool;
 import org.springframework.context.annotation.Bean;
@@ -29,5 +30,11 @@ public class AgentToolsConfiguration {
     @Bean
     public AutoDiscoveredTool<WebFetchTool> webFetchTool() {
         return new AutoDiscoveredTool<>(WebFetchTool.builder().build());
+    }
+
+    @Bean
+    public AutoDiscoveredTool<MemoryTool> memoryTool(final MemoryService memoryService) {
+        return new AutoDiscoveredTool<>(
+                MemoryTool.builder().memoryService(memoryService).build());
     }
 }
