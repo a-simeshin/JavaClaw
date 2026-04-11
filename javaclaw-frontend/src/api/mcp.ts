@@ -14,8 +14,15 @@ export interface McpServerDto {
 }
 
 export interface McpStatusDto {
-  connected: boolean
-  lastError?: string
+  id: string
+  status: string
+  detail?: string
+  checkedAt?: string
+}
+
+export interface ToolCacheInfoDto {
+  toolNames: string[]
+  count: number
 }
 
 const KEY = ["mcp-servers"] as const
@@ -33,6 +40,14 @@ export function useMcpStatus(id: string | undefined) {
     queryFn: () => apiJson<McpStatusDto>(`/api/mcp-servers/${id}/status`),
     enabled: Boolean(id),
     refetchInterval: 10_000,
+  })
+}
+
+export function useMcpTools() {
+  return useQuery({
+    queryKey: ["mcp-servers", "tools"],
+    queryFn: () => apiJson<ToolCacheInfoDto>("/api/mcp-servers/tools"),
+    refetchInterval: 30_000,
   })
 }
 

@@ -676,9 +676,12 @@
 - [x] Status mapping: Task.Status → A2A TaskState (todo→submitted, in_progress→working, etc.)
 - [x] 11 unit tests (A2aServiceTest) + 8 integration tests (A2aIntegrationTest), все зелёные
 
-### 9.5 MCP admin management UI (15.4.4)
+### 9.5 MCP admin management UI (15.4.4) ✅
 
 - Расширение Admin UI: полное управление MCP-серверами
+- Health details: статус, detail, lastCheckedAt per server (expandable row)
+- Tool cache info: badge с количеством tools + список имён из GET /api/mcp-servers/tools
+- Обновлены api/mcp.ts DTOs: McpStatusDto (id/status/detail/checkedAt), ToolCacheInfoDto, useMcpTools() hook
 
 ---
 

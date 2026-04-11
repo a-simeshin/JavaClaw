@@ -1,14 +1,23 @@
-import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react"
+import {
+  IconPencil,
+  IconPlus,
+  IconRefresh,
+  IconTool,
+  IconTrash,
+} from "@tabler/icons-react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import {
   type McpServerDto,
+  type McpStatusDto,
   type McpType,
   useCreateMcpServer,
   useDeleteMcpServer,
   useMcpServers,
+  useMcpStatus,
+  useMcpTools,
   useUpdateMcpServer,
 } from "@/api/mcp"
 import { ConfirmDialog } from "@/components/admin/confirm-dialog"
@@ -39,11 +48,54 @@ export const Route = createFileRoute("/admin/mcp")({
   component: McpPage,
 })
 
+function statusTone(status?: string): "ok" | "error" | "muted" {
+  if (status === "connected") return "ok"
+  if (status === "error") return "error"
+  return "muted"
+}
+
+function statusLabel(status?: string): string {
+  if (status === "connected") return "Connected"
+  if (status === "error") return "Error"
+  if (status === "disabled") return "Disabled"
+  return "Unknown"
+}
+
+function formatCheckedAt(iso?: string): string {
+  if (!iso) return ""
+  try {
+    return new Date(iso).toLocaleString()
+  } catch {
+    return iso
+  }
+}
+
+function ServerHealthDetail({ id }: { id: string }) {
+  const { data } = useMcpStatus(id)
+  if (!data) return null
+  return (
+    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <StatusDot tone={statusTone(data.status)} />
+      <span>{statusLabel(data.status)}</span>
+      {data.detail && (
+        <span className="font-mono text-[10px]">{data.detail}</span>
+      )}
+      {data.checkedAt && (
+        <span className="ml-auto text-[10px]">
+          {formatCheckedAt(data.checkedAt)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function McpPage() {
   const { data, isLoading } = useMcpServers()
+  const { data: toolsData, refetch: refetchTools } = useMcpTools()
   const [editing, setEditing] = useState<McpServerDto | null>(null)
   const [creating, setCreating] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const createMut = useCreateMcpServer()
   const updateMut = useUpdateMcpServer()
@@ -65,21 +117,23 @@ function McpPage() {
       header: "",
       width: "24px",
       cell: (r) => (
-        <StatusDot
-          tone={
-            r.status === "connected"
-              ? "ok"
-              : r.status === "error"
-                ? "error"
-                : "muted"
-          }
-        />
+        <StatusDot tone={statusTone(r.status)} />
       ),
     },
     {
       key: "name",
       header: "Name",
-      cell: (r) => <span className="font-medium">{r.name}</span>,
+      cell: (r) => (
+        <button
+          type="button"
+          className="font-medium hover:underline"
+          onClick={() =>
+            setExpandedId(expandedId === r.id ? null : (r.id ?? null))
+          }
+        >
+          {r.name}
+        </button>
+      ),
       width: "25%",
     },
     {
@@ -143,12 +197,41 @@ function McpPage() {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <IconTool size={16} className="text-muted-foreground" strokeWidth={1.5} />
+          <span className="text-[13px] text-muted-foreground">
+            {toolsData ? `${toolsData.count} tools cached` : "Loading tools\u2026"}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => refetchTools()}
+            aria-label="Refresh tools"
+          >
+            <IconRefresh size={14} strokeWidth={1.5} />
+          </Button>
+        </div>
         <Button onClick={() => setCreating(true)} size="sm">
           <IconPlus strokeWidth={1.5} />
           Add server
         </Button>
       </div>
+
+      {toolsData && toolsData.count > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {toolsData.toolNames.map((name) => (
+            <Badge
+              key={name}
+              variant="secondary"
+              className="font-mono text-[10px]"
+            >
+              {name}
+            </Badge>
+          ))}
+        </div>
+      )}
+
       <DataTable
         columns={columns}
         rows={data ?? []}
@@ -156,6 +239,12 @@ function McpPage() {
         loading={isLoading}
         empty="No MCP servers configured"
       />
+
+      {expandedId && (
+        <div className="rounded-md border border-border bg-muted/30 px-4 py-3">
+          <ServerHealthDetail id={expandedId} />
+        </div>
+      )}
 
       <McpDialog
         open={creating}
