@@ -1,6 +1,7 @@
 package ai.javaclaw.api.chat.controller;
 
 import ai.javaclaw.agent.config.RoleAgentConfigService;
+import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.controller.dto.ChatSendRequest;
 import ai.javaclaw.api.chat.service.SseStreamingService;
@@ -42,6 +43,7 @@ public class ChatRestController {
     private final UserResolver userResolver;
     private final AgentQuotaService agentQuotaService;
     private final RoleAgentConfigService roleAgentConfigService;
+    private final RoleModelAllowlistService roleModelAllowlistService;
 
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<ResponseBodyEmitter> send(
@@ -59,6 +61,9 @@ public class ChatRestController {
         }
         final String userRole = userResolver.resolveUserRole(principal.getName());
         final String modelOverride = roleAgentConfigService.resolveModelForRole(userRole);
+        if (!roleModelAllowlistService.isModelAllowed(userRole, modelOverride)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         conversationEnsurer.ensureExistsForUser(conversationId, userId);
         conversationEnsurer.touch(conversationId, request.content());
         streamingService.stream(emitter, conversationId, userId, request.content(), modelOverride);

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import ai.javaclaw.agent.config.RoleAgentConfigService;
+import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.error.SseExceptionHandler;
 import ai.javaclaw.api.chat.service.SseStreamingService;
@@ -32,6 +33,7 @@ class ChatRestControllerTest {
     private UserResolver userResolver;
     private AgentQuotaService agentQuotaService;
     private RoleAgentConfigService roleAgentConfigService;
+    private RoleModelAllowlistService roleModelAllowlistService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -41,10 +43,17 @@ class ChatRestControllerTest {
         userResolver = mock(UserResolver.class);
         agentQuotaService = mock(AgentQuotaService.class);
         roleAgentConfigService = mock(RoleAgentConfigService.class);
+        roleModelAllowlistService = mock(RoleModelAllowlistService.class);
         when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
         when(userResolver.resolveUserRole("admin")).thenReturn("ADMIN");
+        when(roleModelAllowlistService.isModelAllowed(anyString(), any())).thenReturn(true);
         mockMvc = standaloneSetup(new ChatRestController(
-                        streamingService, conversationEnsurer, userResolver, agentQuotaService, roleAgentConfigService))
+                        streamingService,
+                        conversationEnsurer,
+                        userResolver,
+                        agentQuotaService,
+                        roleAgentConfigService,
+                        roleModelAllowlistService))
                 .defaultRequest(post("/").principal(adminPrincipal()))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
@@ -114,6 +123,18 @@ class ChatRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
                 .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    void postSendReturnsForbiddenWhenModelNotAllowed() throws Exception {
+        when(streamingService.createEmitter()).thenReturn(new ResponseBodyEmitter(5000L));
+        when(roleAgentConfigService.resolveModelForRole("ADMIN")).thenReturn("gpt-4o");
+        when(roleModelAllowlistService.isModelAllowed("ADMIN", "gpt-4o")).thenReturn(false);
+
+        mockMvc.perform(post("/api/chat/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

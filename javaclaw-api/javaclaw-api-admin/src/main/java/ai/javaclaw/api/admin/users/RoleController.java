@@ -2,6 +2,7 @@ package ai.javaclaw.api.admin.users;
 
 import ai.javaclaw.agent.config.RoleAgentConfig;
 import ai.javaclaw.agent.config.RoleAgentConfigService;
+import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.users.CustomRole;
 import ai.javaclaw.users.CustomRoleService;
 import ai.javaclaw.users.Permission;
@@ -25,10 +26,15 @@ public class RoleController {
 
     private final CustomRoleService roleService;
     private final RoleAgentConfigService agentConfigService;
+    private final RoleModelAllowlistService modelAllowlistService;
 
-    public RoleController(CustomRoleService roleService, RoleAgentConfigService agentConfigService) {
+    public RoleController(
+            CustomRoleService roleService,
+            RoleAgentConfigService agentConfigService,
+            RoleModelAllowlistService modelAllowlistService) {
         this.roleService = roleService;
         this.agentConfigService = agentConfigService;
+        this.modelAllowlistService = modelAllowlistService;
     }
 
     @GetMapping
@@ -155,6 +161,36 @@ public class RoleController {
             Integer thinkingBudget,
             String fallbackModels,
             Integer maxContextTokens) {}
+
+    // --- Model allowlist endpoints (15.6.4) ---
+
+    @GetMapping("/{name}/allowed-models")
+    public List<String> getAllowedModels(@PathVariable String name) {
+        return modelAllowlistService.getAllowedModels(name);
+    }
+
+    @PutMapping("/{name}/allowed-models")
+    public ResponseEntity<Void> setAllowedModels(
+            @PathVariable String name, @RequestBody SetAllowedModelsRequest request) {
+        modelAllowlistService.setAllowedModels(name, request.modelIds());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{name}/allowed-models")
+    public ResponseEntity<Void> addAllowedModel(@PathVariable String name, @RequestBody AddModelRequest request) {
+        modelAllowlistService.addAllowedModel(name, request.modelId());
+        return ResponseEntity.status(201).build();
+    }
+
+    @DeleteMapping("/{name}/allowed-models/{modelId}")
+    public ResponseEntity<Void> removeAllowedModel(@PathVariable String name, @PathVariable String modelId) {
+        modelAllowlistService.removeAllowedModel(name, modelId);
+        return ResponseEntity.noContent().build();
+    }
+
+    public record SetAllowedModelsRequest(List<String> modelIds) {}
+
+    public record AddModelRequest(String modelId) {}
 
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<java.util.Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
