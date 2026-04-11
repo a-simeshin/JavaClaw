@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * Service for recording and querying authentication/authorization audit events.
  * All write operations are async to avoid blocking the auth flow.
  */
-@Service
+@Service("legacyAuthAuditService")
 public class AuthAuditService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthAuditService.class);

@@ -16,15 +16,6 @@ vi.mock("sonner", () => ({
 }))
 import { toast } from "sonner"
 
-/* ---------- mock buildAuthHeaders ---------- */
-vi.mock("@/api/http", () => ({
-  buildAuthHeaders: () => {
-    const h = new Headers()
-    h.set("Authorization", "Basic dGVzdDp0ZXN0")
-    return h
-  },
-}))
-
 /* ---------- EventSource stub ---------- */
 type ESListener = ((e: MessageEvent) => void) | null
 
@@ -87,11 +78,11 @@ describe("useTaskNotifications", () => {
     expect(FakeEventSource.instances).toHaveLength(0)
   })
 
-  it("creates EventSource with correct URL and auth param", () => {
+  it("creates EventSource with correct URL (no auth param)", () => {
     renderHook(() => useTaskNotifications("conv-1"), { wrapper: createWrapper() })
     expect(FakeEventSource.instances).toHaveLength(1)
     expect(FakeEventSource.instances[0].url).toBe(
-      "/api/chat/notifications/conv-1?auth=Basic%20dGVzdDp0ZXN0",
+      "/api/chat/notifications/conv-1",
     )
   })
 

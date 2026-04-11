@@ -490,11 +490,11 @@ class OpenApiContractComplianceTest {
     @Test
     @Order(50)
     void getMe_withAuthenticatedUser_returnsAdminInfo() throws Exception {
-        mockMvc.perform(get("/api/me").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/auth/me").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.role").value("ADMIN"));
+                .andExpect(jsonPath("$.roles[0]").value("ADMIN"));
     }
 
     @Test

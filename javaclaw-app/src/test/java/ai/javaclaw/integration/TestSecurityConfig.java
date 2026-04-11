@@ -1,5 +1,6 @@
 package ai.javaclaw.integration;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -26,6 +27,7 @@ public class TestSecurityConfig {
         for (Permission p : Permission.values()) {
             authorities.add(new SimpleGrantedAuthority(p.authority()));
         }
-        return builder -> builder.defaultRequest(get("/").with(user("admin").authorities(authorities)));
+        return builder -> builder.defaultRequest(
+                get("/").with(user("admin").authorities(authorities)).with(csrf().asHeader()));
     }
 }

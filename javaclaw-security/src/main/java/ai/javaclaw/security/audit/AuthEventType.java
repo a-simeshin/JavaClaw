@@ -1,0 +1,14 @@
+package ai.javaclaw.security.audit;
+
+public enum AuthEventType {
+    LOGIN_SUCCESS,
+    LOGIN_FAILURE,
+    LOGOUT,
+    LOGOUT_ALL,
+    SESSION_CREATED,
+    SESSION_REVOKED,
+    SECOND_FACTOR_CHALLENGE,
+    SECOND_FACTOR_SUCCESS,
+    SECOND_FACTOR_FAILURE,
+    ACCESS_DENIED
+}

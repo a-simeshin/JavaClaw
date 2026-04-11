@@ -22,6 +22,11 @@
         </dependency>
         <dependency>
             <groupId>ai.javaclaw</groupId>
+            <artifactId>javaclaw-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ai.javaclaw</groupId>
             <artifactId>javaclaw-provider-anthropic</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -96,10 +101,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <!-- Runtime -->
         <dependency>

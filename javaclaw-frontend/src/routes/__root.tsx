@@ -6,13 +6,15 @@ import {
 } from "@tanstack/react-router"
 
 import { AppLayout } from "@/components/app-layout"
-import { getStoredCredentials } from "@/store/auth"
+import { getMe } from "@/api/auth"
 
 export const Route = createRootRoute({
-  beforeLoad: ({ location }) => {
+  beforeLoad: async ({ location }) => {
     const isLogin = location.pathname === "/login"
-    const hasCredentials = getStoredCredentials() !== null
-    if (!hasCredentials && !isLogin) {
+    if (isLogin) return
+    try {
+      await getMe()
+    } catch {
       throw redirect({ to: "/login" })
     }
   },

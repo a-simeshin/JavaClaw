@@ -226,7 +226,7 @@ class ChatScenarioE2ETest extends PlaywrightE2ETestBase {
     @Test
     @DisplayName("06. Copy button visible on hover, clipboard integration")
     void copyButtonWritesToClipboard() {
-        loginViaStorage("e2e-user", "e2e-password");
+        loginViaApi("e2e-user", "e2e-password");
         // Inject a fake assistant message via the React DOM by navigating with mock data is
         // not feasible without backend; instead stub via DOM (smoke only).
         navigateTo("/chat");
@@ -351,7 +351,7 @@ class ChatScenarioE2ETest extends PlaywrightE2ETestBase {
     void stopButtonReplacesSendDuringStreaming() {
         // Without a live LLM this is hard to trigger deterministically; verify the CSS
         // layout of both buttons renders with correct aria-labels when simulated.
-        loginViaStorage("e2e-user", "e2e-password");
+        loginViaApi("e2e-user", "e2e-password");
         navigateTo("/chat");
         // Smoke: verify composer has a submit button (Send / Отправить)
         Locator send = page.locator("button[type=submit]").first();

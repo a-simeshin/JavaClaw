@@ -1,0 +1,11 @@
+javaclaw:
+  security:
+    cookie:
+      name: JCLAW_SESSION
+      path: /
+      secure: true
+      same-site: Lax
+      max-age-seconds: 86400
+    session:
+      ttl: PT24H
+      cleanup-interval: PT1H

@@ -9,8 +9,8 @@ import {
 const fetchMock = vi.fn()
 globalThis.fetch = fetchMock
 
-vi.mock("@/store/auth", () => ({
-  getStoredCredentials: () => "dXNlcjpwYXNz",
+vi.mock("@/lib/csrf", () => ({
+  getCsrfToken: () => null,
 }))
 
 function jsonResponse(data: unknown, status = 200) {

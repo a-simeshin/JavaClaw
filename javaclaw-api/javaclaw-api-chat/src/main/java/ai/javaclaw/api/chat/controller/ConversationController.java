@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -73,16 +74,13 @@ public class ConversationController {
     }
 
     @GetMapping("/{id}/messages")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'read')")
     public PageResponse<MessageDto> messages(
             @PathVariable final String id,
             @RequestParam(defaultValue = "0") final int page,
             @RequestParam(defaultValue = "50") final int size,
             final Principal principal) {
-        final String username = principal.getName();
-        final String userId = userResolver.resolveUserId(username);
-        if (!sharingService.hasAccess(id, userId, username)) {
-            return new PageResponse<>(List.of(), 0, size, 0);
-        }
+        // Access check is performed by @PreAuthorize via PermissionResolvers (conversation/read).
         final ConversationQueryService.Page<ConversationQueryService.MessageRow> result =
                 queryService.listMessages(id, page, size);
         final List<MessageDto> dtos = new ArrayList<>(result.content().size());
@@ -96,6 +94,7 @@ public class ConversationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('PERM_CONVERSATION_CREATE')")
     public ConversationDto create(
             @Valid @RequestBody(required = false) final CreateConversationRequest request, final Principal principal) {
         final String id =
@@ -116,21 +115,16 @@ public class ConversationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'delete')")
     public ResponseEntity<Void> delete(@PathVariable final String id, final Principal principal) {
-        final String username = principal.getName();
-        final String userId = userResolver.resolveUserId(username);
-        // Admin with CONVERSATION_ACCESS_ALL can delete any conversation
-        final boolean canDelete =
-                sharingService.isAdmin(username) || conversationRepository.existsByIdAndUserId(id, userId);
-        if (!canDelete) {
-            return ResponseEntity.notFound().build();
-        }
+        // Access check is performed by @PreAuthorize via PermissionResolvers (conversation/delete).
         chatMemoryRepository.deleteByConversationId(id);
         conversationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/share")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'share')")
     public ResponseEntity<?> share(
             @PathVariable final String id, @RequestBody final ShareRequest request, final Principal principal) {
         final String ownerId = userResolver.resolveUserId(principal.getName());
@@ -142,6 +136,7 @@ public class ConversationController {
     }
 
     @DeleteMapping("/{id}/share/{username}")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'share')")
     public ResponseEntity<Void> unshare(
             @PathVariable final String id, @PathVariable final String username, final Principal principal) {
         final String callerUsername = principal.getName();
@@ -152,6 +147,7 @@ public class ConversationController {
     }
 
     @GetMapping("/{id}/shares")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'share')")
     public List<ShareResponse> listShares(@PathVariable final String id, final Principal principal) {
         final String callerUsername = principal.getName();
         final String ownerId = userResolver.resolveUserId(callerUsername);
@@ -161,6 +157,7 @@ public class ConversationController {
     }
 
     @PutMapping("/{id}/share")
+    @PreAuthorize("hasPermission(#id, 'conversation', 'share')")
     public ResponseEntity<?> updateSharePermission(
             @PathVariable final String id, @RequestBody final ShareRequest request, final Principal principal) {
         final String callerUsername = principal.getName();

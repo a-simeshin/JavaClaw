@@ -1,41 +1,45 @@
 import { useAtom, useAtomValue } from "jotai"
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 
-import { getMe } from "@/api/system"
-import {
-  authAtom,
-  authUserAtom,
-  encodeBasicCredentials,
-  isAuthenticatedAtom,
-  persistAuth,
-} from "@/store/auth"
+import { authAtom, authUserAtom, isAuthenticatedAtom } from "@/store/auth"
+import * as authApi from "@/api/auth"
+import { ensureCsrfCookie } from "@/lib/csrf"
 
 export function useAuth() {
   const [auth, setAuth] = useAtom(authAtom)
   const isAuthenticated = useAtomValue(isAuthenticatedAtom)
   const user = useAtomValue(authUserAtom)
 
+  // On mount: restore session from cookie via /api/auth/me
+  useEffect(() => {
+    ensureCsrfCookie()
+    authApi
+      .getMe()
+      .then((u) =>
+        setAuth({ user: u, sessionExpiresAt: null, isLoading: false }),
+      )
+      .catch(() =>
+        setAuth({ user: null, sessionExpiresAt: null, isLoading: false }),
+      )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const login = useCallback(
     async (username: string, password: string) => {
-      const credentials = encodeBasicCredentials(username, password)
-      // Verify credentials against /api/me before persisting.
-      const me = await getMe(`Basic ${credentials}`)
-      const next = {
-        credentials,
-        username: me.username,
-        role: me.role,
-      }
-      persistAuth(next)
-      setAuth(next)
-      return me
+      const response = await authApi.login(username, password)
+      setAuth({
+        user: response.user,
+        sessionExpiresAt: response.sessionExpiresAt,
+        isLoading: false,
+      })
+      return response
     },
     [setAuth],
   )
 
-  const logout = useCallback(() => {
-    const next = { credentials: null, username: null, role: null }
-    persistAuth(next)
-    setAuth(next)
+  const logout = useCallback(async () => {
+    await authApi.logout()
+    setAuth({ user: null, sessionExpiresAt: null, isLoading: false })
   }, [setAuth])
 
   return {

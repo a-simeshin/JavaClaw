@@ -1,4 +1,4 @@
-import { getStoredCredentials } from "@/store/auth"
+import { getCsrfToken } from "@/lib/csrf"
 
 export class HttpError extends Error {
   status: number
@@ -24,13 +24,10 @@ export function setOnUnauthorized(handler: OnUnauthorized) {
   onUnauthorized = handler
 }
 
+// REMOVED: buildAuthHeaders — no longer needed, credentials sent via cookie.
+// Kept as no-op for any external callers during transition.
 export function buildAuthHeaders(extra?: HeadersInit): Headers {
-  const headers = new Headers(extra)
-  const credentials = getStoredCredentials()
-  if (credentials && !headers.has("Authorization")) {
-    headers.set("Authorization", `Basic ${credentials}`)
-  }
-  return headers
+  return new Headers(extra)
 }
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
@@ -38,14 +35,24 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   skipAuthRedirect?: boolean
 }
 
+const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
+
 export async function apiFetch(
   path: string,
   options: RequestOptions = {},
 ): Promise<Response> {
-  const { body, headers, skipAuthRedirect, ...rest } = options
-  const finalHeaders = buildAuthHeaders(headers)
-  let finalBody: BodyInit | undefined
+  const { body, headers: extraHeaders, skipAuthRedirect, method = "GET", ...rest } = options
+  const headers = new Headers(extraHeaders)
 
+  // Add CSRF token for mutating methods
+  if (CSRF_METHODS.has(method.toUpperCase())) {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers.set("X-XSRF-TOKEN", csrfToken)
+    }
+  }
+
+  let finalBody: BodyInit | undefined
   if (body !== undefined && body !== null) {
     if (
       body instanceof FormData ||
@@ -55,8 +62,8 @@ export async function apiFetch(
     ) {
       finalBody = body as BodyInit
     } else {
-      if (!finalHeaders.has("Content-Type")) {
-        finalHeaders.set("Content-Type", "application/json")
+      if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json")
       }
       finalBody = JSON.stringify(body)
     }
@@ -64,8 +71,10 @@ export async function apiFetch(
 
   const response = await fetch(path, {
     ...rest,
-    headers: finalHeaders,
+    method,
+    headers,
     body: finalBody,
+    credentials: "include", // Always include cookies
   })
 
   if (response.status === 401 && !skipAuthRedirect) {

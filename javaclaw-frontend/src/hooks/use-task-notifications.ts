@@ -3,12 +3,13 @@ import { useSetAtom } from "jotai"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
-import { buildAuthHeaders } from "@/api/http"
 import { unreadNotificationsAtom } from "@/store/tasks"
 
 /**
  * Subscribes to SSE task notifications for a given conversation.
- * Automatically reconnects on disconnect (EventSource built-in behavior).
+ * Cookies are included automatically (withCredentials is not supported on
+ * EventSource, but the session cookie is sent by default for same-origin
+ * requests).  No ?auth= parameter needed.
  * On notification: increments unread count, shows toast, invalidates queries.
  */
 export function useTaskNotifications(conversationId: string | null) {
@@ -19,9 +20,7 @@ export function useTaskNotifications(conversationId: string | null) {
   useEffect(() => {
     if (!conversationId) return
 
-    const headers = buildAuthHeaders()
-    const authParam = headers.get("Authorization")
-    const url = `/api/chat/notifications/${encodeURIComponent(conversationId)}${authParam ? `?auth=${encodeURIComponent(authParam)}` : ""}`
+    const url = `/api/chat/notifications/${encodeURIComponent(conversationId)}`
 
     const es = new EventSource(url)
     eventSourceRef.current = es
@@ -55,7 +54,11 @@ export function useTaskNotifications(conversationId: string | null) {
     }
 
     es.onerror = () => {
-      // EventSource auto-reconnects; nothing to do here
+      if (es.readyState === EventSource.CLOSED) {
+        // EventSource closed permanently (not a temporary error) — don't reconnect
+        es.close()
+        eventSourceRef.current = null
+      }
     }
 
     return () => {

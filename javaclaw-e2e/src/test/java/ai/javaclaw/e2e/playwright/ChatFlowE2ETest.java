@@ -33,7 +33,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  *   <li>Chat flow: POST /api/chat/send is wired; LLM reply verified when
  *       {@code OPENROUTER_API_KEY} is present, connectivity asserted otherwise</li>
  *   <li>GET /api/health returns 200 + status=UP</li>
- *   <li>GET /api/me returns 200 + username + role fields</li>
+ *   <li>GET /api/auth/me returns user info for authenticated caller</li>
  * </ul>
  *
  * <p>Screenshots on failure are saved to {@code target/playwright-artifacts/}.
@@ -103,7 +103,7 @@ class ChatFlowE2ETest extends PlaywrightE2ETestBase {
     @Test
     @DisplayName("02. navigation_criticalRoutesLoad — /chat /conversations /overview /login without errors")
     void navigation_criticalRoutesLoad() {
-        loginViaStorage("e2e-user", "e2e-password");
+        loginViaApi("e2e-user", "e2e-password");
 
         String[] routes = {"/chat", "/conversations", "/overview", "/login"};
 
@@ -205,7 +205,7 @@ class ChatFlowE2ETest extends PlaywrightE2ETestBase {
             }
         });
 
-        loginViaStorage("e2e-user", "e2e-password");
+        loginViaApi("e2e-user", "e2e-password");
         navigateTo("/chat");
 
         // Find composer
@@ -273,24 +273,28 @@ class ChatFlowE2ETest extends PlaywrightE2ETestBase {
     // ------------------------------------------------------------------ test 5
 
     @Test
-    @DisplayName("05. apiMe_returnsUserInfo — GET /api/me → 200 + username + role fields")
-    void apiMe_returnsUserInfo() {
-        APIResponse response = page.request().get(baseUrl() + "/api/me");
+    @DisplayName("05. apiAuthMe_returnsUserInfo — GET /api/auth/me → 401 unauth, 200 + user info when authenticated")
+    void apiAuthMe_returnsUserInfo() {
+        // Unauthenticated — server-side auth endpoint requires a valid session
+        APIResponse unauth = page.request().get(baseUrl() + "/api/auth/me");
+        assertThat(unauth.status())
+                .as("GET /api/auth/me must return 401 when unauthenticated")
+                .isEqualTo(401);
 
-        assertThat(response.status()).as("GET /api/me must return HTTP 200").isEqualTo(200);
+        // Authenticate via API and retry
+        loginViaApi("e2e-user", "e2e-password");
+        APIResponse response = page.request().get(baseUrl() + "/api/auth/me");
+
+        assertThat(response.status())
+                .as("GET /api/auth/me must return HTTP 200 after login")
+                .isEqualTo(200);
 
         String body = response.text();
-        assertThat(body).as("/api/me body must contain 'username' field").contains("username");
-        assertThat(body).as("/api/me body must contain 'role' field").contains("role");
-
-        // No Spring Security yet — principal is null → fallback to guest/USER
+        assertThat(body).as("/api/auth/me body must contain 'username' field").contains("username");
         assertThat(body)
-                .as("/api/me should return 'guest' username when unauthenticated")
-                .contains("guest");
-        assertThat(body)
-                .as("/api/me should return 'USER' role when unauthenticated")
-                .contains("USER");
+                .as("/api/auth/me body should mention the authenticated user")
+                .contains("e2e-user");
 
-        reportLine("- [smoke] 05 /api/me=200, body=" + body.replace("\n", " "));
+        reportLine("- [smoke] 05 /api/auth/me=200, body=" + body.replace("\n", " "));
     }
 }

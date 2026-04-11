@@ -4,8 +4,9 @@ import { getPendingApprovals, respondToApproval } from "../approvals"
 const fetchMock = vi.fn()
 globalThis.fetch = fetchMock
 
-vi.mock("@/store/auth", () => ({
-  getStoredCredentials: () => "dXNlcjpwYXNz",
+// Cookies are sent automatically via credentials: "include" — no auth mock needed.
+vi.mock("@/lib/csrf", () => ({
+  getCsrfToken: () => null,
 }))
 
 function jsonResponse(data: unknown, status = 200) {
@@ -43,14 +44,13 @@ describe("getPendingApprovals", () => {
     expect(url).toContain("conversationId=conv%2Fspecial%26id")
   })
 
-  it("sends auth header", async () => {
+  it("sends request with credentials: include (cookie-based auth)", async () => {
     fetchMock.mockResolvedValue(jsonResponse([]))
 
     await getPendingApprovals("conv-1")
 
     const [, opts] = fetchMock.mock.calls[0]
-    const headers = opts.headers as Headers
-    expect(headers.get("Authorization")).toBe("Basic dXNlcjpwYXNz")
+    expect(opts.credentials).toBe("include")
   })
 })
 

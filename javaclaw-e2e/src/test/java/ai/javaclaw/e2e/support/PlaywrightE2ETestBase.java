@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import ai.javaclaw.JavaClawApplication;
+import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
@@ -11,6 +12,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.options.RequestOptions;
 import com.microsoft.playwright.options.ViewportSize;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +22,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -137,6 +138,7 @@ public abstract class PlaywrightE2ETestBase {
                 .setPermissions(List.of("clipboard-read", "clipboard-write"))
                 .setLocale("en-US"));
         page = context.newPage();
+        registerNoDialogGuard();
     }
 
     @AfterEach
@@ -163,15 +165,40 @@ public abstract class PlaywrightE2ETestBase {
     // -------------------------------------------------------------------- auth
 
     /**
-     * Injects basic-auth credentials directly into localStorage (as the SPA does
-     * on successful login) so tests can bypass the actual login flow when needed.
+     * Authenticates through the real {@code POST /api/auth/login} endpoint using
+     * Playwright's {@link BrowserContext#request()} API so the server-issued
+     * session cookie is stored automatically in the browser context.
+     *
+     * <p>After a successful login the SPA is navigated to {@code /chat} and the
+     * method waits for network idle so subsequent interactions see a fully
+     * bootstrapped page.
+     *
+     * <p>Use this helper in tests that want to skip the login UI entirely
+     * (e.g. tests focused on chat behaviour, not auth).
      */
-    protected void loginViaStorage(String username, String password) {
-        page.navigate(baseUrl() + "/login");
-        String creds = Base64.getEncoder()
-                .encodeToString((username + ":" + password).getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        String json = "{\"credentials\":\"" + creds + "\",\"username\":\"" + username + "\",\"role\":\"USER\"}";
-        page.evaluate("s => window.localStorage.setItem('javaclaw.auth', s)", json);
+    protected void loginViaApi(String username, String password) {
+        APIResponse response = context.request()
+                .post(
+                        baseUrl() + "/api/auth/login",
+                        RequestOptions.create()
+                                .setHeader("Content-Type", "application/json")
+                                .setData(Map.of("username", username, "password", password)));
+        if (response.status() != 200) {
+            throw new RuntimeException("Login failed: " + response.status() + " " + response.text());
+        }
+        page.navigate(baseUrl() + "/chat");
+        page.waitForLoadState(LoadState.NETWORKIDLE);
+    }
+
+    /**
+     * Registers a dialog handler that fails the current test if a native browser
+     * dialog ({@code alert} / {@code confirm} / {@code prompt}) appears. Used as
+     * a regression guard — the SPA must never rely on native prompts.
+     */
+    protected void registerNoDialogGuard() {
+        page.onDialog(dialog -> {
+            throw new AssertionError("Unexpected native browser dialog: " + dialog.type() + " — " + dialog.message());
+        });
     }
 
     /**
@@ -187,7 +214,7 @@ public abstract class PlaywrightE2ETestBase {
      *   <li>Waits for full network idle so the SPA is ready.</li>
      * </ol>
      *
-     * <p>Use {@link #loginViaStorage} when you want to skip the login UI entirely
+     * <p>Use {@link #loginViaApi} when you want to skip the login UI entirely
      * (e.g. tests focused on chat behaviour, not auth).
      */
     protected void login(String username, String password) {

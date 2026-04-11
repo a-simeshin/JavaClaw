@@ -28,6 +28,8 @@ tags:
     description: MCP server registrations (stdio / http)
   - name: skills
     description: Agent skill definitions
+  - name: auth
+    description: Cookie-session authentication, current user, session management, CSRF
   - name: system
     description: Health check and current-user info
   - name: tasks
@@ -78,8 +80,19 @@ components:
       type: http
       scheme: basic
       description: >
-        HTTP Basic authentication. Currently unenforced (guest fallback active).
-        Will be required starting Phase 4.1 (Spring Security hardening).
+        HTTP Basic authentication. Legacy / contract-test transport.
+        Production flows authenticate via `cookieAuth` (see below).
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JCLAW_SESSION
+      description: >
+        Opaque server-side session cookie issued by `POST /api/auth/login`.
+        `HttpOnly`, `Secure`, `SameSite=Lax`. Revoked by
+        `POST /api/auth/logout`, `POST /api/auth/logout-all` or
+        `DELETE /api/auth/sessions/{id}`. Mutating requests must also
+        present the `X-XSRF-TOKEN` header matching the `XSRF-TOKEN`
+        cookie (double-submit CSRF).
 
   # ── Reusable error responses ───────────────────────────────────────────────
 
@@ -426,25 +439,6 @@ components:
 
     # ── System ────────────────────────────────────────────────────────────────
 
-    UserInfoDto:
-      type: object
-      description: >
-        Current user identity as returned by GET /api/me.
-        Falls back to guest/USER when no Spring Security context is present.
-      required:
-        - username
-        - role
-      properties:
-        username:
-          type: string
-          description: Principal name or "guest"
-        role:
-          type: string
-          enum:
-            - USER
-            - ADMIN
-          description: Highest granted role
-
     HealthResponse:
       type: object
       description: Application health snapshot returned by GET /api/health.
@@ -492,6 +486,119 @@ components:
           type: string
           format: date-time
           description: ISO-8601 timestamp of when the error occurred
+
+    # ── Auth ────────────────────────────────────────────────────────────────
+
+    LoginRequest:
+      type: object
+      description: Username + password credentials submitted to `POST /api/auth/login`.
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Local username or email (for OIDC-provisioned accounts).
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 255
+          description: Plaintext password — transmitted over HTTPS only.
+
+    LoginResponse:
+      type: object
+      description: >
+        Successful login response. The `JCLAW_SESSION` cookie is set by the server
+        in the `Set-Cookie` response header; the body echoes the authenticated user
+        and the session expiry so the SPA can schedule a silent refresh.
+      required:
+        - user
+        - sessionExpiresAt
+      properties:
+        user:
+          $ref: '#/components/schemas/UserInfo'
+        sessionExpiresAt:
+          type: string
+          format: date-time
+          description: ISO-8601 timestamp when the cookie stops being valid.
+
+    UserInfo:
+      type: object
+      description: Authenticated principal — returned by `GET /api/auth/me`.
+      required:
+        - id
+        - username
+        - roles
+        - permissions
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Internal `users.id`
+        username:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        roles:
+          type: array
+          description: Granted Spring Security authority names (e.g. `ROLE_ADMIN`)
+          items:
+            type: string
+        permissions:
+          type: array
+          description: Flattened permission codes (e.g. `CONVERSATION_ACCESS_ALL`)
+          items:
+            type: string
+        externalProvider:
+          type: string
+          nullable: true
+          description: OIDC provider id if account was provisioned via SSO
+        createdAt:
+          type: string
+          format: date-time
+
+    SessionInfo:
+      type: object
+      description: >
+        Active session row from `user_session`. Returned by
+        `GET /api/auth/sessions`. The current session is marked with
+        `current=true`.
+      required:
+        - id
+        - createdAt
+        - lastUsedAt
+        - current
+      properties:
+        id:
+          type: string
+          description: Opaque session identifier (matches `user_session.id`)
+        ipAddress:
+          type: string
+          nullable: true
+        userAgent:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        current:
+          type: boolean
+          description: True if this row corresponds to the caller's cookie.
 
     # ── Tasks ───────────────────────────────────────────────────────────────
 
@@ -793,6 +900,209 @@ components:
 # =============================================================================
 
 paths:
+
+  # ---------------------------------------------------------------------------
+  # Auth — cookie session, current user, session management, CSRF
+  # ---------------------------------------------------------------------------
+
+  /api/auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Authenticate with username + password and open a cookie session
+      description: >
+        Validates the credentials against `users` table (bcrypt). On success
+        issues a new row in `user_session` and sets an `HttpOnly` `Secure`
+        `SameSite=Lax` cookie named `JCLAW_SESSION`. No `Authorization`
+        header is required — this endpoint is explicitly outside the
+        `cookieAuth` security requirement.
+
+
+        On failure returns `401` with a uniform `ApiError` envelope; the
+        endpoint is rate-limited per username + IP via
+        `LoginAttemptService`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful — `JCLAW_SESSION` cookie set
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: "`JCLAW_SESSION=<opaque>; HttpOnly; Secure; SameSite=Lax; Path=/`"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Too many failed attempts — account temporarily locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Revoke the current session and clear the cookie
+      description: >
+        Deletes the `user_session` row for the caller's cookie and returns
+        a `Set-Cookie` header that expires `JCLAW_SESSION` immediately.
+      security:
+        - cookieAuth: []
+      responses:
+        '204':
+          description: Session revoked, cookie cleared
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: "`JCLAW_SESSION=; Max-Age=0; Path=/`"
+        '401':
+          description: No active session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/logout-all:
+    post:
+      operationId: logoutAll
+      tags: [auth]
+      summary: Revoke every session of the current user on all devices
+      description: >
+        Force-logout from all browsers / devices. Deletes every row in
+        `user_session` with the caller's `user_id` and clears the current
+        cookie. Typical trigger: user suspects credential compromise and
+        presses "Log out everywhere".
+      security:
+        - cookieAuth: []
+      responses:
+        '204':
+          description: All sessions revoked
+        '401':
+          description: No active session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Return the currently authenticated principal
+      description: >
+        SPA bootstrap endpoint — called on app load to determine whether a
+        valid session cookie is present. Returns `401` if no session.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Authenticated user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/sessions:
+    get:
+      operationId: listOwnSessions
+      tags: [auth]
+      summary: List all active sessions of the current user
+      description: >
+        Self-service list — shows every cookie issued for the caller's
+        account along with IP / user-agent / timestamps so the user can
+        audit and revoke suspicious devices.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Array of active sessions (current session flagged)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SessionInfo'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/sessions/{id}:
+    delete:
+      operationId: revokeOwnSession
+      tags: [auth]
+      summary: Revoke a specific session belonging to the current user
+      description: >
+        Deletes one row from `user_session`. Users can only revoke their
+        own sessions — revoking another user's session is restricted to
+        admin endpoints (see `admin-session-management.md` roadmap).
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Session identifier from `SessionInfo.id`
+      responses:
+        '204':
+          description: Session revoked
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          $ref: '#/components/responses/Error404'
+
+  /api/auth/csrf:
+    get:
+      operationId: primeCsrfToken
+      tags: [auth]
+      summary: Prime the `XSRF-TOKEN` cookie without mutating state
+      description: >
+        Returns `204 No Content` and sets the `XSRF-TOKEN` cookie via the
+        Spring Security `CookieCsrfTokenRepository`. The SPA calls this
+        once after login to obtain the token value it must echo back in
+        the `X-XSRF-TOKEN` header on subsequent mutating requests
+        (POST/PUT/PATCH/DELETE). Safe to call unauthenticated.
+      security: []
+      responses:
+        '204':
+          description: CSRF cookie set
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: "`XSRF-TOKEN=<opaque>; Path=/; SameSite=Lax`"
 
   # ---------------------------------------------------------------------------
   # Chat
@@ -1379,29 +1689,6 @@ paths:
   # ---------------------------------------------------------------------------
   # System
   # ---------------------------------------------------------------------------
-
-  /api/me:
-    get:
-      operationId: getCurrentUser
-      tags: [system]
-      summary: Get current authenticated user info
-      description: >
-        Returns the servlet principal name and role.
-        Falls back to `{ "username": "guest", "role": "USER" }` when no
-        Spring Security context is present (current MVP state).
-      responses:
-        "200":
-          description: Current user info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserInfoDto'
-              example:
-                username: "guest"
-                role: "USER"
-        "500":
-          $ref: '#/components/responses/Error500'
-      security: []
 
   /api/health:
     get:

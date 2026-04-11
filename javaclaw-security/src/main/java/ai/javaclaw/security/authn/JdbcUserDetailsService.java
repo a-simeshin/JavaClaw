@@ -1,4 +1,4 @@
-package ai.javaclaw.security;
+package ai.javaclaw.security.authn;
 
 import ai.javaclaw.users.AppUserRepository;
 import ai.javaclaw.users.Permission;

@@ -2,13 +2,20 @@ package ai.javaclaw.integration;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ai.javaclaw.integration.support.IntegrationTestAuthHelper;
+import ai.javaclaw.users.AppUser;
+import ai.javaclaw.users.AppUserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,13 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * Integration tests for DB-backed user management (Phase 7.1 + 7.2).
  *
- * <p>Does NOT extend IntegrationTestBase — needs explicit auth per request.
+ * <p>Uses cookie-based session auth via {@link IntegrationTestAuthHelper}.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -32,6 +40,33 @@ class UserManagementIntegrationTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    AppUserRepository appUserRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void seedPasswords() {
+        resetPassword("admin", "admin");
+        resetPassword("user", "user");
+    }
+
+    private void resetPassword(String username, String rawPassword) {
+        AppUser u = appUserRepository.findByUsername(username).orElseThrow();
+        appUserRepository.updatePassword(u.id(), passwordEncoder.encode(rawPassword));
+    }
+
+    private Cookie adminCookie() throws Exception {
+        return IntegrationTestAuthHelper.adminCookie(mockMvc, objectMapper);
+    }
+
+    private Cookie loginCookie(String user, String pass) throws Exception {
+        return IntegrationTestAuthHelper.loginAndGetSessionCookie(mockMvc, objectMapper, user, pass);
+    }
+
     @Nested
     @DisplayName("DB-backed authentication")
     class DbAuthTests {
@@ -39,7 +74,8 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("Admin can authenticate with DB credentials")
         void adminAuthFromDb() throws Exception {
-            mockMvc.perform(get("/api/me").with(httpBasic("admin", "admin")))
+            Cookie c = adminCookie();
+            mockMvc.perform(get("/api/auth/me").cookie(c))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.username").value("admin"));
         }
@@ -47,7 +83,8 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("User can authenticate with DB credentials")
         void userAuthFromDb() throws Exception {
-            mockMvc.perform(get("/api/me").with(httpBasic("user", "user")))
+            Cookie c = loginCookie("user", "user");
+            mockMvc.perform(get("/api/auth/me").cookie(c))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.username").value("user"));
         }
@@ -55,7 +92,11 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("Invalid password returns 401")
         void invalidPassword() throws Exception {
-            mockMvc.perform(get("/api/me").with(httpBasic("admin", "wrong"))).andExpect(status().isUnauthorized());
+            String body = objectMapper.writeValueAsString(Map.of("username", "admin", "password", "wrong"));
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isUnauthorized());
         }
     }
 
@@ -66,7 +107,7 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("GET /api/users lists active users (admin)")
         void listUsers_asAdmin() throws Exception {
-            mockMvc.perform(get("/api/users").with(httpBasic("admin", "admin")))
+            mockMvc.perform(get("/api/users").cookie(adminCookie()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))))
                     .andExpect(jsonPath("$[0].username").exists())
@@ -76,14 +117,16 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("GET /api/users returns 403 for USER role")
         void listUsers_asUser_forbidden() throws Exception {
-            mockMvc.perform(get("/api/users").with(httpBasic("user", "user"))).andExpect(status().isForbidden());
+            mockMvc.perform(get("/api/users").cookie(loginCookie("user", "user")))
+                    .andExpect(status().isForbidden());
         }
 
         @Test
         @DisplayName("POST /api/users creates a new user")
         void createUser() throws Exception {
             mockMvc.perform(post("/api/users")
-                            .with(httpBasic("admin", "admin"))
+                            .cookie(adminCookie())
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"username\":\"newuser\",\"password\":\"pass123\",\"role\":\"USER\"}"))
                     .andExpect(status().isCreated())
@@ -97,7 +140,8 @@ class UserManagementIntegrationTest {
         void createDuplicateUser() throws Exception {
             // admin already exists in seed data
             mockMvc.perform(post("/api/users")
-                            .with(httpBasic("admin", "admin"))
+                            .cookie(adminCookie())
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"username\":\"admin\",\"password\":\"pass\",\"role\":\"ADMIN\"}"))
                     .andExpect(status().isBadRequest());
@@ -108,13 +152,15 @@ class UserManagementIntegrationTest {
         void createdUserCanAuth() throws Exception {
             // Create
             mockMvc.perform(post("/api/users")
-                            .with(httpBasic("admin", "admin"))
+                            .cookie(adminCookie())
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"username\":\"authtest\",\"password\":\"secret\",\"role\":\"USER\"}"))
                     .andExpect(status().isCreated());
 
-            // Authenticate
-            mockMvc.perform(get("/api/me").with(httpBasic("authtest", "secret")))
+            // Authenticate via cookie login
+            Cookie c = loginCookie("authtest", "secret");
+            mockMvc.perform(get("/api/auth/me").cookie(c))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.username").value("authtest"));
         }
@@ -122,9 +168,11 @@ class UserManagementIntegrationTest {
         @Test
         @DisplayName("DELETE /api/users/{id} deactivates user")
         void deactivateUser() throws Exception {
+            Cookie admin = adminCookie();
             // Create a user to deactivate
             var result = mockMvc.perform(post("/api/users")
-                            .with(httpBasic("admin", "admin"))
+                            .cookie(admin)
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"username\":\"todelete\",\"password\":\"pass\",\"role\":\"USER\"}"))
                     .andExpect(status().isCreated())
@@ -134,11 +182,15 @@ class UserManagementIntegrationTest {
             var id = com.jayway.jsonpath.JsonPath.read(body, "$.id").toString();
 
             // Deactivate
-            mockMvc.perform(delete("/api/users/" + id).with(httpBasic("admin", "admin")))
+            mockMvc.perform(delete("/api/users/" + id).cookie(admin).with(csrf()))
                     .andExpect(status().isNoContent());
 
-            // Deactivated user cannot authenticate
-            mockMvc.perform(get("/api/me").with(httpBasic("todelete", "pass"))).andExpect(status().isUnauthorized());
+            // Deactivated user cannot authenticate (login rejected)
+            String loginBody = objectMapper.writeValueAsString(Map.of("username", "todelete", "password", "pass"));
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(loginBody))
+                    .andExpect(status().isUnauthorized());
         }
     }
 }

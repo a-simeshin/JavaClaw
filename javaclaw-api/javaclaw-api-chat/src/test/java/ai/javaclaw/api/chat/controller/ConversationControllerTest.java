@@ -173,11 +173,14 @@ class ConversationControllerTest {
     }
 
     @Test
-    void deleteReturnsNotFoundWhenNotOwned() throws Exception {
-        when(sharingService.isAdmin("admin")).thenReturn(false);
-        when(conversationRepository.existsByIdAndUserId("other-conv", ADMIN_USER_ID))
-                .thenReturn(false);
-        mockMvc.perform(delete("/api/conversations/other-conv")).andExpect(status().isNotFound());
+    void deleteDelegatesOwnershipCheckToPreAuthorize() throws Exception {
+        // Ownership/admin check is now enforced by @PreAuthorize("hasPermission(#id, 'conversation', 'delete')")
+        // via PermissionResolvers (admin-bypass: CONVERSATION_ACCESS_ALL, otherwise ConversationSharingService).
+        // standaloneSetup MockMvc bypasses Spring Security method interceptors, so the controller body runs
+        // unconditionally and returns 204 — the real 403 is enforced at the Security layer in production.
+        mockMvc.perform(delete("/api/conversations/other-conv")).andExpect(status().isNoContent());
+        verify(chatMemoryRepository).deleteByConversationId(eq("other-conv"));
+        verify(conversationRepository).deleteById(eq("other-conv"));
     }
 
     @Test

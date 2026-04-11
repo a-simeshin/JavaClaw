@@ -19,6 +19,7 @@
 
     <modules>
         <module>javaclaw-core</module>
+        <module>javaclaw-security</module>
         <module>javaclaw-api</module>
         <module>javaclaw-channel</module>
         <module>javaclaw-provider</module>
