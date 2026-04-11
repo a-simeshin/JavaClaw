@@ -96,6 +96,57 @@ public class ConversationQueryService {
         return new Page<>(rows, safePage, safeSize, total == null ? 0L : total);
     }
 
+    /**
+     * Paginated conversation list including both owned and shared conversations.
+     *
+     * @param userId the user's database ID
+     */
+    public Page<ConversationSummary> listConversationsWithShared(final String userId, final int page, final int size) {
+        final int safeSize = size <= 0 ? 20 : size;
+        final int safePage = Math.max(page, 0);
+        final int offset = safePage * safeSize;
+
+        final String sql =
+                """
+                SELECT c.id, c.title, c.created_at, c.updated_at,
+                       COALESCE(m.msg_count, 0) AS msg_count,
+                       (SELECT content FROM SPRING_AI_CHAT_MEMORY
+                        WHERE conversation_id = c.id AND type = 'USER'
+                        ORDER BY "timestamp" ASC LIMIT 1) AS first_user
+                FROM conversations c
+                LEFT JOIN (
+                    SELECT conversation_id, COUNT(*) AS msg_count
+                    FROM SPRING_AI_CHAT_MEMORY
+                    GROUP BY conversation_id
+                ) m ON m.conversation_id = c.id
+                WHERE c.user_id = ?
+                   OR c.id IN (SELECT conversation_id FROM conversation_shares WHERE shared_with = ?)
+                ORDER BY c.updated_at DESC, c.id ASC
+                OFFSET ? LIMIT ?
+                """;
+
+        final List<ConversationSummary> rows = jdbc.query(
+                sql,
+                (rs, i) -> new ConversationSummary(
+                        rs.getString("id"),
+                        rs.getString("title"),
+                        rs.getTimestamp("created_at").toInstant(),
+                        rs.getTimestamp("updated_at").toInstant(),
+                        rs.getInt("msg_count"),
+                        rs.getString("first_user")),
+                userId,
+                userId,
+                offset,
+                safeSize);
+
+        final Long total = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM conversations WHERE user_id = ? OR id IN (SELECT conversation_id FROM conversation_shares WHERE shared_with = ?)",
+                Long.class,
+                userId,
+                userId);
+        return new Page<>(rows, safePage, safeSize, total == null ? 0L : total);
+    }
+
     /** Paginated messages for one conversation, oldest-first. */
     public Page<MessageRow> listMessages(final String conversationId, final int page, final int size) {
         final int safeSize = size <= 0 ? 50 : size;

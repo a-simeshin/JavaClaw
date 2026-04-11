@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import ai.javaclaw.conversations.ConversationRepository;
+import ai.javaclaw.conversations.ConversationSharingService;
 import ai.javaclaw.users.UserResolver;
 import java.security.Principal;
 import java.time.Instant;
@@ -30,6 +31,7 @@ class ConversationControllerTest {
     private ConversationEnsurer conversationEnsurer;
     private ConversationQueryService queryService;
     private ConversationRepository conversationRepository;
+    private ConversationSharingService sharingService;
     private UserResolver userResolver;
     private MockMvc mockMvc;
 
@@ -41,10 +43,16 @@ class ConversationControllerTest {
         conversationEnsurer = mock(ConversationEnsurer.class);
         queryService = mock(ConversationQueryService.class);
         conversationRepository = mock(ConversationRepository.class);
+        sharingService = mock(ConversationSharingService.class);
         userResolver = mock(UserResolver.class);
         when(userResolver.resolveUserId("admin")).thenReturn(ADMIN_USER_ID);
         mockMvc = standaloneSetup(new ConversationController(
-                        chatMemoryRepository, conversationEnsurer, queryService, conversationRepository, userResolver))
+                        chatMemoryRepository,
+                        conversationEnsurer,
+                        queryService,
+                        conversationRepository,
+                        sharingService,
+                        userResolver))
                 .defaultRequest(get("/").principal(adminPrincipal()))
                 .build();
     }
@@ -57,7 +65,7 @@ class ConversationControllerTest {
     void listReturnsPagedConversationsFromQueryService() throws Exception {
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T09:00:00Z");
-        when(queryService.listConversationsForUser(ADMIN_USER_ID, 0, 10))
+        when(queryService.listConversationsWithShared(ADMIN_USER_ID, 0, 10))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(
                                 new ConversationQueryService.ConversationSummary(
@@ -81,7 +89,7 @@ class ConversationControllerTest {
     @Test
     void listFallsBackToFirstUserMessageWhenTitleIsNull() throws Exception {
         Instant t = Instant.parse("2026-04-05T10:00:00Z");
-        when(queryService.listConversationsForUser(ADMIN_USER_ID, 0, 20))
+        when(queryService.listConversationsWithShared(ADMIN_USER_ID, 0, 20))
                 .thenReturn(new ConversationQueryService.Page<>(
                         List.of(new ConversationQueryService.ConversationSummary("web", null, t, t, 1, "Hello there")),
                         0,
@@ -95,7 +103,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesMapsTypesToRolesWithRealTimestamps() throws Exception {
-        when(conversationRepository.existsByIdAndUserId("web", ADMIN_USER_ID)).thenReturn(true);
+        when(sharingService.hasAccess("web", ADMIN_USER_ID)).thenReturn(true);
         Instant t1 = Instant.parse("2026-04-05T10:00:00Z");
         Instant t2 = Instant.parse("2026-04-05T10:00:05Z");
         when(queryService.listMessages("web", 0, 50))
@@ -119,7 +127,7 @@ class ConversationControllerTest {
 
     @Test
     void messagesRespectsPagination() throws Exception {
-        when(conversationRepository.existsByIdAndUserId("web", ADMIN_USER_ID)).thenReturn(true);
+        when(sharingService.hasAccess("web", ADMIN_USER_ID)).thenReturn(true);
         when(queryService.listMessages("web", 2, 10))
                 .thenReturn(new ConversationQueryService.Page<>(List.of(), 2, 10, 7L));
 

@@ -7,6 +7,8 @@ import ai.javaclaw.api.chat.controller.dto.PageResponse;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import ai.javaclaw.conversations.ConversationRepository;
+import ai.javaclaw.conversations.ConversationShare;
+import ai.javaclaw.conversations.ConversationSharingService;
 import ai.javaclaw.users.UserResolver;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,6 +50,7 @@ public class ConversationController {
     private final ConversationEnsurer conversationEnsurer;
     private final ConversationQueryService queryService;
     private final ConversationRepository conversationRepository;
+    private final ConversationSharingService sharingService;
     private final UserResolver userResolver;
 
     @GetMapping
@@ -56,7 +60,7 @@ public class ConversationController {
             final Principal principal) {
         final String userId = userResolver.resolveUserId(principal.getName());
         final ConversationQueryService.Page<ConversationQueryService.ConversationSummary> result =
-                queryService.listConversationsForUser(userId, page, size);
+                queryService.listConversationsWithShared(userId, page, size);
         final List<ConversationDto> dtos = new ArrayList<>(result.content().size());
         for (ConversationQueryService.ConversationSummary row : result.content()) {
             dtos.add(toDto(row));
@@ -71,7 +75,7 @@ public class ConversationController {
             @RequestParam(defaultValue = "50") final int size,
             final Principal principal) {
         final String userId = userResolver.resolveUserId(principal.getName());
-        if (!conversationRepository.existsByIdAndUserId(id, userId)) {
+        if (!sharingService.hasAccess(id, userId)) {
             return new PageResponse<>(List.of(), 0, size, 0);
         }
         final ConversationQueryService.Page<ConversationQueryService.MessageRow> result =
@@ -116,6 +120,50 @@ public class ConversationController {
         conversationRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/share")
+    public ResponseEntity<?> share(
+            @PathVariable final String id, @RequestBody final ShareRequest request, final Principal principal) {
+        final String ownerId = userResolver.resolveUserId(principal.getName());
+        final String targetUserId = userResolver.resolveUserId(request.username());
+        final String permission =
+                request.permission() != null ? request.permission() : ConversationShare.PERMISSION_READ;
+        ConversationShare share = sharingService.share(id, ownerId, targetUserId, permission);
+        return ResponseEntity.ok(new ShareResponse(share.conversationId(), request.username(), share.permission()));
+    }
+
+    @DeleteMapping("/{id}/share/{username}")
+    public ResponseEntity<Void> unshare(
+            @PathVariable final String id, @PathVariable final String username, final Principal principal) {
+        final String ownerId = userResolver.resolveUserId(principal.getName());
+        final String targetUserId = userResolver.resolveUserId(username);
+        sharingService.unshare(id, ownerId, targetUserId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/shares")
+    public List<ShareResponse> listShares(@PathVariable final String id, final Principal principal) {
+        final String ownerId = userResolver.resolveUserId(principal.getName());
+        return sharingService.listShares(id, ownerId).stream()
+                .map(s -> new ShareResponse(s.conversationId(), s.sharedWith(), s.permission()))
+                .toList();
+    }
+
+    @PutMapping("/{id}/share")
+    public ResponseEntity<?> updateSharePermission(
+            @PathVariable final String id, @RequestBody final ShareRequest request, final Principal principal) {
+        final String ownerId = userResolver.resolveUserId(principal.getName());
+        final String targetUserId = userResolver.resolveUserId(request.username());
+        sharingService.unshare(id, ownerId, targetUserId);
+        final String permission =
+                request.permission() != null ? request.permission() : ConversationShare.PERMISSION_READ;
+        ConversationShare share = sharingService.share(id, ownerId, targetUserId, permission);
+        return ResponseEntity.ok(new ShareResponse(share.conversationId(), request.username(), share.permission()));
+    }
+
+    public record ShareRequest(String username, String permission) {}
+
+    public record ShareResponse(String conversationId, String username, String permission) {}
 
     private static ConversationDto toDto(final ConversationQueryService.ConversationSummary row) {
         // Title priority: persisted title → first user message preview → id.
