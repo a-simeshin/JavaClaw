@@ -91,6 +91,27 @@ javaclaw:
       enabled: ${MODEL_FALLBACK_ENABLED:false}
       models: ${MODEL_FALLBACK_MODELS:}
       max-retries-per-model: ${MODEL_FALLBACK_MAX_RETRIES:1}
+    tool-deny:
+      enabled: ${TOOL_DENY_ENABLED:true}
+      global-patterns:
+        - "rm\\s+-rf\\s+/"
+        - "DROP\\s+TABLE"
+        - "DELETE\\s+FROM\\s+\\w+\\s*;"
+        - "TRUNCATE\\s+TABLE"
+        - "chmod\\s+777"
+        - "curl.*\\|.*sh"
+        - "wget.*\\|.*sh"
+      per-tool:
+        writeFile:
+          - "\\.sh[\"\\s}]"
+          - "\\.bash[\"\\s}]"
+          - "\\.exe[\"\\s}]"
+          - "\\.jar[\"\\s}]"
+          - "\\.class[\"\\s}]"
+        deleteFile:
+          - "AGENT\\.md"
+          - "SOUL\\.md"
+          - "INFO\\.md"
     sse:
       timeout: 30m
       heartbeat-interval: 15s

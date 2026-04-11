@@ -707,9 +707,14 @@
 - [x] Зарегистрирован как AutoDiscoveredTool в AgentToolsConfiguration
 - [x] 11 unit-тестов (MessageToolTest): validation, broadcast, persistence failure graceful, urgent prefix
 
-### 10.4 Tool deny patterns (4.17)
+### 10.4 Tool deny patterns (4.17) ✅
 
-- Чёрный список опасных команд
+- [x] ToolDenyProperties — конфигурация global + per-tool regex deny patterns (javaclaw.chat.tool-deny.*)
+- [x] ToolDenyFilter — компилирует regex, проверяет аргументы tool calls, блокирует совпадения с сообщением об ошибке
+- [x] DenyFilterToolCallback — декоратор ToolCallback, перехватывает call() перед делегированием
+- [x] Интеграция в ToolCallbackResolver.buildCallbacks() — оборачивает все callbacks deny-фильтром
+- [x] Default deny patterns: rm -rf, DROP TABLE, DELETE FROM, TRUNCATE, chmod 777, curl|sh, wget|sh; per-tool: writeFile (.sh/.bash/.exe/.jar/.class), deleteFile (AGENT.md/SOUL.md/INFO.md)
+- [x] 12 новых тестов (ToolDenyFilterTest), все 905 тестов зелёные
 
 ### 10.5 Cron tool (4.14)
 

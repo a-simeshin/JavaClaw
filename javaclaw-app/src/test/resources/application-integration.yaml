@@ -45,6 +45,12 @@ javaclaw:
       enabled: false
       models: []
       max-retries-per-model: 1
+    tool-deny:
+      enabled: true
+      global-patterns:
+        - "rm\\s+-rf\\s+/"
+        - "DROP\\s+TABLE"
+      per-tool: {}
     sse:
       timeout: 5s
       heartbeat-interval: 60s

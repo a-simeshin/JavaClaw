@@ -27,7 +27,7 @@ import org.springframework.lang.Nullable;
  * которые ранее создавались inline в {@code JavaClawConfiguration.chatClient()}.
  */
 @Configuration
-@EnableConfigurationProperties({TokenBudgetProperties.class, ModelFallbackProperties.class})
+@EnableConfigurationProperties({TokenBudgetProperties.class, ModelFallbackProperties.class, ToolDenyProperties.class})
 public class ChatServiceConfiguration {
 
     /**
@@ -79,9 +79,19 @@ public class ChatServiceConfiguration {
             final CheckListTool checkListTool,
             final McpTool mcpTool,
             final FileSystemTools fileSystemTools,
-            final Set<AutoDiscoveredTool<?>> autoDiscoveredTools) {
+            final Set<AutoDiscoveredTool<?>> autoDiscoveredTools,
+            final ToolDenyProperties toolDenyProperties) {
+        final ToolDenyFilter denyFilter = toolDenyProperties.enabled() ? new ToolDenyFilter(toolDenyProperties) : null;
         return new ToolCallbackResolver(
-                mcpToolProvider, taskTool, checkListTool, mcpTool, fileSystemTools, autoDiscoveredTools);
+                mcpToolProvider,
+                taskTool,
+                checkListTool,
+                mcpTool,
+                fileSystemTools,
+                autoDiscoveredTools,
+                denyFilter,
+                ToolCallbackResolver.DEFAULT_TTL,
+                java.time.Clock.systemUTC());
     }
 
     /**

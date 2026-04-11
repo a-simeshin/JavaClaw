@@ -16,6 +16,7 @@ import org.springaicommunity.agent.tools.FileSystemTools;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -46,6 +47,10 @@ public class ToolCallbackResolver {
 
     /** Набор auto-discovered tool instances, обнаруженных Spring. */
     private final Set<AutoDiscoveredTool<?>> autoDiscoveredTools;
+
+    /** Deny-фильтр для блокировки опасных tool call аргументов (nullable — disabled). */
+    @Nullable
+    private final ToolDenyFilter denyFilter;
 
     /** TTL кэша — после истечения resolve() перестраивает список. */
     private final Duration ttl;
@@ -83,12 +88,13 @@ public class ToolCallbackResolver {
                 mcpTool,
                 fileSystemTools,
                 autoDiscoveredTools,
+                null,
                 DEFAULT_TTL,
                 Clock.systemUTC());
     }
 
     /**
-     * Создаёт резолвер с настраиваемым TTL и часами (для тестов).
+     * Создаёт резолвер с настраиваемым TTL, часами и deny-фильтром (для тестов).
      */
     public ToolCallbackResolver(
             final SyncMcpToolCallbackProvider mcpToolProvider,
@@ -97,6 +103,22 @@ public class ToolCallbackResolver {
             final McpTool mcpTool,
             final FileSystemTools fileSystemTools,
             final Set<AutoDiscoveredTool<?>> autoDiscoveredTools,
+            final Duration ttl,
+            final Clock clock) {
+        this(mcpToolProvider, taskTool, checkListTool, mcpTool, fileSystemTools, autoDiscoveredTools, null, ttl, clock);
+    }
+
+    /**
+     * Полный конструктор с deny-фильтром.
+     */
+    public ToolCallbackResolver(
+            final SyncMcpToolCallbackProvider mcpToolProvider,
+            final TaskTool taskTool,
+            final CheckListTool checkListTool,
+            final McpTool mcpTool,
+            final FileSystemTools fileSystemTools,
+            final Set<AutoDiscoveredTool<?>> autoDiscoveredTools,
+            @Nullable final ToolDenyFilter denyFilter,
             final Duration ttl,
             final Clock clock) {
         Assert.notNull(mcpToolProvider, "mcpToolProvider must not be null");
@@ -113,6 +135,7 @@ public class ToolCallbackResolver {
         this.mcpTool = mcpTool;
         this.fileSystemTools = fileSystemTools;
         this.autoDiscoveredTools = autoDiscoveredTools;
+        this.denyFilter = denyFilter;
         this.ttl = ttl;
         this.clock = clock;
     }
@@ -192,6 +215,11 @@ public class ToolCallbackResolver {
         // Auto-discovered tool callbacks
         for (final AutoDiscoveredTool<?> autoDiscoveredTool : autoDiscoveredTools) {
             result.addAll(Arrays.asList(ToolCallbacks.from(autoDiscoveredTool.tool())));
+        }
+
+        // Apply deny filter if configured
+        if (denyFilter != null) {
+            return List.copyOf(denyFilter.wrap(result));
         }
 
         return List.copyOf(result);
