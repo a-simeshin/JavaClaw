@@ -19,10 +19,7 @@ export const isAuthenticatedAtom = atom(
   (get) => get(authAtom).user !== null,
 )
 
-export const authUserAtom = atom((get) => {
-  const state = get(authAtom)
-  return state.user
-})
+export const authUserAtom = atom((get) => get(authAtom).user)
 
 // ---------------------------------------------------------------------------
 // Legacy no-op stubs — kept for backward compatibility with __root.tsx and

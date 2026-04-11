@@ -40,24 +40,6 @@ interface TaskNotificationPart {
   durationMs?: number
 }
 
-interface TaskErrorPart {
-  type: "task-error"
-  taskId: string
-  taskName: string
-  errorMessage: string
-  errorTrace?: string
-  llmRequest?: string
-  durationMs?: number
-}
-
-interface TaskProgressPart {
-  type: "task-progress"
-  taskId: string
-  taskName: string
-  progressText?: string
-  progressPercent?: number
-}
-
 interface ApprovalRequestPart {
   type: "approval-request"
   approvalId: string

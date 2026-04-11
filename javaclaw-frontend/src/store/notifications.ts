@@ -10,4 +10,5 @@ export interface TaskNotification {
   timestamp: string
 }
 
-export const notificationQueueAtom = atom<TaskNotification[]>([])
+export const NOTIFICATION_QUEUE_INITIAL: TaskNotification[] = []
+export const notificationQueueAtom = atom<TaskNotification[]>(NOTIFICATION_QUEUE_INITIAL)

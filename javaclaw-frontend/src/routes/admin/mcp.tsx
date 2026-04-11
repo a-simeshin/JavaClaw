@@ -11,7 +11,6 @@ import { toast } from "sonner"
 
 import {
   type McpServerDto,
-  type McpStatusDto,
   type McpType,
   useCreateMcpServer,
   useDeleteMcpServer,

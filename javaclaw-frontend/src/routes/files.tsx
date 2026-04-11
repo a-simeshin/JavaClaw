@@ -216,17 +216,16 @@ function TreeNode({
   const isDir = node.type === "dir"
   const isOpen = expanded.has(node.path)
   const isSelected = selectedPath === node.path
+  const sorted = useMemo(
+    () =>
+      [...(node.children ?? [])].sort((a, b) => {
+        if (a.type !== b.type) return a.type === "dir" ? -1 : 1
+        return a.name.localeCompare(b.name)
+      }),
+    [node.children],
+  )
 
   if (isDir) {
-    const children = node.children ?? []
-    const sorted = useMemo(
-      () =>
-        [...children].sort((a, b) => {
-          if (a.type !== b.type) return a.type === "dir" ? -1 : 1
-          return a.name.localeCompare(b.name)
-        }),
-      [children],
-    )
 
     // Root dir: just render children
     if (isRoot) {

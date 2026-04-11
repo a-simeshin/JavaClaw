@@ -78,6 +78,7 @@ export async function apiFetch(
   })
 
   if (response.status === 401 && !skipAuthRedirect) {
+    // Full page reload via window.location — browser discards all in-memory state, no manual reset needed here.
     onUnauthorized()
   }
 

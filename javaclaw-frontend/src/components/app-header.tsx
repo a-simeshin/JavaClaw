@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useTheme } from "@/hooks/use-theme"
 import { setLanguage, type SupportedLanguage } from "@/i18n"
+import { useResetClientState } from "@/lib/client-reset"
 import { cn } from "@/lib/utils"
 import { authUserAtom } from "@/store/auth"
 
@@ -29,12 +30,19 @@ export function AppHeader() {
   const { logout } = useAuth()
   const user = useAtomValue(authUserAtom)
   const navigate = useNavigate()
+  const resetClientState = useResetClientState()
   const isDark = resolved === "dark"
   const currentLang = (i18n.resolvedLanguage ?? "en") as SupportedLanguage
 
-  const handleLogout = () => {
-    logout()
-    void navigate({ to: "/login" })
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch {
+      // ignore logout errors — always reset and redirect
+    } finally {
+      resetClientState()
+      void navigate({ to: "/login" })
+    }
   }
 
   return (
@@ -122,7 +130,7 @@ export function AppHeader() {
                 <DropdownMenuSeparator />
               </>
             )}
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={() => { void handleLogout() }}>
               <IconLogout
                 width={14}
                 height={14}
