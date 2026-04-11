@@ -44,13 +44,15 @@ public class SecurityConfig {
                         // Public: SPA static resources
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico")
                         .permitAll()
-                        // Admin-only endpoints
+                        // Admin-only endpoints (granular permissions)
                         .requestMatchers("/api/skills/**")
-                        .hasRole("ADMIN")
+                        .hasAuthority("PERM_SKILL_CREATE")
                         .requestMatchers("/api/mcp-servers/**")
-                        .hasRole("ADMIN")
+                        .hasAuthority("PERM_MCP_CREATE")
                         .requestMatchers("/api/users/**")
-                        .hasRole("ADMIN")
+                        .hasAuthority("PERM_USER_LIST")
+                        .requestMatchers("/api/audit/**")
+                        .hasAuthority("PERM_AUDIT_READ")
                         // MCP server endpoint — authenticated
                         .requestMatchers("/api/mcp/**")
                         .authenticated()

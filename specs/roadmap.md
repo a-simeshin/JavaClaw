@@ -797,8 +797,8 @@ DelegationTool с 4 @Tool методами: delegateTask (spawn child через
 
 ### Phase 13: RBAC
 
-- 15.2.2 Гранулярные permissions
-- 15.2.3 Role hierarchy (ADMIN > POWER_USER > USER)
+- 15.2.2 Гранулярные permissions ✅ — Permission enum (30+ permissions), role_permissions таблица (V31), RolePermissionRepository, PermissionService с кэшем, grant/revoke, SecurityConfig на hasAuthority(), JdbcUserDetailsService загружает PERM_* authorities, 24 новых теста
+- 15.2.3 Role hierarchy (ADMIN > POWER_USER > USER) ✅ — PermissionService.compareRoles/isRoleAtLeast/getRoleHierarchy, POWER_USER role добавлен в constraint, 3-tier permission seeding (USER < POWER_USER < ADMIN)
 - 15.2.4 Custom roles
 - 15.3.1-15.3.2 Skill visibility + allowlist per role
 - 15.4.1-15.4.3 MCP visibility + personal servers
