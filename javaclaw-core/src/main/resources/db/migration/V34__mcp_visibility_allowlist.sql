@@ -1,0 +1,16 @@
+-- 15.4.1-15.4.3: MCP server visibility + role allowlist + personal servers
+
+-- Add visibility column to mcp_servers (PUBLIC = visible to all, RESTRICTED = allowlisted roles only)
+ALTER TABLE mcp_servers ADD COLUMN visibility VARCHAR(16) NOT NULL DEFAULT 'PUBLIC';
+
+-- Role allowlist table for RESTRICTED MCP servers
+CREATE TABLE mcp_role_allowlist (
+    id         VARCHAR(36) PRIMARY KEY,
+    server_id  VARCHAR(36) NOT NULL REFERENCES mcp_servers(id) ON DELETE CASCADE,
+    role       VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (server_id, role)
+);
+
+CREATE INDEX idx_mcp_role_allowlist_server ON mcp_role_allowlist(server_id);
+CREATE INDEX idx_mcp_role_allowlist_role   ON mcp_role_allowlist(role);

@@ -801,7 +801,7 @@ DelegationTool с 4 @Tool методами: delegateTask (spawn child через
 - 15.2.3 Role hierarchy (ADMIN > POWER_USER > USER) ✅ — PermissionService.compareRoles/isRoleAtLeast/getRoleHierarchy, POWER_USER role добавлен в constraint, 3-tier permission seeding (USER < POWER_USER < ADMIN)
 - 15.2.4 Custom roles ✅ — V32 миграция custom_roles таблицы + снятие CHECK constraint на users.role, CustomRole entity + CustomRoleRepository, CustomRoleService (create/update/delete/setPermissions с защитой built-in ролей), RoleController REST API (/api/roles CRUD), PermissionService расширен для динамических ролей, UserService валидирует роль существует, 24 новых теста
 - 15.3.1-15.3.2 Skill visibility + allowlist per role ✅ — V33 миграция skill_role_allowlist + visibility колонка в skills, SkillRoleAllowlist entity/repository, SkillVisibilityService (listVisible/setVisibility/allowlist CRUD, ADMIN sees all), SkillController расширен (PUT /{id}/visibility, GET/PUT /{id}/allowlist), SkillService с role-based filtering, 17 новых тестов
-- 15.4.1-15.4.3 MCP visibility + personal servers
+- 15.4.1-15.4.3 MCP visibility + personal servers ✅ — V34 миграция mcp_role_allowlist + visibility колонка в mcp_servers, McpRoleAllowlist entity/repository, McpServer расширен (visibility/newPersonal/isPublic/isRestricted/isPersonal), McpServerVisibilityService (listVisible/setVisibility/allowlist CRUD/personal CRUD, ADMIN sees all), McpServerController расширен (PUT /{id}/visibility, GET/PUT /{id}/allowlist, GET/POST/DELETE /personal), McpServerRepository +findAllByOwnerId/findByIdAndOwnerId, 18 новых тестов
 - 15.5.3 Shared conversations
 - 15.5.5 Admin conversation access
 - 15.6.1 Agent assignment per role

@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import ai.javaclaw.api.admin.AdminExceptionHandler;
+import ai.javaclaw.users.UserResolver;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -31,11 +32,14 @@ class McpServerControllerTest {
     @Mock
     private McpServerService service;
 
+    @Mock
+    private UserResolver userResolver;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new McpServerController(service))
+        mockMvc = standaloneSetup(new McpServerController(service, userResolver))
                 .setControllerAdvice(new AdminExceptionHandler())
                 .build();
     }

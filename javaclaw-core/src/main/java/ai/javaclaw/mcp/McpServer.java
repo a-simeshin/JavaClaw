@@ -16,11 +16,15 @@ public record McpServer(
         @Column("url") String url,
         @Column("headers") Map<String, String> headers,
         @Column("enabled") boolean enabled,
+        @Column("visibility") String visibility,
         @Column("created_at") Instant createdAt,
         @Column("updated_at") Instant updatedAt,
         @Column("health_status") String healthStatus,
         @Column("health_detail") String healthDetail,
         @Column("last_health_check_at") Instant lastHealthCheckAt) {
+
+    public static final String VISIBILITY_PUBLIC = "PUBLIC";
+    public static final String VISIBILITY_RESTRICTED = "RESTRICTED";
 
     public static McpServer newGlobal(
             final String name,
@@ -38,6 +42,32 @@ public record McpServer(
                 url,
                 headers != null ? headers : Map.of(),
                 enabled,
+                VISIBILITY_PUBLIC,
+                Instant.now(),
+                Instant.now(),
+                "unknown",
+                null,
+                null);
+    }
+
+    public static McpServer newPersonal(
+            final String ownerId,
+            final String name,
+            final String transport,
+            final String command,
+            final String url,
+            final Map<String, String> headers,
+            final boolean enabled) {
+        return new McpServer(
+                null,
+                ownerId,
+                name,
+                transport,
+                command,
+                url,
+                headers != null ? headers : Map.of(),
+                enabled,
+                VISIBILITY_PUBLIC,
                 Instant.now(),
                 Instant.now(),
                 "unknown",
@@ -61,6 +91,25 @@ public record McpServer(
                 newUrl,
                 newHeaders != null ? newHeaders : Map.of(),
                 newEnabled,
+                this.visibility,
+                this.createdAt,
+                Instant.now(),
+                this.healthStatus,
+                this.healthDetail,
+                this.lastHealthCheckAt);
+    }
+
+    public McpServer withVisibility(final String newVisibility) {
+        return new McpServer(
+                this.id,
+                this.ownerId,
+                this.name,
+                this.transport,
+                this.command,
+                this.url,
+                this.headers,
+                this.enabled,
+                newVisibility,
                 this.createdAt,
                 Instant.now(),
                 this.healthStatus,
@@ -78,10 +127,27 @@ public record McpServer(
                 this.url,
                 this.headers,
                 this.enabled,
+                this.visibility,
                 this.createdAt,
                 this.updatedAt,
                 status,
                 detail,
                 Instant.now());
+    }
+
+    public boolean isPublic() {
+        return VISIBILITY_PUBLIC.equals(visibility);
+    }
+
+    public boolean isRestricted() {
+        return VISIBILITY_RESTRICTED.equals(visibility);
+    }
+
+    public boolean isPersonal() {
+        return ownerId != null;
+    }
+
+    public boolean isGlobal() {
+        return ownerId == null;
     }
 }

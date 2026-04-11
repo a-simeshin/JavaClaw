@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import ai.javaclaw.agent.pipeline.ToolCallbackResolver;
 import ai.javaclaw.mcp.McpServer;
 import ai.javaclaw.mcp.McpServerRepository;
+import ai.javaclaw.mcp.McpServerVisibilityService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,9 @@ class McpServerServiceTest {
 
     @Mock
     private McpServerRepository repository;
+
+    @Mock
+    private McpServerVisibilityService visibilityService;
 
     @Mock
     private ToolCallbackResolver toolCallbackResolver;
@@ -209,7 +213,7 @@ class McpServerServiceTest {
     @Test
     void toolCacheInfo_nullResolver_returnsEmpty() {
         // Service with null resolver (no ToolCallbackResolver bean available)
-        final McpServerService serviceNoResolver = new McpServerService(repository, null);
+        final McpServerService serviceNoResolver = new McpServerService(repository, visibilityService, null);
 
         final ToolCacheInfoDto info = serviceNoResolver.toolCacheInfo();
 
@@ -229,6 +233,7 @@ class McpServerServiceTest {
                 null,
                 Map.of(),
                 enabled,
+                McpServer.VISIBILITY_PUBLIC,
                 Instant.now(),
                 Instant.now(),
                 "unknown",
@@ -251,6 +256,7 @@ class McpServerServiceTest {
                 null,
                 headers,
                 enabled,
+                McpServer.VISIBILITY_PUBLIC,
                 Instant.now(),
                 Instant.now(),
                 "unknown",
@@ -275,6 +281,7 @@ class McpServerServiceTest {
                 "https://example.com",
                 Map.of(),
                 enabled,
+                McpServer.VISIBILITY_PUBLIC,
                 Instant.now(),
                 Instant.now(),
                 healthStatus,

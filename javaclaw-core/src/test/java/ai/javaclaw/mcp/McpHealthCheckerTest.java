@@ -133,6 +133,7 @@ class McpHealthCheckerTest {
                 url,
                 Map.of(),
                 enabled,
+                McpServer.VISIBILITY_PUBLIC,
                 Instant.now(),
                 Instant.now(),
                 "unknown",
