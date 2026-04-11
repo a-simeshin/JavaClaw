@@ -1,9 +1,12 @@
 package ai.javaclaw.api.chat.service;
 
+import ai.javaclaw.agent.audit.ChatAuditService;
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelContextService;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,11 +17,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
-import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Flux;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -44,14 +53,20 @@ public class SseStreamingService {
     /** Сервис сохранения routing context — позволяет async задачам найти канал для уведомления. */
     private final ChannelContextService channelContextService;
 
+    /** Хранилище истории чатов — используется для persist partial/full assistant content. */
+    private final ChatMemory chatMemory;
+
+    /** Сервис аудита запросов/ответов LLM — пишется на стороне SseStreamingService (Phase 2). */
+    private final ChatAuditService chatAuditService;
+
     /** Настройки SSE (таймаут, интервал heartbeat, лимит concurrency). */
     private final ChatRestConfiguration.SseProperties sseProperties;
 
     /** Набор активных emitter-ов — используется для контроля жизненного цикла. */
     private final Set<ResponseBodyEmitter> emitters = ConcurrentHashMap.newKeySet();
 
-    /** Cancel-сигналы по conversationId — позволяют прервать LLM стрим по запросу пользователя. */
-    private final ConcurrentMap<String, Sinks.Empty<Void>> cancelSignals = new ConcurrentHashMap<>();
+    /** Cancel-флаги по conversationId — позволяют прервать LLM стрим по запросу пользователя. */
+    private final ConcurrentMap<String, AtomicBoolean> cancelFlags = new ConcurrentHashMap<>();
 
     /** Семафор, ограничивающий число одновременных SSE-стримов. */
     private final Semaphore concurrencyLimit;
@@ -70,16 +85,22 @@ public class SseStreamingService {
      *
      * @param chatService          оркестратор pipeline, не может быть null
      * @param channelContextService сервис routing context, не может быть null
+     * @param chatMemory           хранилище истории (для persist assistant content), не может быть null
+     * @param chatAuditService     сервис аудита (для финального audit), не может быть null
      * @param sseProperties        настройки SSE, не может быть null
      * @param jsonMapper           JSON-маппер, не может быть null
      */
     public SseStreamingService(
             final ChatService chatService,
             final ChannelContextService channelContextService,
+            final ChatMemory chatMemory,
+            final ChatAuditService chatAuditService,
             final ChatRestConfiguration.SseProperties sseProperties,
             final ObjectMapper jsonMapper) {
         this.chatService = chatService;
         this.channelContextService = channelContextService;
+        this.chatMemory = chatMemory;
+        this.chatAuditService = chatAuditService;
         this.sseProperties = sseProperties;
         this.jsonMapper = jsonMapper;
         this.concurrencyLimit = new Semaphore(sseProperties.maxConcurrent());
@@ -200,11 +221,19 @@ public class SseStreamingService {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
         final String reasoningBlockId = "reasoning_" + UUID.randomUUID();
-        final Sinks.Empty<Void> cancelSink = Sinks.empty();
-        cancelSignals.put(conversationId, cancelSink);
-        // Mutable state for reasoning block lifecycle — accessed only from the stream thread.
+        final long startTime = System.currentTimeMillis();
+
+        final AtomicBoolean cancelled = new AtomicBoolean(false);
+        cancelFlags.put(conversationId, cancelled);
+
+        // Linear mutable state — accessed only from the stream thread.
+        final StringBuilder acc = new StringBuilder();
         final boolean[] reasoningStarted = {false};
         final boolean[] textStartSent = {false};
+        Usage usage = null;
+        List<AssistantMessage.ToolCall> toolCalls = List.of();
+        Throwable lastError = null;
+
         try {
             channelContextService.saveContext(
                     conversationId, "Web Chat Channel", java.util.Map.of("conversationId", conversationId));
@@ -214,76 +243,91 @@ public class SseStreamingService {
                     lock,
                     VercelSseEvent.MessageStart.builder().messageId(messageId).build());
 
-            chatService.stream(conversationId, userId, userContent, modelOverride)
-                    .takeUntilOther(cancelSink.asMono())
-                    .doOnNext(response -> {
-                        if (response == null
-                                || response.getResult() == null
-                                || response.getResult().getOutput() == null) {
-                            return;
-                        }
-                        final var output = response.getResult().getOutput();
-                        final var metadata = output.getMetadata();
-                        final String text = output.getText();
+            final Flux<ChatResponse> flux = chatService.stream(conversationId, userId, userContent, modelOverride);
 
-                        if (metadata != null && metadata.containsKey("thinking")) {
-                            // Thinking delta — emit as reasoning event
-                            if (text != null && !text.isEmpty()) {
-                                if (!reasoningStarted[0]) {
-                                    trySendEvent(
-                                            emitter,
-                                            lock,
-                                            VercelSseEvent.ReasoningStart.builder()
-                                                    .id(reasoningBlockId)
-                                                    .build());
-                                    reasoningStarted[0] = true;
-                                }
+            // Blocking linear consume — Stream.close() on try-with-resources triggers
+            // Disposable.dispose() on the underlying Flux subscription, propagating cancel upstream.
+            try (Stream<ChatResponse> stream = flux.toStream()) {
+                final Iterator<ChatResponse> it = stream.iterator();
+                while (it.hasNext() && !cancelled.get()) {
+                    final ChatResponse response = it.next();
+                    if (response == null
+                            || response.getResult() == null
+                            || response.getResult().getOutput() == null) {
+                        continue;
+                    }
+                    final var output = response.getResult().getOutput();
+                    final var metadata = output.getMetadata();
+                    final String text = output.getText();
+
+                    // Extract usage и tool calls если появились (fix #26)
+                    if (response.getMetadata() != null && response.getMetadata().getUsage() != null) {
+                        usage = response.getMetadata().getUsage();
+                    }
+                    if (output.getToolCalls() != null && !output.getToolCalls().isEmpty()) {
+                        toolCalls = output.getToolCalls();
+                    }
+
+                    // Accumulate text для persist (не thinking)
+                    if (text != null && !text.isEmpty() && (metadata == null || !metadata.containsKey("thinking"))) {
+                        acc.append(text);
+                    }
+
+                    if (metadata != null && metadata.containsKey("thinking")) {
+                        if (text != null && !text.isEmpty()) {
+                            if (!reasoningStarted[0]) {
                                 trySendEvent(
                                         emitter,
                                         lock,
-                                        VercelSseEvent.ReasoningDelta.builder()
+                                        VercelSseEvent.ReasoningStart.builder()
                                                 .id(reasoningBlockId)
-                                                .delta(text)
                                                 .build());
+                                reasoningStarted[0] = true;
                             }
-                        } else if (metadata != null && metadata.containsKey("signature")) {
-                            // Signature marks end of thinking block
-                            if (reasoningStarted[0]) {
-                                final Object signature = metadata.get("signature");
-                                if (signature instanceof String sig) {
-                                    trySendReasoningSignature(emitter, lock, sig);
-                                }
-                                trySendEvent(
-                                        emitter,
-                                        lock,
-                                        VercelSseEvent.ReasoningEnd.builder()
-                                                .id(reasoningBlockId)
-                                                .build());
-                                reasoningStarted[0] = false;
-                            }
-                        } else {
-                            // Regular text delta
-                            if (text != null && !text.isEmpty()) {
-                                if (!textStartSent[0]) {
-                                    trySendEvent(
-                                            emitter,
-                                            lock,
-                                            VercelSseEvent.TextStart.builder()
-                                                    .id(textBlockId)
-                                                    .build());
-                                    textStartSent[0] = true;
-                                }
-                                trySendEvent(
-                                        emitter,
-                                        lock,
-                                        VercelSseEvent.TextDelta.builder()
-                                                .id(textBlockId)
-                                                .delta(text)
-                                                .build());
-                            }
+                            trySendEvent(
+                                    emitter,
+                                    lock,
+                                    VercelSseEvent.ReasoningDelta.builder()
+                                            .id(reasoningBlockId)
+                                            .delta(text)
+                                            .build());
                         }
-                    })
-                    .blockLast();
+                    } else if (metadata != null && metadata.containsKey("signature")) {
+                        if (reasoningStarted[0]) {
+                            final Object signature = metadata.get("signature");
+                            if (signature instanceof String sig) {
+                                trySendReasoningSignature(emitter, lock, sig);
+                            }
+                            trySendEvent(
+                                    emitter,
+                                    lock,
+                                    VercelSseEvent.ReasoningEnd.builder()
+                                            .id(reasoningBlockId)
+                                            .build());
+                            reasoningStarted[0] = false;
+                        }
+                    } else {
+                        if (text != null && !text.isEmpty()) {
+                            if (!textStartSent[0]) {
+                                trySendEvent(
+                                        emitter,
+                                        lock,
+                                        VercelSseEvent.TextStart.builder()
+                                                .id(textBlockId)
+                                                .build());
+                                textStartSent[0] = true;
+                            }
+                            trySendEvent(
+                                    emitter,
+                                    lock,
+                                    VercelSseEvent.TextDelta.builder()
+                                            .id(textBlockId)
+                                            .delta(text)
+                                            .build());
+                        }
+                    }
+                }
+            } // Stream.close() → Disposable.dispose() → upstream cancel (fix #12)
 
             // Close any unclosed reasoning block (e.g. if signature was missing)
             if (reasoningStarted[0]) {
@@ -322,13 +366,44 @@ public class SseStreamingService {
         } catch (ClientDisconnectedException disconnect) {
             log.debug("SSE client disconnected mid-stream for conversation {}", conversationId, disconnect);
         } catch (RuntimeException ex) {
+            lastError = ex;
             log.warn("SSE streaming failed for conversation {}", conversationId, ex);
             trySendError(emitter, lock, ex.getMessage());
             synchronized (lock) {
                 emitter.completeWithError(ex);
             }
         } finally {
-            cancelSignals.remove(conversationId);
+            cancelFlags.remove(conversationId);
+
+            // Linear persist + audit. No SignalType, no doFinally, no reactive state.
+            final long duration = System.currentTimeMillis() - startTime;
+            final String accText = acc.toString();
+            final String method =
+                    cancelled.get() ? "stream-cancelled" : (lastError != null ? "stream-error" : "stream-completed");
+
+            // Persist partial/full assistant content (fix #11: partial content on cancel)
+            if (!accText.isEmpty()) {
+                try {
+                    chatMemory.add(conversationId, List.of(new AssistantMessage(accText)));
+                } catch (Exception persistEx) {
+                    log.warn("Failed to persist assistant message for conversation {}", conversationId, persistEx);
+                }
+            }
+
+            // Audit (fix #26: token_usage/tool_calls written; #3: no SRE log on cancel)
+            try {
+                if (lastError != null) {
+                    chatAuditService.logError(conversationId, method, null, lastError, duration, userId);
+                } else {
+                    chatAuditService.log(conversationId, method, null, accText, duration, userId, usage, toolCalls);
+                }
+            } catch (Exception auditEx) {
+                log.warn("Failed to write chat audit for conversation {}", conversationId, auditEx);
+            }
+
+            if (cancelled.get()) {
+                log.info("Stream loop exited on cancel for conversation {}", conversationId);
+            }
         }
     }
 
@@ -486,18 +561,19 @@ public class SseStreamingService {
     }
 
     /**
-     * Cancels an active stream for the given conversation. Emits a complete signal
-     * to the {@code takeUntilOther} operator, causing the Flux pipeline to terminate
-     * and stop consuming LLM tokens.
+     * Cancels an active stream for the given conversation by setting the linear cancel flag.
+     * The runStream loop polls {@code !cancelled.get()} before each iteration and exits cleanly,
+     * then persist+audit run in the {@code finally} block with {@code method=stream-cancelled}
+     * and the accumulated partial content (fix #11).
      *
      * @param conversationId идентификатор разговора для отмены
      * @return true если стрим был найден и отменён, false если стрим не был активен
      */
     public boolean cancel(final String conversationId) {
-        final Sinks.Empty<Void> sink = cancelSignals.remove(conversationId);
-        if (sink != null) {
-            sink.tryEmitEmpty();
-            log.info("Cancelled active stream for conversation {}", conversationId);
+        final AtomicBoolean flag = cancelFlags.get(conversationId);
+        if (flag != null) {
+            flag.set(true);
+            log.info("Stream cancelled for conversation {}", conversationId);
             return true;
         }
         return false;

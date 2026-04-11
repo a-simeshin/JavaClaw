@@ -1,5 +1,6 @@
 package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.agent.config.DefaultChatModelProperties;
 import ai.javaclaw.agent.config.RoleAgentConfigService;
 import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
@@ -44,6 +45,7 @@ public class ChatRestController {
     private final AgentQuotaService agentQuotaService;
     private final RoleAgentConfigService roleAgentConfigService;
     private final RoleModelAllowlistService roleModelAllowlistService;
+    private final DefaultChatModelProperties defaultChatModelProperties;
 
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<ResponseBodyEmitter> send(
@@ -61,7 +63,10 @@ public class ChatRestController {
         }
         final String userRole = userResolver.resolveUserRole(principal.getName());
         final String modelOverride = roleAgentConfigService.resolveModelForRole(userRole);
-        if (!roleModelAllowlistService.isModelAllowed(userRole, modelOverride)) {
+        final String effectiveModel = (modelOverride != null && !modelOverride.isBlank())
+                ? modelOverride
+                : defaultChatModelProperties.model();
+        if (!roleModelAllowlistService.isModelAllowed(userRole, effectiveModel)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         conversationEnsurer.ensureExistsForUser(conversationId, userId);

@@ -18,7 +18,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 /**
  * Оркестратор жизненного цикла запроса к LLM: сборка сообщений → streaming/call → persist.
@@ -96,22 +95,18 @@ public class ChatService {
     }
 
     /**
-     * Стриминговый запрос к LLM. Персистит пользовательское сообщение до начала стриминга,
-     * ассистентское — по завершении стрима.
-     *
-     * <p>Если модель не поддерживает streaming (выбрасывает {@link UnsupportedOperationException}),
-     * автоматически fallback на синхронный {@link ChatModel#call(Prompt)}.
+     * Стриминговый запрос к LLM (backward-compatible overload).
      *
      * @param conversationId идентификатор разговора, не может быть пустым
      * @param userContent содержимое сообщения пользователя, не может быть пустым
      * @return Flux с ответами от LLM
      */
     public Flux<ChatResponse> stream(final String conversationId, final String userContent) {
-        return stream(conversationId, null, userContent);
+        return stream(conversationId, null, userContent, null);
     }
 
     /**
-     * Стриминговый запрос к LLM с per-user prompt support.
+     * Стриминговый запрос к LLM с per-user prompt support (backward-compatible overload).
      *
      * @param conversationId идентификатор разговора, не может быть пустым
      * @param userId идентификатор пользователя для per-user промптов, может быть null
@@ -126,11 +121,23 @@ public class ChatService {
     /**
      * Стриминговый запрос к LLM с per-user prompt support и role-based model override.
      *
+     * <p>Метод отвечает только за построение prompt и возврат {@link Flux}; персист и audit
+     * ассистентского ответа делает вызывающий код (SseStreamingService), который консьюмит Flux
+     * через {@link Flux#toStream()} и управляет жизненным циклом линейно. Это устраняет
+     * реактивное состояние из бизнес-кода и корректно обрабатывает cancel/upstream abort
+     * (fixes #11, #12, #24, #26).
+     *
+     * <p>UserMessage персистится ОДИН РАЗ до построения prompt. Assistant persist и audit —
+     * на стороне caller.
+     *
+     * <p>Если модель не поддерживает streaming (выбрасывает {@link UnsupportedOperationException}),
+     * автоматически fallback на синхронный {@link ChatModel#call(Prompt)}.
+     *
      * @param conversationId идентификатор разговора, не может быть пустым
      * @param userId идентификатор пользователя для per-user промптов, может быть null
      * @param userContent содержимое сообщения пользователя, не может быть пустым
      * @param modelOverride модель для использования вместо дефолтной, может быть null
-     * @return Flux с ответами от LLM
+     * @return Flux с ответами от LLM — без реактивных hook'ов для persist/audit
      */
     public Flux<ChatResponse> stream(
             final String conversationId,
@@ -145,41 +152,16 @@ public class ChatService {
             return handleApprovalResponse(conversationId, userContent);
         }
 
+        // Persist user message ONCE — fix #24 (no duplicate USER messages).
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
         final Prompt prompt = buildPrompt(conversationId, userId, userContent, modelOverride);
-        final Sinks.Many<String> contentSink = Sinks.many().unicast().onBackpressureBuffer();
-        final StringBuilder assistantContent = new StringBuilder();
-        final long startTime = System.currentTimeMillis();
-
         try {
-            final Flux<ChatResponse> responseFlux = chatModel.stream(prompt);
-            return responseFlux
-                    .doOnNext(response -> accumulateContent(response, assistantContent))
-                    .doOnComplete(() -> {
-                        final String text = assistantContent.toString();
-                        persistAssistantMessage(conversationId, text);
-                        chatAuditService.logSuccess(
-                                conversationId, "stream", prompt, text, System.currentTimeMillis() - startTime);
-                    })
-                    .doOnError(error -> {
-                        log.warn("Stream error for conversation {}: {}", conversationId, error.getMessage());
-                        chatAuditService.logError(
-                                conversationId, "stream", prompt, error, System.currentTimeMillis() - startTime);
-                    });
+            return chatModel.stream(prompt);
         } catch (final UnsupportedOperationException e) {
             log.debug(
                     "ChatModel does not support streaming, falling back to call() for conversation {}", conversationId);
-            return Mono.fromCallable(() -> chatModel.call(prompt))
-                    .doOnSuccess(response -> {
-                        final String text = extractText(response);
-                        persistAssistantMessage(conversationId, text);
-                        chatAuditService.logSuccess(
-                                conversationId, "stream-fb", prompt, text, System.currentTimeMillis() - startTime);
-                    })
-                    .doOnError(error -> chatAuditService.logError(
-                            conversationId, "stream-fb", prompt, error, System.currentTimeMillis() - startTime))
-                    .flux();
+            return Mono.fromCallable(() -> chatModel.call(prompt)).flux();
         }
     }
 
@@ -333,22 +315,6 @@ public class ChatService {
     /** Backward-compatible buildPrompt without model override. */
     private Prompt buildPrompt(final String conversationId, @Nullable final String userId, final String userContent) {
         return buildPrompt(conversationId, userId, userContent, null);
-    }
-
-    /**
-     * Накапливает текст ответа из ChatResponse в StringBuilder для последующего persist.
-     *
-     * @param response ответ от LLM
-     * @param accumulator аккумулятор текста
-     */
-    private void accumulateContent(final ChatResponse response, final StringBuilder accumulator) {
-        if (response == null || response.getResult() == null) {
-            return;
-        }
-        final AssistantMessage output = response.getResult().getOutput();
-        if (output != null && output.getText() != null) {
-            accumulator.append(output.getText());
-        }
     }
 
     /**

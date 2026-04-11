@@ -93,12 +93,19 @@ public class FallbackChatModel implements ChatModel {
 
         Flux<ChatResponse> chain = Flux.error(primaryError);
         for (final String model : fallbackModels) {
-            final String fallbackModel = model;
-            chain = chain.onErrorResume(e -> {
-                log.info("Fallback stream: model={}", fallbackModel);
-                final Prompt fallbackPrompt = withModel(original, fallbackModel);
-                return delegate.stream(fallbackPrompt);
-            });
+            for (int attempt = 0; attempt < properties.maxRetriesPerModel(); attempt++) {
+                final String fallbackModel = model;
+                final int att = attempt + 1;
+                chain = chain.onErrorResume(e -> {
+                    log.info(
+                            "Fallback stream: model={}, attempt={}/{}",
+                            fallbackModel,
+                            att,
+                            properties.maxRetriesPerModel());
+                    final Prompt fallbackPrompt = withModel(original, fallbackModel);
+                    return delegate.stream(fallbackPrompt);
+                });
+            }
         }
         return chain;
     }
@@ -113,14 +120,37 @@ public class FallbackChatModel implements ChatModel {
         if (originalOptions instanceof ToolCallingChatOptions toolOpts) {
             final ToolCallingChatOptions newOptions = ToolCallingChatOptions.builder()
                     .model(model)
+                    .temperature(toolOpts.getTemperature())
+                    .topP(toolOpts.getTopP())
+                    .topK(toolOpts.getTopK())
+                    .maxTokens(toolOpts.getMaxTokens())
+                    .stopSequences(toolOpts.getStopSequences())
+                    .frequencyPenalty(toolOpts.getFrequencyPenalty())
+                    .presencePenalty(toolOpts.getPresencePenalty())
                     .toolCallbacks(toolOpts.getToolCallbacks())
                     .internalToolExecutionEnabled(toolOpts.getInternalToolExecutionEnabled())
                     .build();
             return new Prompt(original.getInstructions(), newOptions);
         }
 
+        if (originalOptions == null) {
+            return new Prompt(
+                    original.getInstructions(),
+                    ChatOptions.builder().model(model).build());
+        }
+
         return new Prompt(
-                original.getInstructions(), ChatOptions.builder().model(model).build());
+                original.getInstructions(),
+                ChatOptions.builder()
+                        .model(model)
+                        .temperature(originalOptions.getTemperature())
+                        .topP(originalOptions.getTopP())
+                        .topK(originalOptions.getTopK())
+                        .maxTokens(originalOptions.getMaxTokens())
+                        .stopSequences(originalOptions.getStopSequences())
+                        .frequencyPenalty(originalOptions.getFrequencyPenalty())
+                        .presencePenalty(originalOptions.getPresencePenalty())
+                        .build());
     }
 
     /** Возвращает wrapped delegate для тестирования. */

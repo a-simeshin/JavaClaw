@@ -1,6 +1,7 @@
 package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.config.DefaultChatModelProperties;
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.tasks.ApprovalService;
 import ai.javaclaw.tools.AutoDiscoveredTool;
@@ -27,7 +28,12 @@ import org.springframework.lang.Nullable;
  * которые ранее создавались inline в {@code JavaClawConfiguration.chatClient()}.
  */
 @Configuration
-@EnableConfigurationProperties({TokenBudgetProperties.class, ModelFallbackProperties.class, ToolDenyProperties.class})
+@EnableConfigurationProperties({
+    TokenBudgetProperties.class,
+    ModelFallbackProperties.class,
+    ToolDenyProperties.class,
+    DefaultChatModelProperties.class
+})
 public class ChatServiceConfiguration {
 
     /**
@@ -110,9 +116,11 @@ public class ChatServiceConfiguration {
     public ChatModel fallbackChatModel(
             final org.springframework.beans.factory.ObjectProvider<ChatModel> chatModelProvider,
             final ModelFallbackProperties fallbackProperties) {
-        // Use ObjectProvider to get the non-primary ChatModel (avoids circular @Primary resolution)
+        // Use ObjectProvider to get the non-primary ChatModel (avoids circular @Primary resolution).
+        // Приоритизируем ReasoningCapableChatModel (reasoning-aware) при наличии в контексте.
         final ChatModel delegate = chatModelProvider.stream()
                 .filter(m -> !(m instanceof FallbackChatModel))
+                .sorted(java.util.Comparator.comparingInt(m -> m instanceof ReasoningCapableChatModel ? 0 : 1))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No ChatModel bean found for FallbackChatModel delegate"));
         return new FallbackChatModel(delegate, fallbackProperties);

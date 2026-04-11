@@ -6,6 +6,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,16 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** CRUD + status + visibility/allowlist + personal server endpoints for MCP servers. */
 @RestController
+@AllArgsConstructor
 @RequestMapping("/api/mcp-servers")
 public class McpServerController {
 
     private final McpServerService service;
     private final UserResolver userResolver;
-
-    public McpServerController(final McpServerService service, final UserResolver userResolver) {
-        this.service = service;
-        this.userResolver = userResolver;
-    }
 
     @GetMapping
     public List<McpServerDto> list() {

@@ -5,11 +5,14 @@ import java.io.StringWriter;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +91,81 @@ public class ChatAuditService {
                 userId,
                 toolCallsDetail,
                 tokenUsage));
+    }
+
+    /**
+     * Unified log method with structured {@link Usage} and {@link AssistantMessage.ToolCall} objects.
+     * Serializes usage and toolCalls to JSON strings before persisting.
+     */
+    @Async
+    public void log(
+            final String conversationId,
+            final String method,
+            final Prompt prompt,
+            final String responseText,
+            final long durationMs,
+            @Nullable final String userId,
+            @Nullable final Usage usage,
+            @Nullable final List<AssistantMessage.ToolCall> toolCalls) {
+        final String tokenUsageJson = serializeUsage(usage);
+        final String toolCallsJson = serializeToolCalls(toolCalls);
+        logSuccess(conversationId, method, prompt, responseText, durationMs, userId, toolCallsJson, tokenUsageJson);
+    }
+
+    /**
+     * Unified logError method with structured Throwable and optional userId.
+     */
+    @Async
+    public void logError(
+            final String conversationId,
+            final String method,
+            final Prompt prompt,
+            final Throwable error,
+            final long durationMs,
+            @Nullable final String userId) {
+        logError(conversationId, method, prompt, error, durationMs, userId, null, null);
+    }
+
+    private static String serializeUsage(@Nullable final Usage usage) {
+        if (usage == null) {
+            return null;
+        }
+        return "{\"promptTokens\":"
+                + usage.getPromptTokens()
+                + ",\"completionTokens\":"
+                + usage.getCompletionTokens()
+                + ",\"totalTokens\":"
+                + usage.getTotalTokens()
+                + "}";
+    }
+
+    private static String serializeToolCalls(@Nullable final List<AssistantMessage.ToolCall> toolCalls) {
+        if (toolCalls == null || toolCalls.isEmpty()) {
+            return null;
+        }
+        final StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < toolCalls.size(); i++) {
+            final AssistantMessage.ToolCall tc = toolCalls.get(i);
+            if (i > 0) {
+                sb.append(",");
+            }
+            sb.append("{\"id\":\"")
+                    .append(escape(tc.id()))
+                    .append("\",\"name\":\"")
+                    .append(escape(tc.name()))
+                    .append("\",\"arguments\":")
+                    .append(tc.arguments() != null ? tc.arguments() : "null")
+                    .append("}");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private static String escape(@Nullable final String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private ChatAuditLog buildEntry(

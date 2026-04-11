@@ -1,5 +1,6 @@
 package ai.javaclaw.e2e.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import ai.javaclaw.JavaClawApplication;
@@ -14,12 +15,16 @@ import com.microsoft.playwright.options.ViewportSize;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -100,8 +105,18 @@ public abstract class PlaywrightE2ETestBase {
     @Autowired
     protected JdbcClient jdbcClient;
 
+    @Autowired
+    protected DataSource dataSource;
+
+    protected JdbcAssertions jdbcAssertions;
+
     protected BrowserContext context;
     protected Page page;
+
+    @BeforeEach
+    void initJdbcAssertions() {
+        jdbcAssertions = new JdbcAssertions(dataSource);
+    }
 
     @BeforeEach
     void cleanDatabase() {
@@ -160,8 +175,20 @@ public abstract class PlaywrightE2ETestBase {
     }
 
     /**
-     * Performs the full UI login flow: types credentials into the login form,
-     * clicks submit, and waits for navigation away from /login.
+     * Performs the full UI login flow through the real Spring Security {@code /login}
+     * form endpoint (POST form submission — not a mock or localStorage injection).
+     *
+     * <p>Steps:
+     * <ol>
+     *   <li>Navigates to {@code /login}.</li>
+     *   <li>Fills {@code #login-username} and {@code #login-password} inputs.</li>
+     *   <li>Submits the form via {@code button[type=submit]}.</li>
+     *   <li>Waits for redirect to {@code /chat} (Spring Security success handler).</li>
+     *   <li>Waits for full network idle so the SPA is ready.</li>
+     * </ol>
+     *
+     * <p>Use {@link #loginViaStorage} when you want to skip the login UI entirely
+     * (e.g. tests focused on chat behaviour, not auth).
      */
     protected void login(String username, String password) {
         page.navigate(baseUrl() + "/login");
@@ -418,4 +445,138 @@ public abstract class PlaywrightE2ETestBase {
     public static final ViewportSize VP_LAPTOP = new ViewportSize(1280, 800);
     public static final ViewportSize VP_TABLET = new ViewportSize(768, 1024);
     public static final ViewportSize VP_MOBILE = new ViewportSize(375, 667);
+
+    // -------------------------------------------------------------------- DB assertions
+
+    /**
+     * Helper for direct database assertions via JDBC against the Testcontainer DataSource.
+     *
+     * <p>Instantiated automatically in {@code @BeforeEach} as {@link #jdbcAssertions}.
+     * Subclasses can call any method directly, e.g.:
+     * <pre>{@code
+     *   jdbcAssertions.assertAuditUserIdNotNull(conversationId);
+     * }</pre>
+     */
+    public static class JdbcAssertions {
+
+        private final DataSource dataSource;
+
+        public JdbcAssertions(DataSource dataSource) {
+            this.dataSource = dataSource;
+        }
+
+        /**
+         * Asserts that the latest {@code chat_audit_log} row for the given conversation
+         * has a non-null, non-blank {@code user_id}.
+         */
+        public void assertAuditUserIdNotNull(String conversationId) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT user_id FROM chat_audit_log WHERE conversation_id = ? ORDER BY id DESC LIMIT 1")) {
+                ps.setString(1, conversationId);
+                ResultSet rs = ps.executeQuery();
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getString("user_id")).isNotNull().isNotBlank();
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+
+        /**
+         * Asserts that a {@code conversation_summaries} row exists for the conversation
+         * and that {@code messages_covered >= minMessages}.
+         */
+        public void assertSummaryCoversAtLeast(String conversationId, int minMessages) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT messages_covered FROM conversation_summaries WHERE conversation_id = ?")) {
+                ps.setString(1, conversationId);
+                ResultSet rs = ps.executeQuery();
+                assertThat(rs.next()).as("summary row exists").isTrue();
+                assertThat(rs.getInt("messages_covered")).isGreaterThanOrEqualTo(minMessages);
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+
+        /**
+         * Asserts that the {@code history} column of the latest audit row for the
+         * conversation does NOT contain duplicate consecutive {@code [USER]} blocks.
+         */
+        public void assertHistoryNoDuplicates(String conversationId) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT history FROM chat_audit_log WHERE conversation_id = ? ORDER BY id DESC LIMIT 1")) {
+                ps.setString(1, conversationId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String history = rs.getString("history");
+                    if (history != null) {
+                        // Count [USER] markers — should appear once per turn
+                        String[] parts = history.split("\\[USER\\]");
+                        // Check no two identical consecutive USER blocks
+                        for (int i = 1; i < parts.length - 1; i++) {
+                            assertThat(parts[i].trim())
+                                    .as("duplicate USER message at index " + i)
+                                    .isNotEqualTo(parts[i + 1].trim());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+
+        /**
+         * Asserts that the {@code token_usage} column is not null in the latest audit row
+         * for the given conversation.
+         */
+        public void assertTokenUsageNotNull(String conversationId) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT token_usage FROM chat_audit_log WHERE conversation_id = ? ORDER BY id DESC LIMIT 1")) {
+                ps.setString(1, conversationId);
+                ResultSet rs = ps.executeQuery();
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getString("token_usage")).isNotNull();
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+
+        /**
+         * Asserts that the {@code tool_examples} table contains exactly {@code expected} rows.
+         */
+        public void assertToolExampleCount(int expected) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement("SELECT count(*) FROM tool_examples")) {
+                ResultSet rs = ps.executeQuery();
+                rs.next();
+                assertThat(rs.getInt(1)).isEqualTo(expected);
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+
+        /**
+         * Asserts that the {@code system_prompt} column in the latest audit row for the
+         * conversation does NOT contain the given {@code forbidden} literal string.
+         */
+        public void assertSystemPromptNotContains(String conversationId, String forbidden) {
+            try (Connection conn = dataSource.getConnection();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT system_prompt FROM chat_audit_log WHERE conversation_id = ? ORDER BY id DESC LIMIT 1")) {
+                ps.setString(1, conversationId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String sp = rs.getString("system_prompt");
+                    if (sp != null) {
+                        assertThat(sp).doesNotContain(forbidden);
+                    }
+                }
+            } catch (Exception e) {
+                throw new AssertionError("DB assertion failed", e);
+            }
+        }
+    }
 }

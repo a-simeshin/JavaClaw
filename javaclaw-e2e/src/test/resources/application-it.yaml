@@ -23,6 +23,9 @@ spring:
     openai:
       api-key: dummy-test-key
       base-url: http://localhost:0
+      chat:
+        options:
+          model: default/test-model
 
 agent:
   onboarding:

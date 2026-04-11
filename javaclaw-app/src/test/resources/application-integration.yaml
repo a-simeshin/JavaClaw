@@ -55,6 +55,8 @@ javaclaw:
       timeout: 5s
       heartbeat-interval: 60s
       max-concurrent: 100
+  reasoning:
+    enabled: false
 
 jobrunr:
   background-job-server:

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.agent.config.DefaultChatModelProperties;
 import ai.javaclaw.agent.config.RoleAgentConfigService;
 import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
@@ -28,12 +29,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 
 class ChatRestControllerTest {
 
+    static final String DEFAULT_MODEL = "minimax/minimax-m2.7";
+
     private SseStreamingService streamingService;
     private ConversationEnsurer conversationEnsurer;
     private UserResolver userResolver;
     private AgentQuotaService agentQuotaService;
     private RoleAgentConfigService roleAgentConfigService;
     private RoleModelAllowlistService roleModelAllowlistService;
+    private DefaultChatModelProperties defaultChatModelProperties;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -44,6 +48,7 @@ class ChatRestControllerTest {
         agentQuotaService = mock(AgentQuotaService.class);
         roleAgentConfigService = mock(RoleAgentConfigService.class);
         roleModelAllowlistService = mock(RoleModelAllowlistService.class);
+        defaultChatModelProperties = new DefaultChatModelProperties(DEFAULT_MODEL);
         when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
         when(userResolver.resolveUserRole("admin")).thenReturn("ADMIN");
         when(roleModelAllowlistService.isModelAllowed(anyString(), any())).thenReturn(true);
@@ -53,7 +58,8 @@ class ChatRestControllerTest {
                         userResolver,
                         agentQuotaService,
                         roleAgentConfigService,
-                        roleModelAllowlistService))
+                        roleModelAllowlistService,
+                        defaultChatModelProperties))
                 .defaultRequest(post("/").principal(adminPrincipal()))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
@@ -135,6 +141,37 @@ class ChatRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void whenUserRoleHasAllowlist_andDefaultModelNotAllowed_thenForbidden() throws Exception {
+        // No roleAgentConfig override → modelOverride is null → falls back to defaultChatModelProperties.model()
+        when(streamingService.createEmitter()).thenReturn(new ResponseBodyEmitter(5000L));
+        when(userResolver.resolveUserRole("admin")).thenReturn("USER");
+        when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
+        when(roleAgentConfigService.resolveModelForRole("USER")).thenReturn(null);
+        when(roleModelAllowlistService.isModelAllowed("USER", DEFAULT_MODEL)).thenReturn(false);
+
+        mockMvc.perform(post("/api/chat/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void whenUserRoleAllowlistEmpty_thenAnyModelAllowed() throws Exception {
+        // No roleAgentConfig override → modelOverride is null → falls back to defaultChatModelProperties.model()
+        when(streamingService.createEmitter()).thenReturn(new ResponseBodyEmitter(5000L));
+        doNothing().when(streamingService).stream(any(), anyString(), anyString(), anyString(), any());
+        when(userResolver.resolveUserRole("admin")).thenReturn("USER");
+        when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
+        when(roleAgentConfigService.resolveModelForRole("USER")).thenReturn(null);
+        when(roleModelAllowlistService.isModelAllowed("USER", DEFAULT_MODEL)).thenReturn(true);
+
+        mockMvc.perform(post("/api/chat/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
+                .andExpect(status().isOk());
     }
 
     @Test

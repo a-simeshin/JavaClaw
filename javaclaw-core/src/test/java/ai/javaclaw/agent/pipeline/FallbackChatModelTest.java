@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import reactor.core.publisher.Flux;
@@ -137,6 +139,68 @@ class FallbackChatModelTest {
         assertThat(resultOpts.getModel()).isEqualTo("fallback/new");
         assertThat(resultOpts.getInternalToolExecutionEnabled()).isTrue();
         assertThat(result.getInstructions()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("streamWithFallback retries maxRetriesPerModel times per model")
+    void streamWithFallback_retriesMaxTimes() {
+        final ChatModel delegate = mock(ChatModel.class);
+        when(delegate.stream(any(Prompt.class)))
+                .thenReturn(Flux.error(new RuntimeException("primary down")))
+                .thenReturn(Flux.error(new RuntimeException("fallback try 1")))
+                .thenReturn(Flux.error(new RuntimeException("fallback try 2")))
+                .thenReturn(Flux.just(OK_RESPONSE));
+
+        final var props = new ModelFallbackProperties(true, List.of("fallback/a"), 3);
+        final var model = new FallbackChatModel(delegate, props);
+
+        StepVerifier.create(model.stream(testPrompt())).expectNext(OK_RESPONSE).verifyComplete();
+
+        verify(delegate, times(4)).stream(any(Prompt.class));
+    }
+
+    @Test
+    @DisplayName("withModel preserves temperature and topP for plain ChatOptions")
+    void withModel_preservesOptions_plainChatOptions() {
+        final Prompt original = new Prompt(
+                "test",
+                ChatOptions.builder()
+                        .model("old")
+                        .temperature(0.7)
+                        .topP(0.9)
+                        .maxTokens(100)
+                        .build());
+
+        final Prompt result = FallbackChatModel.withModel(original, "new-model");
+
+        final ChatOptions opts = result.getOptions();
+        assertThat(opts.getModel()).isEqualTo("new-model");
+        assertThat(opts.getTemperature()).isEqualTo(0.7);
+        assertThat(opts.getTopP()).isEqualTo(0.9);
+        assertThat(opts.getMaxTokens()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("withModel preserves temperature and topP for ToolCallingChatOptions")
+    void withModel_preservesOptions_toolCallingChatOptions() {
+        final var options = ToolCallingChatOptions.builder()
+                .model("old")
+                .temperature(0.5)
+                .topP(0.8)
+                .maxTokens(200)
+                .internalToolExecutionEnabled(true)
+                .build();
+        final Prompt original = new Prompt(List.of(new UserMessage("hi")), options);
+
+        final Prompt result = FallbackChatModel.withModel(original, "new-model");
+
+        assertThat(result.getOptions()).isInstanceOf(ToolCallingChatOptions.class);
+        final var resultOpts = (ToolCallingChatOptions) result.getOptions();
+        assertThat(resultOpts.getModel()).isEqualTo("new-model");
+        assertThat(resultOpts.getTemperature()).isEqualTo(0.5);
+        assertThat(resultOpts.getTopP()).isEqualTo(0.8);
+        assertThat(resultOpts.getMaxTokens()).isEqualTo(200);
+        assertThat(resultOpts.getInternalToolExecutionEnabled()).isTrue();
     }
 
     @Test

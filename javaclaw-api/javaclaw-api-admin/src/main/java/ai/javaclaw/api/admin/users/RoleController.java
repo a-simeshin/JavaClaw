@@ -6,6 +6,7 @@ import ai.javaclaw.agent.config.RoleModelAllowlistService;
 import ai.javaclaw.users.CustomRole;
 import ai.javaclaw.users.CustomRoleService;
 import ai.javaclaw.users.Permission;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -182,10 +183,18 @@ public class RoleController {
         return ResponseEntity.status(201).build();
     }
 
-    @DeleteMapping("/{name}/allowed-models/{modelId}")
-    public ResponseEntity<Void> removeAllowedModel(@PathVariable String name, @PathVariable String modelId) {
+    @DeleteMapping("/{name}/allowed-models/**")
+    public ResponseEntity<Void> removeAllowedModel(@PathVariable String name, HttpServletRequest request) {
+        final String modelId = extractModelId(request, name);
         modelAllowlistService.removeAllowedModel(name, modelId);
         return ResponseEntity.noContent().build();
+    }
+
+    private static String extractModelId(HttpServletRequest request, String roleName) {
+        String path = request.getRequestURI();
+        String prefix = "/api/roles/" + roleName + "/allowed-models/";
+        int idx = path.indexOf(prefix);
+        return idx >= 0 ? path.substring(idx + prefix.length()) : "";
     }
 
     public record SetAllowedModelsRequest(List<String> modelIds) {}

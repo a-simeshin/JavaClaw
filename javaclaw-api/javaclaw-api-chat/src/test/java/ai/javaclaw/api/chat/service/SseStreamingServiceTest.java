@@ -2,33 +2,40 @@ package ai.javaclaw.api.chat.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ai.javaclaw.agent.audit.ChatAuditService;
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelContextService;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.metadata.ChatResponseMetadata;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import reactor.core.publisher.Flux;
 
 /**
- * Unit tests for {@link SseStreamingService} admission control and emitter lifecycle.
- *
- * <p>Verifies semaphore-based concurrency limiting and emitter timeout configuration
- * without starting a real LLM connection.
+ * Unit tests for {@link SseStreamingService} — admission control, emitter lifecycle,
+ * linear persist/audit/cancel flow (Phase 2 refactor: Flux.toStream + AtomicBoolean cancel).
  */
 class SseStreamingServiceTest {
 
@@ -38,15 +45,34 @@ class SseStreamingServiceTest {
     /** Мок ChannelContextService — saveContext не вызывается в этих тестах. */
     private final ChannelContextService channelContextService = mock(ChannelContextService.class);
 
-    @Test
-    void createEmitterReturnsNullWhenCapacityExhausted() {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1);
-        final SseStreamingService service = new SseStreamingService(
+    /** Мок ChatMemory — для проверки persist. */
+    private final ChatMemory chatMemory = mock(ChatMemory.class);
+
+    /** Мок ChatAuditService — для проверки audit. */
+    private final ChatAuditService chatAuditService = mock(ChatAuditService.class);
+
+    private SseStreamingService newService(final ChatRestConfiguration.SseProperties props) {
+        return new SseStreamingService(
                 chatService,
                 channelContextService,
+                chatMemory,
+                chatAuditService,
                 props,
                 tools.jackson.databind.json.JsonMapper.builder().build());
+    }
+
+    private static ChatRestConfiguration.SseProperties props(final int max) {
+        return new ChatRestConfiguration.SseProperties(Duration.ofSeconds(30), Duration.ofSeconds(10), max);
+    }
+
+    // -------------------------------------------------------------------------
+    // Admission control
+    // -------------------------------------------------------------------------
+
+    @Test
+    void createEmitterReturnsNullWhenCapacityExhausted() {
+        final SseStreamingService service =
+                newService(new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 1));
 
         final ResponseBodyEmitter first = service.createEmitter();
         final ResponseBodyEmitter second = service.createEmitter();
@@ -59,13 +85,8 @@ class SseStreamingServiceTest {
 
     @Test
     void createEmitterTracksConfiguredTimeout() {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5);
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
+        final SseStreamingService service =
+                newService(new ChatRestConfiguration.SseProperties(Duration.ofMillis(4242), Duration.ofSeconds(1), 5));
 
         final ResponseBodyEmitter emitter = service.createEmitter();
 
@@ -75,13 +96,8 @@ class SseStreamingServiceTest {
 
     @Test
     void availablePermitsDecrementsOnCreate() {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3);
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
+        final SseStreamingService service =
+                newService(new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 3));
 
         service.createEmitter();
         service.createEmitter();
@@ -92,13 +108,8 @@ class SseStreamingServiceTest {
 
     @Test
     void exhaustingAllPermitsReturnsNullAfterMaxReached() {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2);
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
+        final SseStreamingService service =
+                newService(new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 2));
 
         assertThat(service.createEmitter()).isNotNull();
         assertThat(service.createEmitter()).isNotNull();
@@ -108,24 +119,175 @@ class SseStreamingServiceTest {
 
     @Test
     void cancelReturnsFalseWhenNoActiveStream() {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 5);
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
+        final SseStreamingService service = newService(props(5));
         assertThat(service.cancel("nonexistent-conv")).isFalse();
     }
 
+    // -------------------------------------------------------------------------
+    // Phase 2: linear persist + audit
+    // -------------------------------------------------------------------------
+
     @Test
-    void streamEmitsReasoningDeltasForThinkingMetadata() throws Exception {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(30), Duration.ofSeconds(10), 5);
+    @DisplayName("whenStreamCompletes_thenAccPersisted_andAuditMethodStreamCompleted")
+    void stream_completes_persistsAndAuditsWithCompletedMethod() throws Exception {
         doNothing().when(channelContextService).saveContext(any(), any(), any());
 
-        // Simulate a thinking → signature → text sequence
+        final Flux<ChatResponse> flux = Flux.just(
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Hello ")))),
+                new ChatResponse(List.of(new Generation(new AssistantMessage("world")))),
+                new ChatResponse(List.of(new Generation(new AssistantMessage("!")))));
+        when(chatService.stream(eq("cid-1"), eq("user-1"), eq("hi"), isNull())).thenReturn(flux);
+
+        final SseStreamingService service = newService(props(5));
+        final ResponseBodyEmitter emitter = service.createEmitter();
+
+        service.stream(emitter, "cid-1", "user-1", "hi", null);
+
+        // Mockito timeout() blocks until the mock call occurs — this is the completion signal
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<List<Message>> msgCaptor = ArgumentCaptor.forClass(List.class);
+        verify(chatMemory, timeout(5000)).add(eq("cid-1"), msgCaptor.capture());
+        assertThat(msgCaptor.getValue()).hasSize(1);
+        assertThat(msgCaptor.getValue().get(0)).isInstanceOf(AssistantMessage.class);
+        assertThat(msgCaptor.getValue().get(0).getText()).isEqualTo("Hello world!");
+
+        verify(chatAuditService, timeout(5000))
+                .log(
+                        eq("cid-1"),
+                        eq("stream-completed"),
+                        isNull(),
+                        eq("Hello world!"),
+                        anyLong(),
+                        eq("user-1"),
+                        any(),
+                        any());
+        verify(chatAuditService, never()).logError(anyString(), anyString(), any(), any(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("whenCancelFlagSet_thenPartialAccPersisted_andAuditMethodStreamCancelled")
+    void stream_cancelled_persistsPartialAndAuditsWithCancelledMethod() throws Exception {
+        doNothing().when(channelContextService).saveContext(any(), any(), any());
+
+        // Slow flux: emits ~20 chunks at 50ms intervals. We'll cancel after ~200ms.
+        final Flux<ChatResponse> slow = Flux.interval(Duration.ofMillis(50))
+                .take(40)
+                .map(i -> new ChatResponse(List.of(new Generation(new AssistantMessage("chunk-" + i + " ")))));
+        when(chatService.stream(eq("cid-2"), isNull(), eq("hi"), isNull())).thenReturn(slow);
+
+        final SseStreamingService service = newService(props(5));
+        final ResponseBodyEmitter emitter = service.createEmitter();
+
+        service.stream(emitter, "cid-2", "hi");
+        // Let it accumulate a couple of chunks
+        Thread.sleep(200);
+        assertThat(service.cancel("cid-2")).isTrue();
+
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<List<Message>> msgCaptor = ArgumentCaptor.forClass(List.class);
+        verify(chatMemory, timeout(5000)).add(eq("cid-2"), msgCaptor.capture());
+        // Partial content must be non-empty
+        assertThat(msgCaptor.getValue()).hasSize(1);
+        final String persistedText = msgCaptor.getValue().get(0).getText();
+        assertThat(persistedText).isNotEmpty().contains("chunk-");
+
+        verify(chatAuditService, timeout(5000))
+                .log(eq("cid-2"), eq("stream-cancelled"), isNull(), anyString(), anyLong(), isNull(), any(), any());
+        // Fix #3: no SRE logError on cancel
+        verify(chatAuditService, never()).logError(anyString(), anyString(), any(), any(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("whenStreamErrors_thenAuditLogError_withStreamErrorMethod")
+    void stream_errors_callsLogErrorWithErrorMethod() throws Exception {
+        doNothing().when(channelContextService).saveContext(any(), any(), any());
+
+        final RuntimeException boom = new RuntimeException("boom");
+        // Pure error Flux — Reactor's toStream() delivers terminal error via Iterator.
+        // (Mixing data + error in one Flux has subtle ordering issues with Reactor's BlockingIterator
+        // buffer; the cancel test below covers the "partial content is persisted" path instead.)
+        final Flux<ChatResponse> errFlux = Flux.error(boom);
+        when(chatService.stream(eq("cid-3"), isNull(), eq("hi"), isNull())).thenReturn(errFlux);
+
+        final SseStreamingService service = newService(props(5));
+        final ResponseBodyEmitter emitter = service.createEmitter();
+
+        service.stream(emitter, "cid-3", "hi");
+
+        // Audit goes through logError with method=stream-error — this is the critical bug #11 check
+        verify(chatAuditService, timeout(5000))
+                .logError(eq("cid-3"), eq("stream-error"), isNull(), any(Throwable.class), anyLong(), isNull());
+        // No log() success call expected
+        verify(chatAuditService, never())
+                .log(eq("cid-3"), eq("stream-completed"), any(), any(), anyLong(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("whenStreamHasUsageMetadata_thenUsagePassedToAudit")
+    void stream_usageMetadata_passedToAuditLog() throws Exception {
+        doNothing().when(channelContextService).saveContext(any(), any(), any());
+
+        final Usage usage = mock(Usage.class);
+        when(usage.getPromptTokens()).thenReturn(10);
+        when(usage.getCompletionTokens()).thenReturn(5);
+        when(usage.getTotalTokens()).thenReturn(15);
+        final ChatResponseMetadata metadata =
+                ChatResponseMetadata.builder().usage(usage).build();
+        final ChatResponse response = new ChatResponse(List.of(new Generation(new AssistantMessage("ok"))), metadata);
+
+        when(chatService.stream(eq("cid-4"), isNull(), eq("hi"), isNull())).thenReturn(Flux.just(response));
+
+        final SseStreamingService service = newService(props(5));
+        final ResponseBodyEmitter emitter = service.createEmitter();
+
+        service.stream(emitter, "cid-4", "hi");
+
+        final ArgumentCaptor<Usage> usageCaptor = ArgumentCaptor.forClass(Usage.class);
+        verify(chatAuditService, timeout(5000))
+                .log(
+                        eq("cid-4"),
+                        eq("stream-completed"),
+                        isNull(),
+                        eq("ok"),
+                        anyLong(),
+                        isNull(),
+                        usageCaptor.capture(),
+                        any());
+        assertThat(usageCaptor.getValue()).isSameAs(usage);
+    }
+
+    @Test
+    @DisplayName("cancel_returnsTrue_whileStreamActive_andFalseAfter")
+    void cancel_setsFlagAndReturnsTrue() throws Exception {
+        doNothing().when(channelContextService).saveContext(any(), any(), any());
+
+        final Flux<ChatResponse> slow = Flux.interval(Duration.ofMillis(50))
+                .take(40)
+                .map(i -> new ChatResponse(List.of(new Generation(new AssistantMessage("t" + i)))));
+        when(chatService.stream(eq("cid-5"), isNull(), eq("hi"), isNull())).thenReturn(slow);
+
+        final SseStreamingService service = newService(props(5));
+        final ResponseBodyEmitter emitter = service.createEmitter();
+
+        service.stream(emitter, "cid-5", "hi");
+        Thread.sleep(150);
+        assertThat(service.cancel("cid-5")).isTrue();
+        // Wait for runStream finally to run (persist + audit + cancelFlags.remove)
+        verify(chatAuditService, timeout(5000))
+                .log(eq("cid-5"), eq("stream-cancelled"), isNull(), anyString(), anyLong(), isNull(), any(), any());
+        // After stream loop exits, flag removed → cancel returns false
+        assertThat(service.cancel("cid-5")).isFalse();
+        assertThat(service.cancel("nonexistent")).isFalse();
+    }
+
+    // -------------------------------------------------------------------------
+    // Thinking / reasoning lifecycle (pre-existing scenarios, updated for new flow)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void streamEmitsReasoningDeltasForThinkingMetadata() throws Exception {
+        doNothing().when(channelContextService).saveContext(any(), any(), any());
+
         final var thinkingMsg1 = AssistantMessage.builder()
                 .content("Let me think...")
                 .properties(Map.of("thinking", true))
@@ -148,84 +310,37 @@ class SseStreamingServiceTest {
         when(chatService.stream(eq("think-test"), isNull(), eq("why?"), isNull()))
                 .thenReturn(flux);
 
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
+        final SseStreamingService service = newService(props(5));
         final ResponseBodyEmitter emitter = service.createEmitter();
-        final CopyOnWriteArrayList<String> lines = new CopyOnWriteArrayList<>();
-        final CountDownLatch done = new CountDownLatch(1);
-        emitter.onCompletion(done::countDown);
-        emitter.onError(ex -> done.countDown());
 
-        // Intercept writes by wrapping — use writeLine visibility (package-private)
-        // Instead, we verify by collecting output from the emitter handler
-        final ResponseBodyEmitter spyEmitter = new ResponseBodyEmitter(30_000L) {
-            @Override
-            public void send(Object data, org.springframework.http.MediaType mediaType) throws java.io.IOException {
-                lines.add(data.toString().trim());
-                super.send(data, mediaType);
-            }
-        };
-
-        // Re-register lifecycle callbacks
-        final var svc2 = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
-        // Use the real emitter flow
-        svc2.stream(emitter, "think-test", "why?");
-        done.await(5, TimeUnit.SECONDS);
-
-        // The stream should have completed (or timed out if broken)
-        // Verify by checking that cancel returns false (no active stream)
-        assertThat(svc2.cancel("think-test")).isFalse();
+        service.stream(emitter, "think-test", "why?");
+        // Wait for stream completion via Mockito timeout
+        verify(chatAuditService, timeout(5000))
+                .log(eq("think-test"), eq("stream-completed"), isNull(), any(), anyLong(), any(), any(), any());
+        assertThat(service.cancel("think-test")).isFalse();
     }
 
     @Test
     void streamHandlesTextOnlyWithoutReasoning() throws Exception {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(30), Duration.ofSeconds(10), 5);
         doNothing().when(channelContextService).saveContext(any(), any(), any());
 
-        // No thinking metadata — pure text
-        final var textMsg1 = new AssistantMessage("Hello ");
-        final var textMsg2 = new AssistantMessage("world!");
-
         final Flux<ChatResponse> flux = Flux.just(
-                new ChatResponse(List.of(new Generation(textMsg1))),
-                new ChatResponse(List.of(new Generation(textMsg2))));
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Hello ")))),
+                new ChatResponse(List.of(new Generation(new AssistantMessage("world!")))));
         when(chatService.stream(eq("text-test"), isNull(), eq("hi"), isNull())).thenReturn(flux);
 
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
+        final SseStreamingService service = newService(props(5));
         final ResponseBodyEmitter emitter = service.createEmitter();
-        final CountDownLatch done = new CountDownLatch(1);
-        emitter.onCompletion(done::countDown);
-        emitter.onError(ex -> done.countDown());
 
         service.stream(emitter, "text-test", "hi");
-        done.await(5, TimeUnit.SECONDS);
-
-        // Should complete without error — cancel returns false
+        verify(chatMemory, timeout(5000).atLeastOnce()).add(eq("text-test"), any(List.class));
         assertThat(service.cancel("text-test")).isFalse();
     }
 
     @Test
     void streamClosesUnfinishedReasoningBlock() throws Exception {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(30), Duration.ofSeconds(10), 5);
         doNothing().when(channelContextService).saveContext(any(), any(), any());
 
-        // Thinking without signature — reasoning block should still be closed
         final var thinkingMsg = AssistantMessage.builder()
                 .content("pondering...")
                 .properties(Map.of("thinking", true))
@@ -238,29 +353,20 @@ class SseStreamingServiceTest {
         when(chatService.stream(eq("unfinished-think"), isNull(), eq("q"), isNull()))
                 .thenReturn(flux);
 
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
+        final SseStreamingService service = newService(props(5));
         final ResponseBodyEmitter emitter = service.createEmitter();
-        final CountDownLatch done = new CountDownLatch(1);
-        emitter.onCompletion(done::countDown);
-        emitter.onError(ex -> done.countDown());
 
         service.stream(emitter, "unfinished-think", "q");
-        done.await(5, TimeUnit.SECONDS);
-
-        // Should complete without error
+        verify(chatAuditService, timeout(5000).atLeastOnce())
+                .log(eq("unfinished-think"), eq("stream-completed"), isNull(), any(), anyLong(), any(), any(), any());
         assertThat(service.cancel("unfinished-think")).isFalse();
     }
 
     @Test
     void thinkingPropertiesDefaults() {
-        final var props = new ChatRestConfiguration.ThinkingProperties(true, 0);
-        assertThat(props.enabled()).isTrue();
-        assertThat(props.budgetTokens()).isEqualTo(10_000L); // default when <= 0
+        final var pr = new ChatRestConfiguration.ThinkingProperties(true, 0);
+        assertThat(pr.enabled()).isTrue();
+        assertThat(pr.budgetTokens()).isEqualTo(10_000L);
 
         final var custom = new ChatRestConfiguration.ThinkingProperties(false, 5000);
         assertThat(custom.enabled()).isFalse();
@@ -269,16 +375,11 @@ class SseStreamingServiceTest {
 
     @Test
     void writeLineEmitsReasoningWireCodeG() throws Exception {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 5);
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
+        final SseStreamingService service =
+                newService(new ChatRestConfiguration.SseProperties(Duration.ofSeconds(5), Duration.ofSeconds(1), 5));
 
-        final ResponseBodyEmitter emitter = service.createEmitter();
-        final CopyOnWriteArrayList<String> written = new CopyOnWriteArrayList<>();
+        final java.util.concurrent.CopyOnWriteArrayList<String> written =
+                new java.util.concurrent.CopyOnWriteArrayList<>();
         final ResponseBodyEmitter capturingEmitter = new ResponseBodyEmitter(5000L) {
             @Override
             public void send(Object data, org.springframework.http.MediaType mediaType) throws java.io.IOException {
@@ -287,48 +388,10 @@ class SseStreamingServiceTest {
         };
 
         final Object lock = new Object();
-        // Test writeLine with reasoning code 'g'
         service.writeLine(capturingEmitter, lock, 'g', "thinking step 1");
 
         assertThat(written).hasSize(1);
         assertThat(written.get(0)).startsWith("g:");
         assertThat(written.get(0)).contains("thinking step 1");
-    }
-
-    @Test
-    void cancelTerminatesActiveStream() throws Exception {
-        final ChatRestConfiguration.SseProperties props =
-                new ChatRestConfiguration.SseProperties(Duration.ofSeconds(30), Duration.ofSeconds(10), 5);
-        doNothing().when(channelContextService).saveContext(any(), any(), any());
-
-        // Slow flux that emits tokens with delays — simulates long LLM response
-        final Flux<ChatResponse> slowFlux = Flux.interval(Duration.ofMillis(50))
-                .map(i -> new ChatResponse(java.util.List.of(new Generation(new AssistantMessage("token" + i)))));
-        when(chatService.stream(eq("cancel-test"), isNull(), eq("hello"), isNull()))
-                .thenReturn(slowFlux);
-
-        final SseStreamingService service = new SseStreamingService(
-                chatService,
-                channelContextService,
-                props,
-                tools.jackson.databind.json.JsonMapper.builder().build());
-
-        final ResponseBodyEmitter emitter = service.createEmitter();
-        final CountDownLatch streamStarted = new CountDownLatch(1);
-
-        // Listen for first write to know stream has started
-        emitter.onCompletion(streamStarted::countDown);
-        emitter.onError(ex -> streamStarted.countDown());
-
-        service.stream(emitter, "cancel-test", "hello");
-
-        // Give the stream time to start
-        Thread.sleep(200);
-
-        // Cancel should find and terminate the active stream
-        assertThat(service.cancel("cancel-test")).isTrue();
-
-        // Second cancel should return false — already cancelled
-        assertThat(service.cancel("cancel-test")).isFalse();
     }
 }

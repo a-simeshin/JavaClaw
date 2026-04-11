@@ -151,8 +151,8 @@ class ChatServiceTest {
     }
 
     @Test
-    @DisplayName("stream(): пользовательское сообщение персистируется до начала стриминга")
-    void stream_userMessagePersistedBeforeStreaming() {
+    @DisplayName("stream(): пользовательское сообщение персистируется ровно один раз до стриминга (fix #24)")
+    void stream_userMessagePersistedOnceBeforeStreaming() {
         when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
                 .thenReturn(buildAssembledPrompt(USER_CONTENT));
         final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
@@ -164,33 +164,13 @@ class ChatServiceTest {
                 .expectNextCount(1)
                 .verifyComplete();
 
-        // Первый вызов add — это UserMessage перед stream
-        verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), addCaptor.capture());
-        final List<Message> firstAddedMessages = addCaptor.getAllValues().get(0);
-        assertThat(firstAddedMessages).hasSize(1);
-        assertThat(firstAddedMessages.get(0)).isInstanceOf(UserMessage.class);
-        assertThat(firstAddedMessages.get(0).getText()).isEqualTo(USER_CONTENT);
-    }
-
-    @Test
-    @DisplayName("stream(): ассистентское сообщение персистируется после завершения стрима")
-    void stream_assistantMessagePersistedAfterStreamComplete() {
-        when(messageAssembler.assemble(CONVERSATION_ID, null, USER_CONTENT))
-                .thenReturn(buildAssembledPrompt(USER_CONTENT));
-        final ChatResponse response = buildChatResponse(ASSISTANT_REPLY);
-        when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(response));
-
-        final ArgumentCaptor<List<Message>> addCaptor = ArgumentCaptor.forClass(List.class);
-
-        StepVerifier.create(chatService.stream(CONVERSATION_ID, USER_CONTENT))
-                .expectNextCount(1)
-                .verifyComplete();
-
-        verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), addCaptor.capture());
-        final List<Message> secondAddedMessages = addCaptor.getAllValues().get(1);
-        assertThat(secondAddedMessages).hasSize(1);
-        assertThat(secondAddedMessages.get(0)).isInstanceOf(AssistantMessage.class);
-        assertThat(secondAddedMessages.get(0).getText()).isEqualTo(ASSISTANT_REPLY);
+        // Phase 2: assistant persist moved to SseStreamingService.
+        // ChatService only persists the UserMessage and returns the raw Flux.
+        verify(chatMemory, times(1)).add(eq(CONVERSATION_ID), addCaptor.capture());
+        final List<Message> added = addCaptor.getValue();
+        assertThat(added).hasSize(1);
+        assertThat(added.get(0)).isInstanceOf(UserMessage.class);
+        assertThat(added.get(0).getText()).isEqualTo(USER_CONTENT);
     }
 
     @Test
