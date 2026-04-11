@@ -1,7 +1,7 @@
 # JavaClaw Security Guide
 
-> **Status:** Cookie-session authentication module, MVP v1 (2026-04-11)
-> **Module:** `javaclaw-security`
+> **Status:** Cookie-session authentication module, MVP v1 (2026-04-11)<br/>
+> **Module:** `javaclaw-security`<br/>
 > **Language:** [Русская версия](./security_RU.md)
 
 ---
@@ -50,15 +50,9 @@ can be replaced without rewriting the rest of the system.
 
 ```mermaid
 flowchart TB
-    subgraph L1["<b>Layer 1 — Primary Authentication</b><br/><i>who are you?</i>"]
-        L1c["Local: username + password → Argon2id<br/>Future: OIDC Relying Party<br/>Future: 2FA TOTP / Email / SMS / WebAuthn<br/><br/><i>SPI: AuthenticationProvider + SecondFactorProvider</i>"]
-    end
-    subgraph L2["<b>Layer 2 — Session Carrier</b><br/><i>how do you travel across requests?</i>"]
-        L2c["Opaque token: 32 SecureRandom bytes → base64url<br/>Stored as SHA-256 hash in <code>user_session</code><br/>HttpOnly Secure SameSite=Lax cookie (JCLAW_SESSION)<br/>Fixed TTL, DB-backed revocation<br/><br/><i>SPI: SessionTokenService<br/>Impl: OpaqueSessionTokenService</i>"]
-    end
-    subgraph L3["<b>Layer 3 — Authorization</b><br/><i>what are you allowed to do?</i>"]
-        L3c["URL-level: <code>.hasAuthority('PERM_*')</code><br/>Method-level: <code>@PreAuthorize(hasPermission(#id, type, action))</code><br/>Bridge: JavaClawPermissionEvaluator → PermissionResolvers<br/>Resource ownership + admin bypass"]
-    end
+    L1["<b>Layer 1 — Primary Authentication</b><br/><i>who are you?</i><br/>━━━━━━━━━━━━━━━━━━━━━━━<br/>Local: username + password → Argon2id<br/>Future: OIDC Relying Party<br/>Future: 2FA (TOTP / Email / SMS / WebAuthn)<br/><br/>SPI: AuthenticationProvider + SecondFactorProvider"]
+    L2["<b>Layer 2 — Session Carrier</b><br/><i>how do you travel across requests?</i><br/>━━━━━━━━━━━━━━━━━━━━━━━<br/>Opaque token: 32 SecureRandom bytes → base64url<br/>Stored as SHA-256 hash in user_session table<br/>HttpOnly Secure SameSite=Lax cookie (JCLAW_SESSION)<br/>Fixed TTL, DB-backed revocation<br/><br/>SPI: SessionTokenService<br/>Impl: OpaqueSessionTokenService"]
+    L3["<b>Layer 3 — Authorization</b><br/><i>what are you allowed to do?</i><br/>━━━━━━━━━━━━━━━━━━━━━━━<br/>URL-level: hasAuthority PERM_*<br/>Method-level: @PreAuthorize hasPermission(#id, type, action)<br/>Bridge: JavaClawPermissionEvaluator → PermissionResolvers<br/>Resource ownership + admin bypass"]
     L1 -->|"produces Authentication"| L2
     L2 -->|"resolves per request"| L3
 ```
@@ -147,21 +141,22 @@ sequenceDiagram
     participant STS as SessionTokenService
     participant DB as PostgreSQL
 
-    B->>AC: POST /api/auth/login<br/>{username, password}
+    B->>AC: POST /api/auth/login
+    Note over B,AC: JSON body with username and password
     AC->>AS: login(username, password, clientInfo)
     AS->>AS: AuthenticationManager.authenticate()
-    Note over AS: DaoAuthenticationProvider<br/>+ Argon2id PasswordEncoder
+    Note over AS: DaoAuthenticationProvider<br/>plus Argon2id encoder
     AS->>AS: SecondFactorProvider.isRequired()
     Note over AS: NoopSecondFactorProvider<br/>returns false (MVP)
     AS->>STS: issue(authentication, clientInfo, ttl)
-    STS->>STS: SecureRandom 32 bytes → base64url
-    STS->>STS: SHA-256 hash
+    Note over STS: SecureRandom 32 bytes<br/>base64url encode<br/>SHA-256 hash
     STS->>DB: INSERT INTO user_session
     DB-->>STS: ok
-    STS-->>AS: IssuedToken(rawToken, sessionId, expiresAt)
+    STS-->>AS: IssuedToken
     AS-->>AC: LoginResult.Success
-    AC->>DB: auth_audit_log ← LOGIN_SUCCESS
-    AC-->>B: 200 OK<br/>Set-Cookie: JCLAW_SESSION=&lt;raw&gt;; HttpOnly; Secure; SameSite=Lax<br/>Body: { user, sessionExpiresAt }
+    AC->>DB: auth_audit_log LOGIN_SUCCESS
+    AC-->>B: 200 OK with Set-Cookie JCLAW_SESSION
+    Note over B,AC: HttpOnly, Secure, SameSite=Lax<br/>Max-Age=86400<br/>Body user and sessionExpiresAt
 ```
 
 ### 4.2 Subsequent request (REST or SSE)
@@ -175,18 +170,17 @@ sequenceDiagram
     participant PE as PermissionEvaluator
     participant C as Controller
 
-    B->>F: GET /api/conversations/{id}/messages<br/>Cookie: JCLAW_SESSION=&lt;raw&gt;
+    B->>F: GET /api/conversations/id/messages
+    Note over B,F: Cookie JCLAW_SESSION sent automatically
     F->>STS: resolve(rawToken)
-    STS->>STS: sha256(rawToken)
-    STS->>STS: SELECT FROM user_session<br/>WHERE token_hash = ? AND not revoked<br/>AND expires_at > NOW()
+    Note over STS: sha256(rawToken)<br/>SELECT FROM user_session<br/>WHERE token_hash matches<br/>AND not revoked<br/>AND expires_at in the future
     STS-->>F: Authentication
     F->>F: SecurityContextHolder.set(auth)
     F->>C: filterChain.doFilter()
-    C->>PE: @PreAuthorize hasPermission(#id, 'conversation', 'read')
-    PE->>PE: PermissionResolvers.get("conversation")
-    Note over PE: CONVERSATION_ACCESS_ALL<br/>OR ownership check
+    C->>PE: hasPermission(id, conversation, read)
+    Note over PE: PermissionResolvers.get(conversation)<br/>CONVERSATION_ACCESS_ALL<br/>or ownership check
     PE-->>C: true
-    C-->>B: 200 OK + JSON
+    C-->>B: 200 OK with JSON body
 ```
 
 SSE endpoints work identically — the browser attaches the cookie to any
