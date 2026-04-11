@@ -729,15 +729,31 @@
 
 ## PHASE 11: P1 — UI расширение
 
-### 11.1 Dark/light theme (1.6)
+### 11.1 Dark/light theme (1.6) ✅
 
-### 11.2 Settings UI (1.7)
+- [x] use-theme.ts hook (dark/light/system), localStorage persistence, system preference detection
+- [x] CSS variables для light (Warm Parchment) и dark (Gradianto Midnight Blue) в index.css
+- [x] Theme toggle в app-header.tsx (Sun/Moon icons), anti-flicker transition suppression
+- [x] Settings page с полным theme selector (dark/light/system)
+
+### 11.2 Settings UI (1.7) ✅
+
+- [x] routes/settings.tsx: Profile (username/role), Theme (dark/light/system selector), Language (EN/RU)
+- [x] Sidebar nav link в FOOTER_ITEMS, SettingsCard reusable wrapper
+- [x] i18n-ready с useTranslation, consistent design с остальным UI
 
 ### 11.3 File upload/download (1.9)
 
-### 11.4 Agent thinking display (1.10b)
+### 11.4 Agent thinking display (1.10b) ✅
 
-### 11.5 Execution timeline (1.10c)
+- [x] reasoning-block.tsx: collapsible thinking block с auto-expand во время streaming
+- [x] SseStreamingService: wire codes 'g' (reasoning), 'j' (signature) для Vercel AI SDK v4
+- [x] Chat UI: рендер part.type === "reasoning" в chat-page.tsx
+
+### 11.5 Execution timeline (1.10c) ✅
+
+- [x] task-detail-dialog.tsx: Timeline tab с audit log events, цветовая кодировка, иконки по типу события
+- [x] 4 вкладки: timeline, model, tools, deliveries
 
 ### 11.6 Config generator CLI (13.8)
 
