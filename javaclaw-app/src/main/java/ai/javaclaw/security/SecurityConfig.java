@@ -38,6 +38,9 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/health")
                         .permitAll()
+                        // Public: A2A Agent Card discovery
+                        .requestMatchers("/.well-known/agent.json")
+                        .permitAll()
                         // Public: SPA static resources
                         .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico")
                         .permitAll()
@@ -50,6 +53,9 @@ public class SecurityConfig {
                         .hasRole("ADMIN")
                         // MCP server endpoint — authenticated
                         .requestMatchers("/api/mcp/**")
+                        .authenticated()
+                        // A2A protocol endpoint — authenticated
+                        .requestMatchers("/api/a2a")
                         .authenticated()
                         // All other API endpoints require authentication
                         .requestMatchers("/api/**")

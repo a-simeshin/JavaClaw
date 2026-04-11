@@ -666,9 +666,15 @@
 - [x] 7 новых интеграционных тестов: bean registration, initialize, tools/list, auth 401, capabilities, tools/call listSkills+listConversations
 - [x] Все 850 тестов зелёные
 
-### 9.4 A2A — server (5.8)
+### 9.4 A2A — server (5.8) ✅
 
-- JavaClaw принимает задачи от внешних агентов
+- [x] A2aAgentCard — Agent Card discovery at `/.well-known/agent.json` (public, no auth)
+- [x] A2aJsonRpc — JSON-RPC 2.0 DTOs: request/response envelope, A2aTask/Message/Part/Artifact, TaskState enum, error codes
+- [x] A2aService — dispatch method routing `tasks/send`, `tasks/get`, `tasks/cancel` to internal TaskRepository
+- [x] A2aController — `GET /.well-known/agent.json` + `POST /api/a2a` (authenticated JSON-RPC endpoint)
+- [x] SecurityConfig — `/.well-known/agent.json` permitAll, `/api/a2a` authenticated
+- [x] Status mapping: Task.Status → A2A TaskState (todo→submitted, in_progress→working, etc.)
+- [x] 11 unit tests (A2aServiceTest) + 8 integration tests (A2aIntegrationTest), все зелёные
 
 ### 9.5 MCP admin management UI (15.4.4)
 
