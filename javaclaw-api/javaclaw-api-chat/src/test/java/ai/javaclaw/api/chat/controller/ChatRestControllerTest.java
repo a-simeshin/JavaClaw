@@ -11,9 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.error.SseExceptionHandler;
 import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
+import ai.javaclaw.tasks.RateLimitExceededException;
 import ai.javaclaw.users.UserResolver;
 import java.security.Principal;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,7 @@ class ChatRestControllerTest {
     private SseStreamingService streamingService;
     private ConversationEnsurer conversationEnsurer;
     private UserResolver userResolver;
+    private AgentQuotaService agentQuotaService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -34,8 +37,10 @@ class ChatRestControllerTest {
         streamingService = mock(SseStreamingService.class);
         conversationEnsurer = mock(ConversationEnsurer.class);
         userResolver = mock(UserResolver.class);
+        agentQuotaService = mock(AgentQuotaService.class);
         when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
-        mockMvc = standaloneSetup(new ChatRestController(streamingService, conversationEnsurer, userResolver))
+        mockMvc = standaloneSetup(
+                        new ChatRestController(streamingService, conversationEnsurer, userResolver, agentQuotaService))
                 .defaultRequest(post("/").principal(adminPrincipal()))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
@@ -92,6 +97,19 @@ class ChatRestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"x\"}"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void postSendReturnsTooManyRequestsWhenQuotaExceeded() throws Exception {
+        when(streamingService.createEmitter()).thenReturn(new ResponseBodyEmitter(5000L));
+        org.mockito.Mockito.doThrow(new RateLimitExceededException("admin-uuid", "daily_agent_quota", 100, 100))
+                .when(agentQuotaService)
+                .checkAndIncrement("admin-uuid");
+
+        mockMvc.perform(post("/api/chat/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"hello\",\"conversationId\":\"web\"}"))
+                .andExpect(status().isTooManyRequests());
     }
 
     @Test

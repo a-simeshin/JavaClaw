@@ -777,7 +777,9 @@
 
 V29 миграция auth_audit_log (event_type/username/remote_addr/request_uri/detail/created_at), AuthAuditLog entity + AuthAuditLogRepository + AuthAuditService (@Async, graceful error handling), AuthAuditEventListener (Spring Security events: login success/failure, authorization denied), GET /api/audit/auth endpoint с фильтрацией по username/eventType/limit, 16 новых тестов (5 unit AuthAuditLog + 10 unit AuthAuditService + 7 integration). Дополняет существующий chat_audit_log/task_audit_log/delivery_audit_log.
 
-### 12.2 Agent quota per user (15.6.3)
+### 12.2 Agent quota per user (15.6.3) ✅
+
+V30 миграция agent_quotas (user_id/daily_limit/daily_used/reset_date), AgentQuota entity + AgentQuotaRepository (incrementDailyUsed/resetDaily/updateDailyLimit) + AgentQuotaService (checkAndIncrement с auto-reset по дате, ensureQuota с lazy creation, setDailyLimit, enabled/disabled toggle), интеграция в ChatRestController (429 TOO_MANY_REQUESTS при превышении), 18 новых тестов (6 unit AgentQuota + 12 unit AgentQuotaService), конфигурация: javaclaw.agent.quota.default-daily-limit=100, javaclaw.agent.quota.enabled=true.
 
 ### 12.3 Sub-agent / delegation (3.6)
 

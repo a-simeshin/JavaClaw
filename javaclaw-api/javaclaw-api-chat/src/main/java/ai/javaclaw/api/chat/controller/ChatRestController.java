@@ -1,8 +1,10 @@
 package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.controller.dto.ChatSendRequest;
 import ai.javaclaw.api.chat.service.SseStreamingService;
 import ai.javaclaw.conversations.ConversationEnsurer;
+import ai.javaclaw.tasks.RateLimitExceededException;
 import ai.javaclaw.users.UserResolver;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -37,6 +39,7 @@ public class ChatRestController {
     private final SseStreamingService streamingService;
     private final ConversationEnsurer conversationEnsurer;
     private final UserResolver userResolver;
+    private final AgentQuotaService agentQuotaService;
 
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<ResponseBodyEmitter> send(
@@ -47,6 +50,11 @@ public class ChatRestController {
         }
         final String conversationId = resolveConversationId(request.conversationId());
         final String userId = userResolver.resolveUserId(principal.getName());
+        try {
+            agentQuotaService.checkAndIncrement(userId);
+        } catch (RateLimitExceededException e) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
         conversationEnsurer.ensureExistsForUser(conversationId, userId);
         conversationEnsurer.touch(conversationId, request.content());
         streamingService.stream(emitter, conversationId, userId, request.content());
