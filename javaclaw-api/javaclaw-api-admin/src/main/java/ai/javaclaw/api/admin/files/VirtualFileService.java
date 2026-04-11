@@ -118,6 +118,20 @@ public class VirtualFileService {
         return new FileContentDto(saved.path(), saved.content());
     }
 
+    public FileContentDto uploadForUser(final String userId, final String path, final String content) {
+        validatePath(path);
+        final String safeContent = content == null ? "" : content;
+        final Optional<VirtualFile> existing = repository.findByOwnerIdAndPath(userId, path);
+        final VirtualFile toSave;
+        if (existing.isPresent()) {
+            toSave = existing.get().withUpdatedContent(safeContent);
+        } else {
+            toSave = VirtualFile.newUserFile(userId, path, safeContent, inferContentType(path));
+        }
+        final VirtualFile saved = repository.save(toSave);
+        return new FileContentDto(saved.path(), saved.content());
+    }
+
     public void deleteForUser(final String userId, final String path) {
         validatePath(path);
         // Only delete user-owned files, not global files

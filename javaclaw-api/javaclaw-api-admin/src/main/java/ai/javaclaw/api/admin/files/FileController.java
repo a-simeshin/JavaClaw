@@ -3,7 +3,11 @@ package ai.javaclaw.api.admin.files;
 import ai.javaclaw.users.UserResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
 
 /**
@@ -65,6 +71,54 @@ public class FileController {
             @Valid @RequestBody final CreateFileRequest body, final Principal principal) {
         final String userId = userResolver.resolveUserId(principal.getName());
         return ResponseEntity.status(201).body(fileService.createForUser(userId, body.path(), body.content()));
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<FileContentDto> upload(
+            @RequestParam("file") final MultipartFile file,
+            @RequestParam(value = "path", required = false) final String path,
+            final Principal principal) {
+        final String userId = userResolver.resolveUserId(principal.getName());
+        final String filePath = (path != null && !path.isBlank()) ? path.trim() : file.getOriginalFilename();
+        if (filePath == null || filePath.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            final String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+            final FileContentDto result = fileService.uploadForUser(userId, filePath, content);
+            return ResponseEntity.status(201).body(result);
+        } catch (java.io.IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/download/**")
+    public ResponseEntity<byte[]> download(final HttpServletRequest request, final Principal principal) {
+        final String userId = userResolver.resolveUserId(principal.getName());
+        final String path = extractDownloadPath(request);
+        final FileContentDto file = fileService.readForUser(userId, path);
+        final String fileName = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
+        final byte[] body = file.content().getBytes(StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(fileName, StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(body.length)
+                .body(body);
+    }
+
+    private static String extractDownloadPath(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String prefix = BASE + "/download/";
+        if (!uri.startsWith(prefix)) {
+            throw new IllegalArgumentException("invalid download path");
+        }
+        String tail = uri.substring(prefix.length());
+        return UriUtils.decode(tail, StandardCharsets.UTF_8);
     }
 
     private static String extractPath(HttpServletRequest request) {

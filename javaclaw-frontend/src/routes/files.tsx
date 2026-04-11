@@ -1,23 +1,27 @@
 import {
   IconChevronDown,
   IconChevronRight,
+  IconDownload,
   IconFile,
   IconFolder,
   IconFolderOpen,
   IconPlus,
   IconTrash,
+  IconUpload,
 } from "@tabler/icons-react"
 import { createFileRoute } from "@tanstack/react-router"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import {
   type FileNode,
+  downloadFile,
   useCreateFile,
   useDeleteFile,
   useFileContent,
   useFileTree,
   useSaveFile,
+  useUploadFile,
 } from "@/api/files"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -34,6 +38,8 @@ function FilesPage() {
   const [newFileName, setNewFileName] = useState("")
   const createFile = useCreateFile()
   const deleteFile = useDeleteFile()
+  const uploadFile = useUploadFile()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const toggleExpand = useCallback((path: string) => {
     setExpanded((prev) => {
@@ -71,6 +77,28 @@ function FilesPage() {
     })
   }
 
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    uploadFile.mutate(
+      { file },
+      {
+        onSuccess: (data) => {
+          toast.success(`Uploaded ${data.path}`)
+          setSelectedPath(data.path)
+        },
+        onError: (err) => toast.error(`Upload failed: ${(err as Error).message}`),
+      },
+    )
+    e.target.value = ""
+  }
+
+  const handleDownload = (path: string) => {
+    downloadFile(path).catch((err) =>
+      toast.error(`Download failed: ${(err as Error).message}`),
+    )
+  }
+
   return (
     <div className="flex h-full min-h-0">
       {/* Sidebar — file tree */}
@@ -79,13 +107,28 @@ function FilesPage() {
           <span className="font-mono text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
             Files
           </span>
-          <button
-            onClick={() => setShowNewFile((v) => !v)}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="New file"
-          >
-            <IconPlus size={14} strokeWidth={1.5} />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              title="Upload file"
+            >
+              <IconUpload size={14} strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={() => setShowNewFile((v) => !v)}
+              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              title="New file"
+            >
+              <IconPlus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleUpload}
+            className="hidden"
+          />
         </div>
 
         {showNewFile && (
@@ -137,7 +180,7 @@ function FilesPage() {
       {/* Main — file editor */}
       <div className="flex min-w-0 flex-1 flex-col">
         {selectedPath ? (
-          <FileEditor path={selectedPath} />
+          <FileEditor path={selectedPath} onDownload={handleDownload} />
         ) : (
           <div className="flex flex-1 items-center justify-center text-muted-foreground">
             <div className="text-center">
@@ -268,7 +311,7 @@ function TreeNode({
   )
 }
 
-function FileEditor({ path }: { path: string }) {
+function FileEditor({ path, onDownload }: { path: string; onDownload: (path: string) => void }) {
   const { data, isLoading } = useFileContent(path)
   const saveMut = useSaveFile()
   const [draft, setDraft] = useState("")
@@ -316,6 +359,14 @@ function FileEditor({ path }: { path: string }) {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDownload(path)}
+            title="Download"
+          >
+            <IconDownload size={14} strokeWidth={1.5} />
+          </Button>
           <Button
             variant="outline"
             size="sm"

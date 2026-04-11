@@ -742,7 +742,12 @@
 - [x] Sidebar nav link в FOOTER_ITEMS, SettingsCard reusable wrapper
 - [x] i18n-ready с useTranslation, consistent design с остальным UI
 
-### 11.3 File upload/download (1.9)
+### 11.3 File upload/download (1.9) ✅
+
+- [x] FileController: POST /api/files/upload (MultipartFile + optional path param), GET /api/files/download/** (Content-Disposition attachment)
+- [x] VirtualFileService.uploadForUser() — upsert с text content из uploaded file
+- [x] Frontend: useUploadFile() hook (FormData), downloadFile() (blob + anchor click), Upload/Download кнопки в Files page
+- [x] 8 integration tests: upload create/overwrite/auto-name, download content/headers, auth required, user isolation
 
 ### 11.4 Agent thinking display (1.10b) ✅
 

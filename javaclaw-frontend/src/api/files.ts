@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { apiJson } from "@/api/http"
+import { apiFetch, apiJson } from "@/api/http"
 
 export interface FileContent {
   path: string
@@ -69,4 +69,45 @@ export function useDeleteFile() {
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["files", "__tree__"] }),
   })
+}
+
+export function useUploadFile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      file,
+      path,
+    }: {
+      file: File
+      path?: string
+    }): Promise<FileContent> => {
+      const form = new FormData()
+      form.append("file", file)
+      if (path) form.append("path", path)
+      const res = await apiFetch("/api/files/upload", {
+        method: "POST",
+        body: form,
+      })
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+      return res.json()
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["files", "__tree__"] }),
+  })
+}
+
+export async function downloadFile(path: string): Promise<void> {
+  const res = await apiFetch(
+    `/api/files/download/${encodeURIComponent(path)}`,
+  )
+  if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = path.includes("/") ? path.split("/").pop()! : path
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
