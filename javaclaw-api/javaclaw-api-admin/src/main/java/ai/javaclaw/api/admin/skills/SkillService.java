@@ -2,21 +2,32 @@ package ai.javaclaw.api.admin.skills;
 
 import ai.javaclaw.skills.Skill;
 import ai.javaclaw.skills.SkillRepository;
+import ai.javaclaw.skills.SkillVisibilityService;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SkillService {
 
     private final SkillRepository repository;
+    private final SkillVisibilityService visibilityService;
 
-    public SkillService(final SkillRepository repository) {
+    public SkillService(final SkillRepository repository, final SkillVisibilityService visibilityService) {
         this.repository = repository;
+        this.visibilityService = visibilityService;
     }
 
     public List<SkillDto> list() {
         return repository.findAllByOwnerIdIsNull().stream().map(this::toDto).toList();
+    }
+
+    /** Lists skills visible to the given role (PUBLIC + allowlisted RESTRICTED). */
+    public List<SkillDto> listForRole(final String role) {
+        return visibilityService.listVisibleSkills(role).stream()
+                .map(this::toDto)
+                .toList();
     }
 
     public SkillDto create(final SkillDto draft) {
@@ -37,6 +48,21 @@ public class SkillService {
                 .findByIdAndOwnerIdIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("skill not found: " + id));
         repository.deleteById(skill.id());
+    }
+
+    /** Sets visibility (PUBLIC or RESTRICTED) for a skill. */
+    public SkillDto setVisibility(final String skillId, final String visibility) {
+        return toDto(visibilityService.setVisibility(skillId, visibility));
+    }
+
+    /** Gets allowed roles for a skill. */
+    public Set<String> getAllowedRoles(final String skillId) {
+        return visibilityService.getAllowedRoles(skillId);
+    }
+
+    /** Sets allowed roles for a RESTRICTED skill. */
+    public void setAllowedRoles(final String skillId, final Set<String> roles) {
+        visibilityService.setAllowedRoles(skillId, roles);
     }
 
     private SkillDto toDto(final Skill skill) {

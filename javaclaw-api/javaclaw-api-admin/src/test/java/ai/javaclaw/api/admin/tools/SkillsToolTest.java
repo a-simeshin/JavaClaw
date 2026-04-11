@@ -134,6 +134,7 @@ class SkillsToolTest {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private static Skill skill(final String id, final String name, final String description, final boolean enabled) {
-        return new Skill(id, null, name, description, null, enabled, Instant.now(), Instant.now());
+        return new Skill(
+                id, null, name, description, null, enabled, Skill.VISIBILITY_PUBLIC, Instant.now(), Instant.now());
     }
 }

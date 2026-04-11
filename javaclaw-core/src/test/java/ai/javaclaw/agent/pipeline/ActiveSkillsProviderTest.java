@@ -43,7 +43,8 @@ class ActiveSkillsProviderTest {
      * @return экземпляр Skill
      */
     private Skill skill(final String name, final String content) {
-        return new Skill("id-" + name, null, name, "desc", content, true, Instant.now(), Instant.now());
+        return new Skill(
+                "id-" + name, null, name, "desc", content, true, Skill.VISIBILITY_PUBLIC, Instant.now(), Instant.now());
     }
 
     @Test

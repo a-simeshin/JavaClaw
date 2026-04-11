@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import ai.javaclaw.skills.Skill;
 import ai.javaclaw.skills.SkillRepository;
+import ai.javaclaw.skills.SkillVisibilityService;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -23,6 +24,9 @@ class SkillServiceTest {
 
     @Mock
     private SkillRepository repository;
+
+    @Mock
+    private SkillVisibilityService visibilityService;
 
     @InjectMocks
     private SkillService service;
@@ -142,6 +146,7 @@ class SkillServiceTest {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private static Skill skill(final String id, final String name, final String description, final boolean enabled) {
-        return new Skill(id, null, name, description, null, enabled, Instant.now(), Instant.now());
+        return new Skill(
+                id, null, name, description, null, enabled, Skill.VISIBILITY_PUBLIC, Instant.now(), Instant.now());
     }
 }

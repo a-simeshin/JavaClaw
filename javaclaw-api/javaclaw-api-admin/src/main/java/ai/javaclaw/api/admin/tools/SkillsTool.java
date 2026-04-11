@@ -68,7 +68,16 @@ public class SkillsTool {
             """)
     public String addSkill(final String name, final String description, final String content) {
         try {
-            final Skill skill = new Skill(null, null, name, description, content, true, Instant.now(), Instant.now());
+            final Skill skill = new Skill(
+                    null,
+                    null,
+                    name,
+                    description,
+                    content,
+                    true,
+                    Skill.VISIBILITY_PUBLIC,
+                    Instant.now(),
+                    Instant.now());
             final Skill saved = skillRepository.save(skill);
             return String.format("Skill '%s' created successfully (id=%s).", saved.name(), saved.id());
         } catch (Exception e) {
