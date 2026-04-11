@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import ai.javaclaw.skills.Skill;
 import ai.javaclaw.skills.SkillRepository;
+import ai.javaclaw.skills.SkillUsageAuditService;
 import ai.javaclaw.skills.SkillVisibilityService;
 import java.time.Instant;
 import java.util.List;
@@ -27,6 +28,9 @@ class SkillServiceTest {
 
     @Mock
     private SkillVisibilityService visibilityService;
+
+    @Mock
+    private SkillUsageAuditService auditService;
 
     @InjectMocks
     private SkillService service;
@@ -64,7 +68,7 @@ class SkillServiceTest {
         final Skill saved = skill("generated-id", "my-skill", "A description", true);
         when(repository.save(any(Skill.class))).thenReturn(saved);
 
-        final SkillDto result = service.create(draft);
+        final SkillDto result = service.create(draft, "admin");
 
         assertThat(result.id()).isEqualTo("generated-id");
         assertThat(result.name()).isEqualTo("my-skill");
@@ -78,7 +82,7 @@ class SkillServiceTest {
         final Skill saved = skill("some-uuid", "gen-skill", null, false);
         when(repository.save(any(Skill.class))).thenReturn(saved);
 
-        final SkillDto result = service.create(draft);
+        final SkillDto result = service.create(draft, "admin");
 
         verify(repository).save(any(Skill.class));
         assertThat(result.id()).isNotNull();
@@ -93,7 +97,7 @@ class SkillServiceTest {
         final Skill patched = skill("id-x", "original-name", "original-desc", false);
         when(repository.save(any(Skill.class))).thenReturn(patched);
 
-        final SkillDto result = service.update("id-x", new SkillDto(null, null, null, false));
+        final SkillDto result = service.update("id-x", new SkillDto(null, null, null, false), "admin");
 
         assertThat(result.name()).isEqualTo("original-name");
         assertThat(result.description()).isEqualTo("original-desc");
@@ -106,7 +110,7 @@ class SkillServiceTest {
         final Skill patched = skill("id-y", "new-name", "new-desc", true);
         when(repository.save(any(Skill.class))).thenReturn(patched);
 
-        final SkillDto result = service.update("id-y", new SkillDto(null, "new-name", "new-desc", true));
+        final SkillDto result = service.update("id-y", new SkillDto(null, "new-name", "new-desc", true), "admin");
 
         assertThat(result.name()).isEqualTo("new-name");
         assertThat(result.description()).isEqualTo("new-desc");
@@ -117,7 +121,7 @@ class SkillServiceTest {
     void update_missingSkill_throwsNoSuchElementException() {
         when(repository.findByIdAndOwnerIdIsNull("missing-id")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update("missing-id", new SkillDto(null, "x", null, true)))
+        assertThatThrownBy(() -> service.update("missing-id", new SkillDto(null, "x", null, true), "admin"))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("missing-id");
     }
@@ -129,7 +133,7 @@ class SkillServiceTest {
         final Skill existing = skill("id-del", "to-delete", null, true);
         when(repository.findByIdAndOwnerIdIsNull("id-del")).thenReturn(Optional.of(existing));
 
-        service.delete("id-del");
+        service.delete("id-del", "admin");
 
         verify(repository).deleteById("id-del");
     }
@@ -138,7 +142,7 @@ class SkillServiceTest {
     void delete_missingSkill_throwsNoSuchElementException() {
         when(repository.findByIdAndOwnerIdIsNull("gone")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.delete("gone"))
+        assertThatThrownBy(() -> service.delete("gone", "admin"))
                 .isInstanceOf(NoSuchElementException.class)
                 .hasMessageContaining("gone");
     }

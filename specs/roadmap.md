@@ -846,7 +846,7 @@ DelegationTool с 4 @Tool методами: delegateTask (spawn child через
 - 3.7 Multi-agent routing
 - 15.5.4 Team conversations
 - 15.1.6 Service accounts
-- 15.3.4 Skill usage audit
+- ✅ 15.3.4 Skill usage audit
 - 15.4.5 MCP tool execution audit
 - 16.12 SLA monitoring
 - 4.16 Reaction tool

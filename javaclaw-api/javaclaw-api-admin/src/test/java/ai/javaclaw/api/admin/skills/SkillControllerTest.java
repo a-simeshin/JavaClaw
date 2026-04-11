@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import ai.javaclaw.api.admin.AdminExceptionHandler;
+import ai.javaclaw.skills.SkillUsageAuditService;
+import java.security.Principal;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,19 +31,25 @@ class SkillControllerTest {
     @Mock
     private SkillService skillService;
 
+    @Mock
+    private SkillUsageAuditService auditService;
+
     private MockMvc mockMvc;
+
+    private static final Principal ADMIN_PRINCIPAL = () -> "admin";
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new SkillController(skillService))
+        mockMvc = standaloneSetup(new SkillController(skillService, auditService))
                 .setControllerAdvice(new AdminExceptionHandler())
+                .defaultRequest(get("/").principal(ADMIN_PRINCIPAL))
                 .build();
     }
 
     @Test
     void createListUpdateDeleteLifecycle() throws Exception {
         final SkillDto created = new SkillDto("uuid-1", "brave", "Web search", true);
-        when(skillService.create(any(SkillDto.class))).thenReturn(created);
+        when(skillService.create(any(SkillDto.class), eq("admin"))).thenReturn(created);
 
         mockMvc.perform(post("/api/skills")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -57,7 +65,8 @@ class SkillControllerTest {
                 .andExpect(jsonPath("$[0].name").value("brave"));
 
         final SkillDto updated = new SkillDto("uuid-1", "brave", "Web search", false);
-        when(skillService.update(eq("uuid-1"), any(SkillDto.class))).thenReturn(updated);
+        when(skillService.update(eq("uuid-1"), any(SkillDto.class), eq("admin")))
+                .thenReturn(updated);
 
         mockMvc.perform(put("/api/skills/uuid-1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +81,7 @@ class SkillControllerTest {
     void deleteMissingReturnsNotFound() throws Exception {
         doThrow(new NoSuchElementException("skill not found: does-not-exist"))
                 .when(skillService)
-                .delete("does-not-exist");
+                .delete(eq("does-not-exist"), eq("admin"));
 
         mockMvc.perform(delete("/api/skills/does-not-exist")).andExpect(status().isNotFound());
     }
