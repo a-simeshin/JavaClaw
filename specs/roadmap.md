@@ -760,7 +760,12 @@
 - [x] task-detail-dialog.tsx: Timeline tab с audit log events, цветовая кодировка, иконки по типу события
 - [x] 4 вкладки: timeline, model, tools, deliveries
 
-### 11.6 Config generator CLI (13.8)
+### 11.6 Config generator CLI (13.8) ✅
+
+- [x] ConfigGenerator standalone CLI: `java -cp javaclaw-app.jar ai.javaclaw.cli.ConfigGenerator [output-dir] [--force]`
+- [x] Generates: application.yaml (all configurable properties with env-var placeholders), docker-compose.yml (app+postgres), .env.example (categorized env vars)
+- [x] ConfigGeneratorRunner — Spring Boot ApplicationRunner: `java -jar javaclaw.jar --generate-config [--config-dir=...] [--force]`
+- [x] 17 новых тестов (ConfigGeneratorTest), все 924+ тестов зелёные
 
 ### 11.7 SQLite backend (6.1a)
 
