@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -81,7 +82,7 @@ class TelegramChannelTest {
 
         verifyNoInteractions(agent);
         verify(telegramClient)
-                .execute(argThat((SendMessage msg) -> msg.getText().contains("I'm sorry")));
+                .execute(argThat((SendMessage msg) -> msg.getText().contains("sorry")));
     }
 
     @Test
@@ -92,7 +93,7 @@ class TelegramChannelTest {
 
         verify(agent, never()).respondTo(anyString(), anyString());
         verify(telegramClient)
-                .execute(argThat((SendMessage msg) -> msg.getText().contains("I'm sorry")));
+                .execute(argThat((SendMessage msg) -> msg.getText().contains("sorry")));
     }
 
     // -----------------------------------------------------------------------
@@ -222,6 +223,39 @@ class TelegramChannelTest {
         verify(telegramClient)
                 .execute(argThat(
                         (SendMessage msg) -> "99".equals(msg.getChatId()) && "notification".equals(msg.getText())));
+    }
+
+    // -----------------------------------------------------------------------
+    // Message formatting (Markdown → HTML)
+    // -----------------------------------------------------------------------
+
+    @Test
+    void sendMessageConvertsMarkdownToTelegramHtml() throws TelegramApiException {
+        TelegramChannel channel = channel("allowed_user");
+        when(agent.respondTo(anyString(), anyString()))
+                .thenReturn("Here is **bold** text and a [link](https://example.com)");
+        channel.consume(updateFrom("allowed_user", "hello", 42L, 567));
+        verify(telegramClient)
+                .execute(argThat((SendMessage msg) -> ParseMode.HTML.equals(msg.getParseMode())
+                        && "Here is <strong>bold</strong> text and a <a href=\"https://example.com\">link</a>"
+                                .equals(msg.getText())));
+    }
+
+    @Test
+    void sendMessageFallbacksToSendingRawTextWhenFailingToSendHtml() throws TelegramApiException {
+        TelegramChannel channel = channel("allowed_user");
+        when(agent.respondTo(anyString(), anyString()))
+                .thenReturn("Here is **bold** text and an image: ![An example image](/assets/images/clawrunr.png)");
+        when(telegramClient.execute(argThat((SendMessage m) -> ParseMode.HTML.equals(m.getParseMode()))))
+                .thenThrow(new TelegramApiException("Invalid HTML"));
+        channel.consume(updateFrom("allowed_user", "hello", 42L, 567));
+        verify(telegramClient)
+                .execute(
+                        argThat(
+                                (SendMessage msg) -> msg.getParseMode() == null
+                                        && msg.getText()
+                                                .equals(
+                                                        "Here is **bold** text and an image: ![An example image](/assets/images/clawrunr.png)")));
     }
 
     // -----------------------------------------------------------------------

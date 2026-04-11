@@ -43,6 +43,7 @@
         <jobrunr.version>8.5.1</jobrunr.version>
         <jda.version>6.1.1</jda.version>
         <telegrambots.version>9.4.0</telegrambots.version>
+        <commonmark.version>0.21.0</commonmark.version>
         <playwright.version>1.52.0</playwright.version>
         <netty-macos.version>4.2.10.Final</netty-macos.version>
         <testcontainers.version>1.21.0</testcontainers.version>
@@ -140,6 +141,16 @@
                 <groupId>org.telegram</groupId>
                 <artifactId>telegrambots-client</artifactId>
                 <version>${telegrambots.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark</artifactId>
+                <version>${commonmark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark-ext-gfm-strikethrough</artifactId>
+                <version>${commonmark.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.playwright</groupId>

@@ -110,21 +110,21 @@ ai.javaclaw.security
 
 ## 3. Technology Stack
 
-| Component                    | Technology                                              |
-| ---------------------------- | ------------------------------------------------------- |
-| Framework                    | Spring Boot 4.0.5, Spring Security 6.x / 7.x            |
-| Language / Runtime           | Java 21                                                 |
-| Password hashing             | Argon2id (BouncyCastle `bcprov-jdk18on:1.79`)           |
-| Legacy password hashing      | bcrypt (auto-upgraded to Argon2id on next login)        |
-| Session storage              | PostgreSQL 16+ via Spring Data JDBC                     |
-| Session token                | 256-bit `SecureRandom` → base64url → SHA-256 hash       |
-| Session transport            | `HttpOnly` `Secure` `SameSite=Lax` cookie (`JCLAW_SESSION`) |
-| CSRF                         | `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler` (no XOR) |
-| Method security              | `@PreAuthorize` + custom `PermissionEvaluator`           |
-| Migrations                   | Flyway (V39 `user_session`, V40 audit event types, V41 FK relax) |
-| Audit                        | `auth_audit_log` table (V29)                             |
-| Frontend                     | React 18 + TanStack Router + Jotai + Vite               |
-| Testing                      | JUnit 5, Mockito, AssertJ, Testcontainers, MockMvc, Vitest, Playwright |
+|        Component        |                                Technology                                 |
+|-------------------------|---------------------------------------------------------------------------|
+| Framework               | Spring Boot 4.0.5, Spring Security 6.x / 7.x                              |
+| Language / Runtime      | Java 21                                                                   |
+| Password hashing        | Argon2id (BouncyCastle `bcprov-jdk18on:1.79`)                             |
+| Legacy password hashing | bcrypt (auto-upgraded to Argon2id on next login)                          |
+| Session storage         | PostgreSQL 16+ via Spring Data JDBC                                       |
+| Session token           | 256-bit `SecureRandom` → base64url → SHA-256 hash                         |
+| Session transport       | `HttpOnly` `Secure` `SameSite=Lax` cookie (`JCLAW_SESSION`)               |
+| CSRF                    | `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler` (no XOR) |
+| Method security         | `@PreAuthorize` + custom `PermissionEvaluator`                            |
+| Migrations              | Flyway (V39 `user_session`, V40 audit event types, V41 FK relax)          |
+| Audit                   | `auth_audit_log` table (V29)                                              |
+| Frontend                | React 18 + TanStack Router + Jotai + Vite                                 |
+| Testing                 | JUnit 5, Mockito, AssertJ, Testcontainers, MockMvc, Vitest, Playwright    |
 
 ---
 
@@ -239,12 +239,12 @@ resolvers.register("conversation", (username, targetId, action) -> {
 
 Registered resolvers (`DefaultPermissionResolversRegistrar`):
 
-| Target type    | Logic                                                             |
-| -------------- | ----------------------------------------------------------------- |
-| `conversation` | `CONVERSATION_ACCESS_ALL` OR ownership/sharing check              |
-| `task`         | `TASK_LIST` permission check                                      |
-| `skill`        | `SKILL_<ACTION>` permission (fallback to `SKILL_LIST`)            |
-| `mcp`          | `MCP_<ACTION>` permission (fallback to `MCP_LIST`)                |
+|  Target type   |                         Logic                          |
+|----------------|--------------------------------------------------------|
+| `conversation` | `CONVERSATION_ACCESS_ALL` OR ownership/sharing check   |
+| `task`         | `TASK_LIST` permission check                           |
+| `skill`        | `SKILL_<ACTION>` permission (fallback to `SKILL_LIST`) |
+| `mcp`          | `MCP_<ACTION>` permission (fallback to `MCP_LIST`)     |
 
 Adding a new resource type is a single `resolvers.register(...)` call in a
 new `InitializingBean`.
@@ -523,7 +523,7 @@ Before going live, verify **every** item:
 - [ ] Database connection is secured (TLS to Postgres).
 - [ ] Flyway has applied V39, V40, V41 on the target database.
 - [ ] `users` table has at least one administrator account with a non-null
-      `password_hash` (use `argon2` prefix for new deployments).
+  `password_hash` (use `argon2` prefix for new deployments).
 - [ ] Default seeded passwords from `V10__seed_default_users.sql` are rotated.
 - [ ] Session cleanup job is running (check logs for `SessionCleanupJob`).
 - [ ] Reverse proxy forwards `Cookie`, `X-XSRF-TOKEN`, and `X-Forwarded-For`.
@@ -531,25 +531,25 @@ Before going live, verify **every** item:
 - [ ] `auth_audit_log` retention policy is defined (external cron / cleanup).
 - [ ] Monitoring: alerts on `login_failure` spike rate.
 - [ ] Backups include `user_session` table (so sessions survive restore — or
-      a deliberate policy to revoke all sessions on restore).
+  a deliberate policy to revoke all sessions on restore).
 
 ---
 
 ## 11. Threat Model
 
-| Threat                               | Mitigation                                                             |
-| ------------------------------------ | ---------------------------------------------------------------------- |
-| **XSS → token theft**                | Cookie is `HttpOnly`, inaccessible to JS                               |
-| **CSRF**                             | `X-XSRF-TOKEN` header required on all mutating requests; `SameSite=Lax` |
-| **Password database leak**           | Argon2id with high cost parameters                                     |
-| **Session fixation**                 | Fresh random token issued on every login; no session reuse             |
-| **Stolen cookie replay**             | Sessions are revokable; `/logout-all` + audit trail; TTL-bounded       |
-| **Brute force**                      | (not yet implemented — rate limiting in roadmap)                       |
-| **Browser Basic-auth prompt**        | Custom `AuthenticationEntryPoint` does not send `WWW-Authenticate`     |
-| **URL parameter token leak (SSE)**   | SSE uses cookie transport, no `?auth=` query parameter                 |
-| **Horizontal privilege escalation**  | `@PreAuthorize(hasPermission(...))` on all resource endpoints          |
-| **Audit tampering**                  | `auth_audit_log` is append-only; retention policy mandatory            |
-| **Dictionary attack on user table**  | Argon2id + username enumeration mitigation (same 401 for both cases)   |
+|               Threat                |                               Mitigation                                |
+|-------------------------------------|-------------------------------------------------------------------------|
+| **XSS → token theft**               | Cookie is `HttpOnly`, inaccessible to JS                                |
+| **CSRF**                            | `X-XSRF-TOKEN` header required on all mutating requests; `SameSite=Lax` |
+| **Password database leak**          | Argon2id with high cost parameters                                      |
+| **Session fixation**                | Fresh random token issued on every login; no session reuse              |
+| **Stolen cookie replay**            | Sessions are revokable; `/logout-all` + audit trail; TTL-bounded        |
+| **Brute force**                     | (not yet implemented — rate limiting in roadmap)                        |
+| **Browser Basic-auth prompt**       | Custom `AuthenticationEntryPoint` does not send `WWW-Authenticate`      |
+| **URL parameter token leak (SSE)**  | SSE uses cookie transport, no `?auth=` query parameter                  |
+| **Horizontal privilege escalation** | `@PreAuthorize(hasPermission(...))` on all resource endpoints           |
+| **Audit tampering**                 | `auth_audit_log` is append-only; retention policy mandatory             |
+| **Dictionary attack on user table** | Argon2id + username enumeration mitigation (same 401 for both cases)    |
 
 ---
 
@@ -695,3 +695,4 @@ real cookies.
 - OIDC roadmap: [`javaclaw-security/docs/oidc-relying-party-roadmap.md`](../../javaclaw-security/docs/oidc-relying-party-roadmap.md)
 - 2FA roadmap: [`javaclaw-security/docs/two-factor-roadmap.md`](../../javaclaw-security/docs/two-factor-roadmap.md)
 - Admin sessions roadmap: [`javaclaw-security/docs/admin-session-management.md`](../../javaclaw-security/docs/admin-session-management.md)
+

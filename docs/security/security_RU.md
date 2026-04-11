@@ -110,21 +110,21 @@ ai.javaclaw.security
 
 ## 3. Стек технологий
 
-| Компонент                    | Технология                                              |
-| ---------------------------- | ------------------------------------------------------- |
-| Фреймворк                    | Spring Boot 4.0.5, Spring Security 6.x / 7.x            |
-| Язык / Runtime               | Java 21                                                 |
-| Хэширование паролей          | Argon2id (BouncyCastle `bcprov-jdk18on:1.79`)           |
-| Legacy хэширование           | bcrypt (auto-upgrade в Argon2id при следующем логине)   |
-| Хранилище сессий             | PostgreSQL 16+ через Spring Data JDBC                   |
-| Session token                | 256-бит `SecureRandom` → base64url → SHA-256 hash       |
-| Транспорт сессии             | `HttpOnly` `Secure` `SameSite=Lax` cookie (`JCLAW_SESSION`) |
-| CSRF                         | `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler` (без XOR) |
-| Method security              | `@PreAuthorize` + кастомный `PermissionEvaluator`       |
-| Миграции                     | Flyway (V39 `user_session`, V40 audit event types, V41 FK relax) |
-| Аудит                        | Таблица `auth_audit_log` (V29)                           |
-| Фронтенд                     | React 18 + TanStack Router + Jotai + Vite               |
-| Тесты                        | JUnit 5, Mockito, AssertJ, Testcontainers, MockMvc, Vitest, Playwright |
+|      Компонент      |                                 Технология                                 |
+|---------------------|----------------------------------------------------------------------------|
+| Фреймворк           | Spring Boot 4.0.5, Spring Security 6.x / 7.x                               |
+| Язык / Runtime      | Java 21                                                                    |
+| Хэширование паролей | Argon2id (BouncyCastle `bcprov-jdk18on:1.79`)                              |
+| Legacy хэширование  | bcrypt (auto-upgrade в Argon2id при следующем логине)                      |
+| Хранилище сессий    | PostgreSQL 16+ через Spring Data JDBC                                      |
+| Session token       | 256-бит `SecureRandom` → base64url → SHA-256 hash                          |
+| Транспорт сессии    | `HttpOnly` `Secure` `SameSite=Lax` cookie (`JCLAW_SESSION`)                |
+| CSRF                | `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler` (без XOR) |
+| Method security     | `@PreAuthorize` + кастомный `PermissionEvaluator`                          |
+| Миграции            | Flyway (V39 `user_session`, V40 audit event types, V41 FK relax)           |
+| Аудит               | Таблица `auth_audit_log` (V29)                                             |
+| Фронтенд            | React 18 + TanStack Router + Jotai + Vite                                  |
+| Тесты               | JUnit 5, Mockito, AssertJ, Testcontainers, MockMvc, Vitest, Playwright     |
 
 ---
 
@@ -239,12 +239,12 @@ resolvers.register("conversation", (username, targetId, action) -> {
 
 Зарегистрированные resolver'ы (`DefaultPermissionResolversRegistrar`):
 
-| Тип ресурса    | Логика                                                         |
-| -------------- | -------------------------------------------------------------- |
-| `conversation` | `CONVERSATION_ACCESS_ALL` ИЛИ проверка ownership/sharing       |
-| `task`         | Проверка permission `TASK_LIST`                                |
-| `skill`        | `SKILL_<ACTION>` permission (fallback на `SKILL_LIST`)         |
-| `mcp`          | `MCP_<ACTION>` permission (fallback на `MCP_LIST`)             |
+|  Тип ресурса   |                          Логика                          |
+|----------------|----------------------------------------------------------|
+| `conversation` | `CONVERSATION_ACCESS_ALL` ИЛИ проверка ownership/sharing |
+| `task`         | Проверка permission `TASK_LIST`                          |
+| `skill`        | `SKILL_<ACTION>` permission (fallback на `SKILL_LIST`)   |
+| `mcp`          | `MCP_<ACTION>` permission (fallback на `MCP_LIST`)       |
 
 Добавление нового типа ресурса — один вызов `resolvers.register(...)` в
 новом `InitializingBean`.
@@ -526,7 +526,7 @@ export async function getMe() {
 - [ ] Соединение с БД защищено (TLS до Postgres).
 - [ ] Flyway применил миграции V39, V40, V41 на целевой БД.
 - [ ] В таблице `users` есть хотя бы один admin с ненулевым `password_hash`
-      (для новых установок — префикс `argon2`).
+  (для новых установок — префикс `argon2`).
 - [ ] Дефолтные пароли из `V10__seed_default_users.sql` заменены.
 - [ ] Session cleanup job работает (проверить логи на `SessionCleanupJob`).
 - [ ] Reverse proxy пробрасывает `Cookie`, `X-XSRF-TOKEN`, `X-Forwarded-For`.
@@ -534,25 +534,25 @@ export async function getMe() {
 - [ ] Определена retention policy на `auth_audit_log` (внешний cron / cleanup).
 - [ ] Мониторинг: алерты на всплеск `login_failure`.
 - [ ] Бэкапы включают таблицу `user_session` (чтобы сессии пережили restore —
-      либо явная политика revoke всех сессий при restore).
+  либо явная политика revoke всех сессий при restore).
 
 ---
 
 ## 11. Модель угроз
 
-| Угроза                                | Митигация                                                                 |
-| ------------------------------------- | ------------------------------------------------------------------------- |
-| **XSS → кража токена**                | Cookie `HttpOnly`, недоступен из JS                                       |
-| **CSRF**                              | Заголовок `X-XSRF-TOKEN` обязателен на mutating запросах; `SameSite=Lax`  |
-| **Утечка БД с паролями**              | Argon2id с высокими cost параметрами                                      |
-| **Session fixation**                  | На каждый логин — свежий случайный токен, старые не переиспользуются      |
-| **Replay украденного cookie**         | Сессии revoke'аются; `/logout-all` + audit trail; ограниченный TTL        |
-| **Brute force**                       | (пока не реализовано — rate limiting в roadmap)                           |
-| **Браузерный Basic-auth prompt**      | Кастомный `AuthenticationEntryPoint` не шлёт `WWW-Authenticate`           |
-| **Утечка токена в URL (SSE)**         | SSE через cookie, никакого `?auth=` query-параметра                       |
-| **Horizontal privilege escalation**   | `@PreAuthorize(hasPermission(...))` на всех resource endpoints            |
-| **Подмена audit log**                 | `auth_audit_log` append-only; обязательна retention policy                |
-| **Dictionary attack по user table**   | Argon2id + одинаковые 401 для неизвестного и неверного пользователя       |
+|               Угроза                |                                Митигация                                 |
+|-------------------------------------|--------------------------------------------------------------------------|
+| **XSS → кража токена**              | Cookie `HttpOnly`, недоступен из JS                                      |
+| **CSRF**                            | Заголовок `X-XSRF-TOKEN` обязателен на mutating запросах; `SameSite=Lax` |
+| **Утечка БД с паролями**            | Argon2id с высокими cost параметрами                                     |
+| **Session fixation**                | На каждый логин — свежий случайный токен, старые не переиспользуются     |
+| **Replay украденного cookie**       | Сессии revoke'аются; `/logout-all` + audit trail; ограниченный TTL       |
+| **Brute force**                     | (пока не реализовано — rate limiting в roadmap)                          |
+| **Браузерный Basic-auth prompt**    | Кастомный `AuthenticationEntryPoint` не шлёт `WWW-Authenticate`          |
+| **Утечка токена в URL (SSE)**       | SSE через cookie, никакого `?auth=` query-параметра                      |
+| **Horizontal privilege escalation** | `@PreAuthorize(hasPermission(...))` на всех resource endpoints           |
+| **Подмена audit log**               | `auth_audit_log` append-only; обязательна retention policy               |
+| **Dictionary attack по user table** | Argon2id + одинаковые 401 для неизвестного и неверного пользователя      |
 
 ---
 
@@ -697,3 +697,4 @@ post-processor, выставляющий `user("admin")` на каждый за�
 - OIDC roadmap: [`javaclaw-security/docs/oidc-relying-party-roadmap.md`](../../javaclaw-security/docs/oidc-relying-party-roadmap.md)
 - 2FA roadmap: [`javaclaw-security/docs/two-factor-roadmap.md`](../../javaclaw-security/docs/two-factor-roadmap.md)
 - Admin sessions roadmap: [`javaclaw-security/docs/admin-session-management.md`](../../javaclaw-security/docs/admin-session-management.md)
+

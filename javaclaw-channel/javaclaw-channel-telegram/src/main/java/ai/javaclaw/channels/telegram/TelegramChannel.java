@@ -7,13 +7,19 @@ import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.channels.RoutingContext;
+import java.util.List;
 import java.util.Map;
+import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -22,6 +28,11 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 public class TelegramChannel implements Channel, SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
+    private static final Parser MARKDOWN_PARSER = Parser.builder().build();
+    private static final HtmlRenderer HTML_RENDERER = HtmlRenderer.builder()
+            .escapeHtml(true)
+            .extensions(List.of(StrikethroughExtension.create()))
+            .build();
     private static final Logger log = LoggerFactory.getLogger(TelegramChannel.class);
     private final String botToken;
     private final String allowedUsername;
@@ -114,16 +125,48 @@ public class TelegramChannel implements Channel, SpringLongPollingBot, LongPolli
         sendTelegram(chatId, messageThreadId, message);
     }
 
+    private static String convertMarkdownToTelegramHtml(String markdown) {
+        if (markdown == null || markdown.isBlank()) {
+            return "";
+        }
+        Node document = MARKDOWN_PARSER.parse(markdown);
+        String html = HTML_RENDERER.render(document);
+        return html.replace("<p>", "")
+                .replace("</p>", "\n")
+                .replaceAll("<h[1-6]>", "<b>")
+                .replaceAll("</h[1-6]>", "</b>\n")
+                .replace("<li>", "• ")
+                .replace("</li>", "\n")
+                .replace("<ul>", "")
+                .replace("</ul>", "")
+                .replace("<ol>", "")
+                .replace("</ol>", "")
+                .replace("<hr />", "———\n")
+                .trim();
+    }
+
     void sendTelegram(final long chatId, final Integer messageThreadId, final String message) {
-        final SendMessage sendMessage = SendMessage.builder()
+        final String formattedHtmlMessage = convertMarkdownToTelegramHtml(message);
+        SendMessage htmlMessage = SendMessage.builder()
                 .chatId(chatId)
                 .messageThreadId(messageThreadId)
-                .text(message)
+                .text(formattedHtmlMessage)
+                .parseMode(ParseMode.HTML)
                 .build();
         try {
-            telegramClient.execute(sendMessage);
+            telegramClient.execute(htmlMessage);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            log.warn("Failed to send HTML parsed message, falling back to raw text.", e);
+            SendMessage fallback = SendMessage.builder()
+                    .chatId(chatId)
+                    .messageThreadId(messageThreadId)
+                    .text(message)
+                    .build();
+            try {
+                telegramClient.execute(fallback);
+            } catch (TelegramApiException fx) {
+                throw new RuntimeException("Failed to send both HTML and fallback messages", fx);
+            }
         }
     }
 
