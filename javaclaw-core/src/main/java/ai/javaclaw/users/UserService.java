@@ -12,9 +12,11 @@ import org.springframework.util.Assert;
 public class UserService {
 
     private final AppUserRepository repository;
+    private final CustomRoleRepository roleRepository;
 
-    public UserService(AppUserRepository repository) {
+    public UserService(AppUserRepository repository, CustomRoleRepository roleRepository) {
         this.repository = repository;
+        this.roleRepository = roleRepository;
     }
 
     public List<AppUser> listActive() {
@@ -33,6 +35,7 @@ public class UserService {
         Assert.hasText(username, "username must not be blank");
         Assert.hasText(encodedPassword, "password must not be blank");
         Assert.hasText(role, "role must not be blank");
+        validateRoleExists(role);
         if (repository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists: " + username);
         }
@@ -42,10 +45,17 @@ public class UserService {
     public void updateRole(String id, String role) {
         Assert.hasText(id, "id must not be blank");
         Assert.hasText(role, "role must not be blank");
+        validateRoleExists(role);
         if (!repository.existsById(id)) {
             throw new IllegalArgumentException("User not found: " + id);
         }
         repository.updateRole(id, role);
+    }
+
+    private void validateRoleExists(String role) {
+        if (!roleRepository.existsByName(role)) {
+            throw new IllegalArgumentException("Unknown role: " + role);
+        }
     }
 
     public void updatePassword(String id, String encodedPassword) {

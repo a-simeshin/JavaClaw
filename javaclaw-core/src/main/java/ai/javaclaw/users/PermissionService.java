@@ -19,11 +19,14 @@ import org.springframework.util.Assert;
 @Service
 public class PermissionService {
 
-    /** Role hierarchy — higher roles inherit all permissions of lower roles. */
-    private static final Map<String, Integer> ROLE_HIERARCHY = Map.of(
+    /** Built-in role hierarchy — higher roles inherit all permissions of lower roles. */
+    private static final Map<String, Integer> BUILT_IN_HIERARCHY = Map.of(
             "USER", 0,
             "POWER_USER", 1,
             "ADMIN", 2);
+
+    /** Custom roles get hierarchy rank -1 (below all built-in roles). */
+    private static final int CUSTOM_ROLE_RANK = -1;
 
     private final RolePermissionRepository repository;
     private final AppUserRepository userRepository;
@@ -72,10 +75,11 @@ public class PermissionService {
 
     /**
      * Compare two roles in the hierarchy. Returns positive if role1 > role2.
+     * Custom roles have rank -1 (below all built-in roles).
      */
     public int compareRoles(String role1, String role2) {
-        int rank1 = ROLE_HIERARCHY.getOrDefault(role1, -1);
-        int rank2 = ROLE_HIERARCHY.getOrDefault(role2, -1);
+        int rank1 = BUILT_IN_HIERARCHY.getOrDefault(role1, CUSTOM_ROLE_RANK);
+        int rank2 = BUILT_IN_HIERARCHY.getOrDefault(role2, CUSTOM_ROLE_RANK);
         return Integer.compare(rank1, rank2);
     }
 
@@ -87,10 +91,24 @@ public class PermissionService {
     }
 
     /**
-     * Get all known roles ordered by hierarchy (ascending).
+     * Get built-in roles ordered by hierarchy (ascending).
      */
     public List<String> getRoleHierarchy() {
         return List.of("USER", "POWER_USER", "ADMIN");
+    }
+
+    /**
+     * Get all known roles (built-in + custom from DB).
+     */
+    public List<String> getAllRoles() {
+        return repository.findDistinctRoles();
+    }
+
+    /**
+     * Check if a role name is a built-in role.
+     */
+    public boolean isBuiltInRole(String role) {
+        return BUILT_IN_HIERARCHY.containsKey(role);
     }
 
     /**

@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .hasAuthority("PERM_MCP_CREATE")
                         .requestMatchers("/api/users/**")
                         .hasAuthority("PERM_USER_LIST")
+                        .requestMatchers("/api/roles/**")
+                        .hasAuthority("PERM_USER_LIST")
                         .requestMatchers("/api/audit/**")
                         .hasAuthority("PERM_AUDIT_READ")
                         // MCP server endpoint — authenticated
