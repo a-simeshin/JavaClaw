@@ -716,9 +716,14 @@
 - [x] Default deny patterns: rm -rf, DROP TABLE, DELETE FROM, TRUNCATE, chmod 777, curl|sh, wget|sh; per-tool: writeFile (.sh/.bash/.exe/.jar/.class), deleteFile (AGENT.md/SOUL.md/INFO.md)
 - [x] 12 новых тестов (ToolDenyFilterTest), все 905 тестов зелёные
 
-### 10.5 Cron tool (4.14)
+### 10.5 Cron tool (4.14) ✅
 
-- Управление расписаниями через чат
+- [x] V28 миграция: active колонка в recurring_tasks для pause/resume
+- [x] RecurringTask entity: +active field, +withActive(), +withCronExpression()
+- [x] RecurringTaskRepository: +findByName(), +findByActive() derived queries
+- [x] TaskManager: +pauseRecurringTask(), +resumeRecurringTask(), +updateRecurringTaskCron(), +getRecurringTaskByName()
+- [x] CronTool: 6 @Tool методов (validateCron, getScheduleDetails, updateSchedule, pauseSchedule, resumeSchedule, listSchedules), human-readable cron описания, зарегистрирован как AutoDiscoveredTool
+- [x] 20 новых тестов (CronToolTest), все 925 тестов зелёные; Phase 10 COMPLETE
 
 ---
 

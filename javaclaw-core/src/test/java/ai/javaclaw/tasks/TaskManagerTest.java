@@ -152,7 +152,14 @@ class TaskManagerTest {
     void scheduleRecurrentlyRegistersRecurringJob() {
         String cronExpression = "0 */15 * * *";
         RecurringTask saved = new RecurringTask(
-                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, null, Instant.now());
+                "some-id",
+                "check-mail",
+                "Check the inbox every 15 minutes",
+                cronExpression,
+                null,
+                null,
+                true,
+                Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cronExpression, "check-mail", "Check the inbox every 15 minutes");
@@ -169,7 +176,14 @@ class TaskManagerTest {
     void deleteRecurringTaskRemovesFromJobRunr() {
         String cronExpression = "0 */15 * * *";
         RecurringTask saved = new RecurringTask(
-                "some-id", "check-mail", "Check the inbox every 15 minutes", cronExpression, null, null, Instant.now());
+                "some-id",
+                "check-mail",
+                "Check the inbox every 15 minutes",
+                cronExpression,
+                null,
+                null,
+                true,
+                Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
         when(recurringTaskRepositoryMock.findAll()).thenReturn(List.of(saved));
 
@@ -201,6 +215,7 @@ class TaskManagerTest {
                 cronExpression,
                 null,
                 conversationId,
+                true,
                 Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
@@ -216,7 +231,7 @@ class TaskManagerTest {
     void scheduleRecurrentlyWithoutConversationIdPassesNull() {
         final String cronExpression = "0 9 * * *";
         final RecurringTask saved = new RecurringTask(
-                "some-id", "daily-check", "Daily inbox check", cronExpression, null, null, Instant.now());
+                "some-id", "daily-check", "Daily inbox check", cronExpression, null, null, true, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cronExpression, "daily-check", "Daily inbox check");
@@ -230,7 +245,14 @@ class TaskManagerTest {
     void createTaskFromRecurringTaskPropagatesConversationId() {
         final String conversationId = "conv-xyz-456";
         final RecurringTask recurringTask = new RecurringTask(
-                "rt-id", "notify-user", "Send user notification", "0 10 * * *", "job-1", conversationId, Instant.now());
+                "rt-id",
+                "notify-user",
+                "Send user notification",
+                "0 10 * * *",
+                "job-1",
+                conversationId,
+                true,
+                Instant.now());
         final Task savedTask = new Task(
                 "task-id",
                 "notify-user",
@@ -252,8 +274,8 @@ class TaskManagerTest {
 
     @Test
     void createTaskFromRecurringTaskWithNullConversationIdCreatesTaskWithNull() {
-        final RecurringTask recurringTask =
-                new RecurringTask("rt-id", "cleanup", "Cleanup temp files", "0 0 * * *", "job-2", null, Instant.now());
+        final RecurringTask recurringTask = new RecurringTask(
+                "rt-id", "cleanup", "Cleanup temp files", "0 0 * * *", "job-2", null, true, Instant.now());
         final Task savedTask = new Task(
                 "task-id",
                 "cleanup",
@@ -702,7 +724,7 @@ class TaskManagerTest {
         final String userId = "user-1";
         final String cron = "0 9 * * *";
         final RecurringTask saved =
-                new RecurringTask("rt-id", "daily", "Daily task", cron, null, "conv-1", Instant.now());
+                new RecurringTask("rt-id", "daily", "Daily task", cron, null, "conv-1", true, Instant.now());
         when(recurringTaskRepositoryMock.save(any(RecurringTask.class))).thenReturn(saved);
 
         taskManager.scheduleRecurrently(cron, "daily", "Daily task", "conv-1", userId);

@@ -17,6 +17,8 @@ public class RecurringTask {
     /** Идентификатор беседы, к которой привязана задача (может быть null) */
     private final String conversationId;
 
+    private final boolean active;
+
     private final Instant createdAt;
 
     public RecurringTask(
@@ -26,6 +28,7 @@ public class RecurringTask {
             String cronExpression,
             String jobId,
             String conversationId,
+            boolean active,
             Instant createdAt) {
         this.id = id;
         this.name = name;
@@ -33,18 +36,19 @@ public class RecurringTask {
         this.cronExpression = cronExpression;
         this.jobId = jobId;
         this.conversationId = conversationId;
+        this.active = active;
         this.createdAt = createdAt;
     }
 
     /** Создаёт новую задачу без привязки к беседе (обратная совместимость). */
     public static RecurringTask newRecurringTask(String name, String description, String cronExpression) {
-        return new RecurringTask(null, name, description, cronExpression, null, null, Instant.now());
+        return new RecurringTask(null, name, description, cronExpression, null, null, true, Instant.now());
     }
 
     /** Создаёт новую задачу с привязкой к беседе. */
     public static RecurringTask newRecurringTask(
             String name, String description, String cronExpression, String conversationId) {
-        return new RecurringTask(null, name, description, cronExpression, null, conversationId, Instant.now());
+        return new RecurringTask(null, name, description, cronExpression, null, conversationId, true, Instant.now());
     }
 
     public String getId() {
@@ -72,18 +76,32 @@ public class RecurringTask {
         return conversationId;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     /** Возвращает копию задачи с указанным jobId, сохраняя все остальные поля. */
     public RecurringTask withJobId(String jobId) {
-        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, createdAt);
+        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, active, createdAt);
     }
 
     /** Возвращает копию задачи с указанным conversationId, сохраняя все остальные поля. */
     public RecurringTask withConversationId(String conversationId) {
-        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, createdAt);
+        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, active, createdAt);
+    }
+
+    /** Возвращает копию задачи с указанным active-флагом. */
+    public RecurringTask withActive(boolean active) {
+        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, active, createdAt);
+    }
+
+    /** Возвращает копию задачи с обновлённым cron expression. */
+    public RecurringTask withCronExpression(String cronExpression) {
+        return new RecurringTask(id, name, description, cronExpression, jobId, conversationId, active, createdAt);
     }
 
     @Override

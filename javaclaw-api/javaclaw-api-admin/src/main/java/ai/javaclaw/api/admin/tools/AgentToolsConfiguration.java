@@ -5,6 +5,7 @@ import ai.javaclaw.api.admin.files.VirtualFileService;
 import ai.javaclaw.delivery.NotificationTransport;
 import ai.javaclaw.memory.MemoryService;
 import ai.javaclaw.skills.SkillRepository;
+import ai.javaclaw.tasks.TaskManager;
 import ai.javaclaw.tools.AutoDiscoveredTool;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,5 +49,11 @@ public class AgentToolsConfiguration {
                 .notificationTransport(notificationTransport)
                 .chatMemoryRepository(chatMemoryRepository)
                 .build());
+    }
+
+    @Bean
+    public AutoDiscoveredTool<CronTool> cronTool(final TaskManager taskManager) {
+        return new AutoDiscoveredTool<>(
+                CronTool.builder().taskManager(taskManager).build());
     }
 }

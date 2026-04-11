@@ -232,6 +232,66 @@ public class TaskManager {
         return taskRepository.findByParentTaskId(parentTaskId);
     }
 
+    /** Pauses a recurring task: removes from JobRunr scheduler but keeps in DB with active=false. */
+    public void pauseRecurringTask(String name) {
+        RecurringTask task = recurringTaskRepository
+                .findByName(name)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Recurring task with name '" + name + "' was not found"));
+        if (!task.isActive()) {
+            throw new IllegalStateException("Recurring task '" + name + "' is already paused");
+        }
+        try {
+            jobScheduler.deleteRecurringJob(task.getName());
+        } catch (Exception e) {
+            log.warn("Could not delete recurring job from JobRunr for task '{}': {}", name, e.getMessage());
+        }
+        recurringTaskRepository.save(task.withActive(false));
+        log.info("Recurring task '{}' ({}) has been paused.", name, task.getId());
+    }
+
+    /** Resumes a paused recurring task: re-registers with JobRunr and sets active=true. */
+    public void resumeRecurringTask(String name) {
+        RecurringTask task = recurringTaskRepository
+                .findByName(name)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Recurring task with name '" + name + "' was not found"));
+        if (task.isActive()) {
+            throw new IllegalStateException("Recurring task '" + name + "' is already active");
+        }
+        jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
+                task.getName(), task.getCronExpression(), x -> x.executeTask(task.getId()));
+        recurringTaskRepository.save(task.withActive(true));
+        log.info("Recurring task '{}' ({}) has been resumed.", name, task.getId());
+    }
+
+    /** Updates the cron expression of an existing recurring task and re-registers with JobRunr. */
+    public void updateRecurringTaskCron(String name, String newCronExpression) {
+        RecurringTask task = recurringTaskRepository
+                .findByName(name)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Recurring task with name '" + name + "' was not found"));
+        RecurringTask updated = task.withCronExpression(newCronExpression);
+        recurringTaskRepository.save(updated);
+        if (task.isActive()) {
+            jobScheduler.<RecurringTaskHandler>scheduleRecurrently(
+                    updated.getName(), newCronExpression, x -> x.executeTask(updated.getId()));
+        }
+        log.info(
+                "Recurring task '{}' cron updated from '{}' to '{}'.",
+                name,
+                task.getCronExpression(),
+                newCronExpression);
+    }
+
+    /** Returns a recurring task by name. */
+    public RecurringTask getRecurringTaskByName(String name) {
+        return recurringTaskRepository
+                .findByName(name)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Recurring task with name '" + name + "' was not found"));
+    }
+
     public void deleteRecurringTask(String name) {
         RecurringTask recurringTask = recurringTaskRepository.findAll().stream()
                 .filter(x -> x.getName().equals(name))
