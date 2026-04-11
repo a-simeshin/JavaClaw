@@ -145,7 +145,8 @@ class SseStreamingServiceTest {
                 new ChatResponse(List.of(new Generation(thinkingMsg2))),
                 new ChatResponse(List.of(new Generation(signatureMsg))),
                 new ChatResponse(List.of(new Generation(textMsg))));
-        when(chatService.stream(eq("think-test"), isNull(), eq("why?"))).thenReturn(flux);
+        when(chatService.stream(eq("think-test"), isNull(), eq("why?"), isNull()))
+                .thenReturn(flux);
 
         final SseStreamingService service = new SseStreamingService(
                 chatService,
@@ -198,7 +199,7 @@ class SseStreamingServiceTest {
         final Flux<ChatResponse> flux = Flux.just(
                 new ChatResponse(List.of(new Generation(textMsg1))),
                 new ChatResponse(List.of(new Generation(textMsg2))));
-        when(chatService.stream(eq("text-test"), isNull(), eq("hi"))).thenReturn(flux);
+        when(chatService.stream(eq("text-test"), isNull(), eq("hi"), isNull())).thenReturn(flux);
 
         final SseStreamingService service = new SseStreamingService(
                 chatService,
@@ -234,7 +235,8 @@ class SseStreamingServiceTest {
         final Flux<ChatResponse> flux = Flux.just(
                 new ChatResponse(List.of(new Generation(thinkingMsg))),
                 new ChatResponse(List.of(new Generation(textMsg))));
-        when(chatService.stream(eq("unfinished-think"), isNull(), eq("q"))).thenReturn(flux);
+        when(chatService.stream(eq("unfinished-think"), isNull(), eq("q"), isNull()))
+                .thenReturn(flux);
 
         final SseStreamingService service = new SseStreamingService(
                 chatService,
@@ -302,7 +304,8 @@ class SseStreamingServiceTest {
         // Slow flux that emits tokens with delays — simulates long LLM response
         final Flux<ChatResponse> slowFlux = Flux.interval(Duration.ofMillis(50))
                 .map(i -> new ChatResponse(java.util.List.of(new Generation(new AssistantMessage("token" + i)))));
-        when(chatService.stream(eq("cancel-test"), isNull(), eq("hello"))).thenReturn(slowFlux);
+        when(chatService.stream(eq("cancel-test"), isNull(), eq("hello"), isNull()))
+                .thenReturn(slowFlux);
 
         final SseStreamingService service = new SseStreamingService(
                 chatService,

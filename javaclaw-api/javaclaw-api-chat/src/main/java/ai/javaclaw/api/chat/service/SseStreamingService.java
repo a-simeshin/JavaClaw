@@ -146,6 +146,24 @@ public class SseStreamingService {
             final String conversationId,
             final String userId,
             final String userContent) {
+        stream(emitter, conversationId, userId, userContent, null);
+    }
+
+    /**
+     * Streams the agent's response with per-user prompt support and role-based model override.
+     *
+     * @param emitter цель для записи SSE-событий
+     * @param conversationId идентификатор разговора
+     * @param userId идентификатор пользователя для per-user промптов, может быть null
+     * @param userContent сообщение пользователя
+     * @param modelOverride модель для использования вместо дефолтной, может быть null
+     */
+    public void stream(
+            final ResponseBodyEmitter emitter,
+            final String conversationId,
+            final String userId,
+            final String userContent,
+            final String modelOverride) {
         final Object lock = new Object();
         final ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(
                 () -> sendHeartbeat(emitter, lock),
@@ -156,7 +174,7 @@ public class SseStreamingService {
         emitter.onTimeout(() -> heartbeat.cancel(false));
         emitter.onError(ex -> heartbeat.cancel(false));
 
-        streamExecutor.execute(() -> runStream(emitter, lock, conversationId, userId, userContent));
+        streamExecutor.execute(() -> runStream(emitter, lock, conversationId, userId, userContent, modelOverride));
     }
 
     /**
@@ -177,7 +195,8 @@ public class SseStreamingService {
             final Object lock,
             final String conversationId,
             final String userId,
-            final String userContent) {
+            final String userContent,
+            final String modelOverride) {
         final String messageId = "msg_" + UUID.randomUUID();
         final String textBlockId = "text_" + UUID.randomUUID();
         final String reasoningBlockId = "reasoning_" + UUID.randomUUID();
@@ -195,7 +214,7 @@ public class SseStreamingService {
                     lock,
                     VercelSseEvent.MessageStart.builder().messageId(messageId).build());
 
-            chatService.stream(conversationId, userId, userContent)
+            chatService.stream(conversationId, userId, userContent, modelOverride)
                     .takeUntilOther(cancelSink.asMono())
                     .doOnNext(response -> {
                         if (response == null

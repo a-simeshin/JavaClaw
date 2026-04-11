@@ -1,5 +1,6 @@
 package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.agent.config.RoleAgentConfigService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.controller.dto.ChatSendRequest;
 import ai.javaclaw.api.chat.service.SseStreamingService;
@@ -40,6 +41,7 @@ public class ChatRestController {
     private final ConversationEnsurer conversationEnsurer;
     private final UserResolver userResolver;
     private final AgentQuotaService agentQuotaService;
+    private final RoleAgentConfigService roleAgentConfigService;
 
     @PostMapping(value = "/send", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<ResponseBodyEmitter> send(
@@ -55,9 +57,11 @@ public class ChatRestController {
         } catch (RateLimitExceededException e) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
+        final String userRole = userResolver.resolveUserRole(principal.getName());
+        final String modelOverride = roleAgentConfigService.resolveModelForRole(userRole);
         conversationEnsurer.ensureExistsForUser(conversationId, userId);
         conversationEnsurer.touch(conversationId, request.content());
-        streamingService.stream(emitter, conversationId, userId, request.content());
+        streamingService.stream(emitter, conversationId, userId, request.content(), modelOverride);
         return ResponseEntity.ok()
                 .header(VERCEL_STREAM_HEADER, VERCEL_STREAM_VERSION)
                 .header("x-conversation-id", conversationId)

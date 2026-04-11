@@ -27,9 +27,23 @@ public class UserResolver {
      */
     public String resolveUserId(final String username) {
         Assert.hasText(username, "username must not be blank");
+        return resolveUser(username).id();
+    }
+
+    /**
+     * Returns the role for the given username.
+     *
+     * @param username the authenticated username — must not be blank
+     * @throws IllegalStateException if the user is not found in the database
+     */
+    public String resolveUserRole(final String username) {
+        Assert.hasText(username, "username must not be blank");
+        return resolveUser(username).role();
+    }
+
+    private AppUser resolveUser(final String username) {
         return userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new IllegalStateException("User not found in database: " + username))
-                .id();
+                .orElseThrow(() -> new IllegalStateException("User not found in database: " + username));
     }
 }

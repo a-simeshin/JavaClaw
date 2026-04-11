@@ -1,5 +1,7 @@
 package ai.javaclaw.api.admin.users;
 
+import ai.javaclaw.agent.config.RoleAgentConfig;
+import ai.javaclaw.agent.config.RoleAgentConfigService;
 import ai.javaclaw.users.CustomRole;
 import ai.javaclaw.users.CustomRoleService;
 import ai.javaclaw.users.Permission;
@@ -22,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoleController {
 
     private final CustomRoleService roleService;
+    private final RoleAgentConfigService agentConfigService;
 
-    public RoleController(CustomRoleService roleService) {
+    public RoleController(CustomRoleService roleService, RoleAgentConfigService agentConfigService) {
         this.roleService = roleService;
+        this.agentConfigService = agentConfigService;
     }
 
     @GetMapping
@@ -89,6 +93,68 @@ public class RoleController {
     public record UpdateDescriptionRequest(String description) {}
 
     public record SetPermissionsRequest(List<String> permissions) {}
+
+    // --- Agent config endpoints (15.6.1) ---
+
+    @GetMapping("/{name}/agent-config")
+    public ResponseEntity<AgentConfigDto> getAgentConfig(@PathVariable String name) {
+        return agentConfigService
+                .getForRole(name)
+                .map(this::toAgentConfigDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/agent-configs")
+    public List<AgentConfigDto> listAgentConfigs() {
+        return agentConfigService.listAll().stream().map(this::toAgentConfigDto).toList();
+    }
+
+    @PutMapping("/{name}/agent-config")
+    public ResponseEntity<AgentConfigDto> saveAgentConfig(
+            @PathVariable String name, @RequestBody SaveAgentConfigRequest request) {
+        RoleAgentConfig saved = agentConfigService.save(
+                name,
+                request.modelId(),
+                request.thinkingEnabled() != null ? request.thinkingEnabled() : false,
+                request.thinkingBudget() != null ? request.thinkingBudget() : 10000,
+                request.fallbackModels(),
+                request.maxContextTokens() != null ? request.maxContextTokens() : 200000);
+        return ResponseEntity.ok(toAgentConfigDto(saved));
+    }
+
+    @DeleteMapping("/{name}/agent-config")
+    public ResponseEntity<Void> deleteAgentConfig(@PathVariable String name) {
+        agentConfigService.delete(name);
+        return ResponseEntity.noContent().build();
+    }
+
+    private AgentConfigDto toAgentConfigDto(RoleAgentConfig config) {
+        return new AgentConfigDto(
+                config.role(),
+                config.modelId(),
+                config.thinkingEnabled(),
+                config.thinkingBudget(),
+                config.fallbackModels(),
+                config.fallbackModelList(),
+                config.maxContextTokens());
+    }
+
+    public record AgentConfigDto(
+            String role,
+            String modelId,
+            boolean thinkingEnabled,
+            int thinkingBudget,
+            String fallbackModels,
+            List<String> fallbackModelList,
+            int maxContextTokens) {}
+
+    public record SaveAgentConfigRequest(
+            String modelId,
+            Boolean thinkingEnabled,
+            Integer thinkingBudget,
+            String fallbackModels,
+            Integer maxContextTokens) {}
 
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<java.util.Map<String, String>> handleBadRequest(IllegalArgumentException ex) {

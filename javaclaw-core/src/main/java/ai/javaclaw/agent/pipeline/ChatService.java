@@ -120,6 +120,23 @@ public class ChatService {
      */
     public Flux<ChatResponse> stream(
             final String conversationId, @Nullable final String userId, final String userContent) {
+        return stream(conversationId, userId, userContent, null);
+    }
+
+    /**
+     * Стриминговый запрос к LLM с per-user prompt support и role-based model override.
+     *
+     * @param conversationId идентификатор разговора, не может быть пустым
+     * @param userId идентификатор пользователя для per-user промптов, может быть null
+     * @param userContent содержимое сообщения пользователя, не может быть пустым
+     * @param modelOverride модель для использования вместо дефолтной, может быть null
+     * @return Flux с ответами от LLM
+     */
+    public Flux<ChatResponse> stream(
+            final String conversationId,
+            @Nullable final String userId,
+            final String userContent,
+            @Nullable final String modelOverride) {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
 
@@ -130,7 +147,7 @@ public class ChatService {
 
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
-        final Prompt prompt = buildPrompt(conversationId, userId, userContent);
+        final Prompt prompt = buildPrompt(conversationId, userId, userContent, modelOverride);
         final Sinks.Many<String> contentSink = Sinks.many().unicast().onBackpressureBuffer();
         final StringBuilder assistantContent = new StringBuilder();
         final long startTime = System.currentTimeMillis();
@@ -186,6 +203,23 @@ public class ChatService {
      * @return текст ответа ассистента
      */
     public String call(final String conversationId, @Nullable final String userId, final String userContent) {
+        return call(conversationId, userId, userContent, null);
+    }
+
+    /**
+     * Синхронный запрос к LLM с per-user prompt support и role-based model override.
+     *
+     * @param conversationId идентификатор разговора, не может быть пустым
+     * @param userId идентификатор пользователя для per-user промптов, может быть null
+     * @param userContent содержимое сообщения пользователя, не может быть пустым
+     * @param modelOverride модель для использования вместо дефолтной, может быть null
+     * @return текст ответа ассистента
+     */
+    public String call(
+            final String conversationId,
+            @Nullable final String userId,
+            final String userContent,
+            @Nullable final String modelOverride) {
         Assert.hasText(conversationId, "conversationId must not be blank");
         Assert.hasText(userContent, "userContent must not be blank");
 
@@ -199,7 +233,7 @@ public class ChatService {
 
         chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
 
-        final Prompt prompt = buildPrompt(conversationId, userId, userContent);
+        final Prompt prompt = buildPrompt(conversationId, userId, userContent, modelOverride);
         final long startTime = System.currentTimeMillis();
         try {
             final ChatResponse response = chatModel.call(prompt);
@@ -278,15 +312,27 @@ public class ChatService {
      * @param userContent текущее сообщение пользователя
      * @return готовый Prompt для отправки в LLM
      */
-    private Prompt buildPrompt(final String conversationId, @Nullable final String userId, final String userContent) {
+    private Prompt buildPrompt(
+            final String conversationId,
+            @Nullable final String userId,
+            final String userContent,
+            @Nullable final String modelOverride) {
         final AssembledPrompt assembled = messageAssembler.assemble(conversationId, userId, userContent);
 
-        final ToolCallingChatOptions options = ToolCallingChatOptions.builder()
+        final var optionsBuilder = ToolCallingChatOptions.builder()
                 .toolCallbacks(toolCallbackResolver.resolve())
-                .internalToolExecutionEnabled(Boolean.TRUE)
-                .build();
+                .internalToolExecutionEnabled(Boolean.TRUE);
 
-        return new Prompt(assembled.toMessageList(), options);
+        if (modelOverride != null && !modelOverride.isBlank()) {
+            optionsBuilder.model(modelOverride);
+        }
+
+        return new Prompt(assembled.toMessageList(), optionsBuilder.build());
+    }
+
+    /** Backward-compatible buildPrompt without model override. */
+    private Prompt buildPrompt(final String conversationId, @Nullable final String userId, final String userContent) {
+        return buildPrompt(conversationId, userId, userContent, null);
     }
 
     /**

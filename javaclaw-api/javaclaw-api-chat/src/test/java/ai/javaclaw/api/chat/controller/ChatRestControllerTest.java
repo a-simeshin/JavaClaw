@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.agent.config.RoleAgentConfigService;
 import ai.javaclaw.agent.quota.AgentQuotaService;
 import ai.javaclaw.api.chat.error.SseExceptionHandler;
 import ai.javaclaw.api.chat.service.SseStreamingService;
@@ -30,6 +31,7 @@ class ChatRestControllerTest {
     private ConversationEnsurer conversationEnsurer;
     private UserResolver userResolver;
     private AgentQuotaService agentQuotaService;
+    private RoleAgentConfigService roleAgentConfigService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -38,9 +40,11 @@ class ChatRestControllerTest {
         conversationEnsurer = mock(ConversationEnsurer.class);
         userResolver = mock(UserResolver.class);
         agentQuotaService = mock(AgentQuotaService.class);
+        roleAgentConfigService = mock(RoleAgentConfigService.class);
         when(userResolver.resolveUserId("admin")).thenReturn("admin-uuid");
-        mockMvc = standaloneSetup(
-                        new ChatRestController(streamingService, conversationEnsurer, userResolver, agentQuotaService))
+        when(userResolver.resolveUserRole("admin")).thenReturn("ADMIN");
+        mockMvc = standaloneSetup(new ChatRestController(
+                        streamingService, conversationEnsurer, userResolver, agentQuotaService, roleAgentConfigService))
                 .defaultRequest(post("/").principal(adminPrincipal()))
                 .setControllerAdvice(new SseExceptionHandler())
                 .build();
@@ -53,7 +57,7 @@ class ChatRestControllerTest {
     @Test
     void postSendReturnsOkWithVercelHeader() throws Exception {
         when(streamingService.createEmitter()).thenReturn(new ResponseBodyEmitter(5000L));
-        doNothing().when(streamingService).stream(any(), anyString(), anyString(), anyString());
+        doNothing().when(streamingService).stream(any(), anyString(), anyString(), anyString(), any());
 
         mockMvc.perform(post("/api/chat/send")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,7 +66,7 @@ class ChatRestControllerTest {
                 .andExpect(header().string("x-vercel-ai-data-stream", "v1"))
                 .andExpect(header().string("Content-Type", "text/plain;charset=UTF-8"));
 
-        verify(streamingService).stream(any(), anyString(), anyString(), anyString());
+        verify(streamingService).stream(any(), anyString(), anyString(), anyString(), any());
         verify(conversationEnsurer).ensureExistsForUser("web", "admin-uuid");
         verify(conversationEnsurer).touch("web", "hello");
     }
@@ -86,7 +90,7 @@ class ChatRestControllerTest {
                         .content("{\"content\":\"hello\"}"))
                 .andExpect(status().isOk());
 
-        verify(streamingService).stream(any(), anyString(), anyString(), anyString());
+        verify(streamingService).stream(any(), anyString(), anyString(), anyString(), any());
     }
 
     @Test
