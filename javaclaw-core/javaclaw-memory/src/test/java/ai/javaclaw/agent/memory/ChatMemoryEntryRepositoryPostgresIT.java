@@ -2,8 +2,9 @@ package ai.javaclaw.agent.memory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +30,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 /**
  * Integration tests for {@link SpringDataChatMemoryRepository} against a real PostgreSQL container.
  *
- * <p>Schema is applied via Flyway: V1 (conversations), V2 (SPRING_AI_CHAT_MEMORY pre-V43),
- * V43 (add id PK, rename timestamp → created_at) — all from the test classpath.
+ * <p>Schema is applied via Flyway from this module's main classpath: a single squashed
+ * V2 creates {@code SPRING_AI_CHAT_MEMORY} in its final shape (surrogate BIGINT IDENTITY PK,
+ * nullable content, TIMESTAMPTZ created_at). The foreign key from conversation_id to
+ * conversations(id) is owned by javaclaw-core V5 and is intentionally absent from the memory
+ * module's test classpath — these tests cover the repository contract in isolation, without
+ * a conversations table.
  *
- * <p>{@code @BeforeEach} seeds conversations rows required to satisfy the FK constraint;
- * chat-memory entries are cleared before each test to ensure isolation.
+ * <p>{@code @BeforeEach} clears chat-memory rows for the three test conversation ids to
+ * guarantee per-test isolation.
  */
 @DataJdbcTest
 @Testcontainers
@@ -58,9 +63,6 @@ class ChatMemoryEntryRepositoryPostgresIT {
 
     @BeforeEach
     void setUp() {
-        namedJdbc.update("INSERT INTO conversations (id) VALUES (:id) ON CONFLICT DO NOTHING", Map.of("id", CONV_A));
-        namedJdbc.update("INSERT INTO conversations (id) VALUES (:id) ON CONFLICT DO NOTHING", Map.of("id", CONV_B));
-        namedJdbc.update("INSERT INTO conversations (id) VALUES (:id) ON CONFLICT DO NOTHING", Map.of("id", CONV_C));
         namedJdbc.update(
                 "DELETE FROM SPRING_AI_CHAT_MEMORY WHERE conversation_id IN (:ids)",
                 Map.of("ids", List.of(CONV_A, CONV_B, CONV_C)));
@@ -217,12 +219,24 @@ class ChatMemoryEntryRepositoryPostgresIT {
     @Test
     void instantRoundTrip_preservesPrecision() {
         // PostgreSQL TIMESTAMPTZ has microsecond precision; truncate to micros.
+        // pgjdbc cannot infer the SQL type for a raw Instant parameter binding
+        // (Spring JDBC calls setObject without an explicit type), so we wrap as
+        // OffsetDateTime at UTC — pgjdbc maps that to TIMESTAMPTZ natively. Production
+        // code goes through Spring Data JDBC's JdbcAggregateTemplate which has its own
+        // Instant → Timestamp converter and does not hit this code path.
         final Instant expected = Instant.now().truncatedTo(ChronoUnit.MICROS);
-        // Write via direct JdbcTemplate insert to bypass appendAll's Instant.ofEpochSecond base
         namedJdbc.update(
                 "INSERT INTO SPRING_AI_CHAT_MEMORY (conversation_id, content, type, created_at) "
                         + "VALUES (:conv, :content, :type, :ts)",
-                Map.of("conv", CONV_A, "content", "ts-test", "type", "USER", "ts", expected));
+                Map.of(
+                        "conv",
+                        CONV_A,
+                        "content",
+                        "ts-test",
+                        "type",
+                        "USER",
+                        "ts",
+                        OffsetDateTime.ofInstant(expected, ZoneOffset.UTC)));
 
         final List<Message> result = chatMemoryRepository.findByConversationId(CONV_A);
 

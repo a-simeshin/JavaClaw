@@ -205,7 +205,7 @@ class SpringDataChatMemoryRepositoryTest {
     void findConversationIds_delegatesToNamedJdbc() {
         final List<String> expected = List.of("conv-1", "conv-2");
         when(namedJdbc.queryForList(
-                        "SELECT DISTINCT conversation_id FROM SPRING_AI_CHAT_MEMORY", Map.of(), String.class))
+                        "SELECT DISTINCT conversation_id FROM spring_ai_chat_memory", Map.of(), String.class))
                 .thenReturn(expected);
 
         final List<String> result = chatMemoryRepository.findConversationIds();
@@ -213,7 +213,7 @@ class SpringDataChatMemoryRepositoryTest {
         assertThat(result).containsExactlyElementsOf(expected);
         verify(namedJdbc)
                 .queryForList(
-                        eq("SELECT DISTINCT conversation_id FROM SPRING_AI_CHAT_MEMORY"),
+                        eq("SELECT DISTINCT conversation_id FROM spring_ai_chat_memory"),
                         eq(Map.of()),
                         eq(String.class));
     }

@@ -2,7 +2,6 @@ package ai.javaclaw.agent.memory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
 import java.sql.JDBCType;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -50,8 +49,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * {@link SingleConnectionDataSource}, runs Flyway migrations, and wires all Spring Data JDBC
  * beans manually without relying on Spring Boot auto-configuration.
  *
- * <p>Schema applied: V1 (conversations), V2 (SPRING_AI_CHAT_MEMORY pre-V43), V43 (add id PK,
- * rename timestamp → created_at TEXT ISO-8601) — all from the test classpath.
+ * <p>Schema is applied from this module's main classpath: a single squashed V2 creates
+ * {@code SPRING_AI_CHAT_MEMORY} in its final SQLite shape (surrogate INTEGER PK
+ * AUTOINCREMENT, nullable content, ISO-8601 TEXT created_at, CHECK on type). The foreign
+ * key from conversation_id to conversations(id) is owned by javaclaw-core V5 and is
+ * intentionally absent from the memory module's test classpath.
  *
  * <p>Instant write/read uses inline converter classes ({@link InstantToJdbcValueConverter} and
  * {@link StringToInstantConverter}) that replicate the production behaviour of
@@ -77,9 +79,6 @@ class ChatMemoryEntryRepositorySqliteIT {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update("INSERT OR IGNORE INTO conversations (id) VALUES (?)", CONV_A);
-        jdbcTemplate.update("INSERT OR IGNORE INTO conversations (id) VALUES (?)", CONV_B);
-        jdbcTemplate.update("INSERT OR IGNORE INTO conversations (id) VALUES (?)", CONV_C);
         jdbcTemplate.update(
                 "DELETE FROM SPRING_AI_CHAT_MEMORY WHERE conversation_id IN (?, ?, ?)", CONV_A, CONV_B, CONV_C);
     }

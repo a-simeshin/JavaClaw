@@ -18,7 +18,7 @@ import org.springframework.data.relational.core.mapping.Table;
  * <p>{@code type} stores {@link org.springframework.ai.chat.messages.MessageType#name()}:
  * {@code USER}, {@code ASSISTANT}, {@code SYSTEM}, or {@code TOOL}.
  */
-@Table("SPRING_AI_CHAT_MEMORY")
+@Table("spring_ai_chat_memory")
 public record ChatMemoryEntry(
         /** Auto-generated surrogate PK. Null on creation; populated after save. */
         @Id Long id,

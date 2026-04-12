@@ -1,10 +1,7 @@
-package ai.javaclaw.ai.memory;
+package ai.javaclaw.agent.memory;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
-import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.util.Assert;
@@ -12,9 +9,12 @@ import org.springframework.util.Assert;
 /**
  * A copy of Spring's MessageWindowChatMemory that:
  * - keeps the order of the messages (changed HashSet to LinkedHashSet)
- * - returns a windowed view instead of all messages instead of only keeping the last x messages in the repository
- * <p>
- * See https://github.com/spring-projects/spring-ai/blob/019267f/spring-ai-model/src/main/java/org/springframework/ai/chat/memory/MessageWindowChatMemory.java
+ * - returns a windowed view instead of only keeping the last x messages in the repository
+ *
+ * <p>Uses own {@link ChatMemory} / {@link AppendableChatMemoryRepository} interfaces —
+ * no Spring AI {@code org.springframework.ai.chat.memory} coupling.
+ *
+ * <p>See https://github.com/spring-projects/spring-ai/blob/019267f/spring-ai-model/src/main/java/org/springframework/ai/chat/memory/MessageWindowChatMemory.java
  */
 public class JavaClawMessageWindowChatMemory implements ChatMemory {
     private static final int DEFAULT_MAX_MESSAGES = 20;
@@ -77,13 +77,13 @@ public class JavaClawMessageWindowChatMemory implements ChatMemory {
 
     public static final class Builder {
 
-        private ChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
+        private AppendableChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
 
         private int maxMessages = DEFAULT_MAX_MESSAGES;
 
         private Builder() {}
 
-        public Builder chatMemoryRepository(ChatMemoryRepository chatMemoryRepository) {
+        public Builder chatMemoryRepository(AppendableChatMemoryRepository chatMemoryRepository) {
             this.chatMemoryRepository = chatMemoryRepository;
             return this;
         }
@@ -94,49 +94,7 @@ public class JavaClawMessageWindowChatMemory implements ChatMemory {
         }
 
         public JavaClawMessageWindowChatMemory build() {
-            return new JavaClawMessageWindowChatMemory(
-                    new DelegatingAppendableChatMemoryRepository(this.chatMemoryRepository), this.maxMessages);
-        }
-    }
-
-    private static class DelegatingAppendableChatMemoryRepository implements AppendableChatMemoryRepository {
-
-        private final ChatMemoryRepository chatMemoryRepository;
-
-        public DelegatingAppendableChatMemoryRepository(ChatMemoryRepository chatMemoryRepository) {
-            this.chatMemoryRepository = chatMemoryRepository;
-        }
-
-        @Override
-        public List<String> findConversationIds() {
-            return chatMemoryRepository.findConversationIds();
-        }
-
-        @Override
-        public List<Message> findByConversationId(String conversationId) {
-            return chatMemoryRepository.findByConversationId(conversationId);
-        }
-
-        @Override
-        public void saveAll(String conversationId, List<Message> messages) {
-            chatMemoryRepository.saveAll(conversationId, messages);
-        }
-
-        @Override
-        public void appendAll(String conversationId, List<Message> messages) {
-            if (chatMemoryRepository instanceof AppendableChatMemoryRepository appendableChatMemoryRepository) {
-                appendableChatMemoryRepository.appendAll(conversationId, messages);
-            } else {
-                List<Message> allMessages = new ArrayList<>();
-                allMessages.addAll(findByConversationId(conversationId));
-                allMessages.addAll(messages);
-                saveAll(conversationId, allMessages);
-            }
-        }
-
-        @Override
-        public void deleteByConversationId(String conversationId) {
-            chatMemoryRepository.deleteByConversationId(conversationId);
+            return new JavaClawMessageWindowChatMemory(this.chatMemoryRepository, this.maxMessages);
         }
     }
 }

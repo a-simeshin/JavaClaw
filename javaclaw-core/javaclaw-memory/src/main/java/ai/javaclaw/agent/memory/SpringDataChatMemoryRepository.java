@@ -1,6 +1,5 @@
 package ai.javaclaw.agent.memory;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
  * Spring Data JDBC does not reliably support scalar {@code List<String>} projections via
  * {@code @Query} as part of its public API.
  */
-@Component
 @Primary
+@Component
 public class SpringDataChatMemoryRepository implements AppendableChatMemoryRepository {
 
     /** SQL returning the distinct set of conversation IDs that have at least one memory entry. */
-    private static final String SELECT_DISTINCT_CONV_IDS = "SELECT DISTINCT conversation_id FROM SPRING_AI_CHAT_MEMORY";
+    private static final String SELECT_DISTINCT_CONV_IDS = "SELECT DISTINCT conversation_id FROM spring_ai_chat_memory";
 
     /** Spring Data JDBC repository — the sole mechanism for chat-memory CRUD. */
     private final ChatMemoryEntryRepository repository;

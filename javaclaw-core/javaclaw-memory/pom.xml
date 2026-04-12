@@ -14,7 +14,7 @@
     <artifactId>javaclaw-memory</artifactId>
 
     <dependencies>
-        <!-- Spring AI — ChatMemoryRepository, Message types -->
+        <!-- Spring AI — Message types only (ChatMemory/ChatMemoryRepository replaced by own interfaces) -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-client-chat</artifactId>

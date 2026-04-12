@@ -25,7 +25,7 @@ public interface ChatMemoryEntryRepository extends ListCrudRepository<ChatMemory
      * because multiple {@link SpringDataChatMemoryRepository#appendAll} calls within the same
      * wall-clock second share the same second-level timestamp.
      */
-    @Query("SELECT * FROM SPRING_AI_CHAT_MEMORY WHERE conversation_id = :conversationId ORDER BY id")
+    @Query("SELECT * FROM spring_ai_chat_memory WHERE conversation_id = :conversationId ORDER BY id")
     List<ChatMemoryEntry> findByConversationId(@Param("conversationId") String conversationId);
 
     /**
@@ -36,6 +36,6 @@ public interface ChatMemoryEntryRepository extends ListCrudRepository<ChatMemory
      * (delete-then-append pattern).
      */
     @Modifying
-    @Query("DELETE FROM SPRING_AI_CHAT_MEMORY WHERE conversation_id = :conversationId")
+    @Query("DELETE FROM spring_ai_chat_memory WHERE conversation_id = :conversationId")
     void deleteByConversationId(@Param("conversationId") String conversationId);
 }

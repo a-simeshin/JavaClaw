@@ -1,7 +1,6 @@
-package ai.javaclaw.ai.memory;
+package ai.javaclaw.agent.memory;
 
 import java.util.List;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 
 /**

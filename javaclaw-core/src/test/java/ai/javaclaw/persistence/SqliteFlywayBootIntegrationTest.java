@@ -43,13 +43,14 @@ class SqliteFlywayBootIntegrationTest {
 
             final MigrateResult result = flyway.migrate();
 
-            // 41 files in sqlite/ (40 in javaclaw-core + V43 in javaclaw-memory). Every one must have applied.
+            // 39 files in sqlite/ after V2 squash: 38 in javaclaw-core (V1, V4..V42 minus gaps)
+            // + V2 (squashed chat_memory) in javaclaw-memory. Every one must have applied.
             assertThat(result.migrationsExecuted)
                     .as("number of migrations executed")
-                    .isEqualTo(41);
+                    .isEqualTo(39);
 
             final MigrationInfo[] all = flyway.info().all();
-            assertThat(all).as("Flyway.info().all()").hasSizeGreaterThanOrEqualTo(41);
+            assertThat(all).as("Flyway.info().all()").hasSizeGreaterThanOrEqualTo(39);
 
             assertThat(Arrays.stream(all).allMatch(mi -> mi.getState() == MigrationState.SUCCESS))
                     .as("every migration in SUCCESS state")
@@ -60,7 +61,7 @@ class SqliteFlywayBootIntegrationTest {
             assertThat(current.getVersion()).as("current version object").isNotNull();
             assertThat(current.getVersion().getVersion())
                     .as("current version string")
-                    .isEqualTo("43");
+                    .isEqualTo("42");
         } finally {
             ds.destroy();
         }
