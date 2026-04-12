@@ -277,7 +277,7 @@ class TaskApiIntegrationTest extends IntegrationTestBase {
         @Test
         void pendingApprovals_emptyWhenNone() throws Exception {
             mockMvc.perform(get("/api/chat/approval/pending")
-                            .param("conversationId", "conv-1")
+                            .param("conversationId", "conv-approval-none")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())

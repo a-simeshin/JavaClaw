@@ -3,7 +3,8 @@ package ai.javaclaw.mcp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import ai.javaclaw.config.JdbcConfig;
+import ai.javaclaw.persistence.dialect.PostgresJdbcConfiguration;
+import ai.javaclaw.persistence.id.McpServerIdGeneratorCallback;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @ActiveProfiles("test")
 @ImportAutoConfiguration(FlywayAutoConfiguration.class)
-@Import(JdbcConfig.class)
+@Import({PostgresJdbcConfiguration.class, McpServerIdGeneratorCallback.class})
 class McpServerRepositoryIntegrationTest {
 
     @Container

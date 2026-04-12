@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.SystemPromptProvider;
+import ai.javaclaw.agent.memory.ChatMemory;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,8 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -37,16 +36,9 @@ class MessageAssemblerTest {
     @Mock
     private ActiveSkillsProvider activeSkillsProvider;
 
-    /**
-     * Mock {@link ChatMemory} — injected but only used for write path; reads go via
-     * {@link #chatMemoryRepository}.
-     */
+    /** Mock unified {@link ChatMemory} — reads history, no writes in assembler. */
     @Mock
     private ChatMemory chatMemory;
-
-    /** Mock raw repository used for reading the full, unwindowed history. */
-    @Mock
-    private ChatMemoryRepository chatMemoryRepository;
 
     /** Mock conversation summary service for context window management. */
     @Mock
@@ -73,7 +65,6 @@ class MessageAssemblerTest {
                 systemPromptProvider,
                 activeSkillsProvider,
                 chatMemory,
-                chatMemoryRepository,
                 new MessageSanitizer(),
                 new TurnBoundaryWindower(),
                 budgetProperties,
@@ -88,7 +79,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("I am an agent.");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final List<Message> messages = assembled.toMessageList();
@@ -103,7 +94,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID))
+        when(chatMemory.findByConversationId(CONVERSATION_ID))
                 .thenReturn(
                         List.of(new SystemMessage("Old system"), new UserMessage("Hello"), new AssistantMessage("Hi")));
 
@@ -123,7 +114,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn(identity);
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final String systemText = assembled.systemMessage().getText();
@@ -137,7 +128,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("IDENTITY");
         when(systemPromptProvider.loadContext()).thenReturn("CONTEXT");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("SKILLS");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final String systemText = assembled.systemMessage().getText();
@@ -154,7 +145,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final List<Message> messages = assembled.toMessageList();
@@ -174,8 +165,7 @@ class MessageAssemblerTest {
 
         final UserMessage historyUser = new UserMessage("Earlier question");
         final AssistantMessage historyAssistant = new AssistantMessage("Earlier answer");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID))
-                .thenReturn(List.of(historyUser, historyAssistant));
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of(historyUser, historyAssistant));
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final List<Message> messages = assembled.toMessageList();
@@ -196,7 +186,7 @@ class MessageAssemblerTest {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         final AssembledPrompt assembled = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final List<Message> messages = assembled.toMessageList();
@@ -223,7 +213,7 @@ class MessageAssemblerTest {
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
 
         // Measure the real system-prompt token cost using default assembler (no history needed)
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
         final AssembledPrompt probe = messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final int systemTokens = tokenEstimator.estimate(probe.systemMessage());
 
@@ -238,7 +228,6 @@ class MessageAssemblerTest {
                 systemPromptProvider,
                 activeSkillsProvider,
                 chatMemory,
-                chatMemoryRepository,
                 new MessageSanitizer(),
                 new TurnBoundaryWindower(),
                 tightBudget,
@@ -247,7 +236,7 @@ class MessageAssemblerTest {
                 fewShotExamplesProvider);
 
         final List<Message> bigHistory = buildHistory(41);
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(bigHistory);
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(bigHistory);
 
         final AssembledPrompt assembled = tightAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
         final List<Message> history = assembled.history();
@@ -259,18 +248,16 @@ class MessageAssemblerTest {
     }
 
     @Test
-    @DisplayName("assemble(): reads history from chatMemoryRepository, not chatMemory")
-    void assemble_readsFromRepository_notChatMemory() {
+    @DisplayName("assemble(): reads history via ChatMemory#findByConversationId")
+    void assemble_readsHistoryFromChatMemory() {
         when(systemPromptProvider.loadIdentity(null)).thenReturn("Identity");
         when(systemPromptProvider.loadContext()).thenReturn("");
         when(activeSkillsProvider.loadActiveSkills()).thenReturn("");
-        when(chatMemoryRepository.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
+        when(chatMemory.findByConversationId(CONVERSATION_ID)).thenReturn(List.of());
 
         messageAssembler.assemble(CONVERSATION_ID, USER_CONTENT);
 
-        verify(chatMemoryRepository).findByConversationId(CONVERSATION_ID);
-        // chatMemory.get() must NOT be called for reading
-        org.mockito.Mockito.verify(chatMemory, org.mockito.Mockito.never()).get(CONVERSATION_ID);
+        verify(chatMemory).findByConversationId(CONVERSATION_ID);
     }
 
     /**

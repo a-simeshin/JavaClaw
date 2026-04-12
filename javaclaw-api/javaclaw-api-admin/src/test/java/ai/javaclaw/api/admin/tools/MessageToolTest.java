@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.delivery.NotificationTransport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test;
 class MessageToolTest {
 
     private NotificationTransport notificationTransport;
-    private AppendableChatMemoryRepository chatMemoryRepository;
+    private ChatMemory chatMemoryRepository;
     private MessageTool messageTool;
 
     @BeforeEach
     void setUp() {
         notificationTransport = mock(NotificationTransport.class);
-        chatMemoryRepository = mock(AppendableChatMemoryRepository.class);
+        chatMemoryRepository = mock(ChatMemory.class);
         messageTool = MessageTool.builder()
                 .notificationTransport(notificationTransport)
                 .chatMemoryRepository(chatMemoryRepository)

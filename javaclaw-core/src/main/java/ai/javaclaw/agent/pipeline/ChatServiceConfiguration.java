@@ -2,6 +2,7 @@ package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
 import ai.javaclaw.agent.config.DefaultChatModelProperties;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.configuration.ConfigurationManager;
 import ai.javaclaw.tasks.ApprovalService;
 import ai.javaclaw.tools.AutoDiscoveredTool;
@@ -10,7 +11,6 @@ import ai.javaclaw.tools.McpTool;
 import ai.javaclaw.tools.TaskTool;
 import java.util.Set;
 import org.springaicommunity.agent.tools.FileSystemTools;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;

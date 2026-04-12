@@ -120,7 +120,7 @@ public class ConfigGenerator {
                     password: ${DB_PASSWORD:javaclaw}
                   flyway:
                     enabled: true
-                    locations: classpath:db/migration
+                    locations: classpath:db/migration/{vendor}
                   ai:
                     openai:
                       api-key: ${OPENROUTER_API_KEY:}

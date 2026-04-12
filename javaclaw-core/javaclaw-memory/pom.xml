@@ -71,6 +71,12 @@
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- javaclaw-persistence-sqlite-dialect — shared with javaclaw-core, used by JdbcChatMemorySqliteIT -->
+        <dependency>
+            <groupId>ai.javaclaw</groupId>
+            <artifactId>javaclaw-persistence-sqlite-dialect</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- JDBC drivers for integration tests -->
         <dependency>
             <groupId>org.xerial</groupId>

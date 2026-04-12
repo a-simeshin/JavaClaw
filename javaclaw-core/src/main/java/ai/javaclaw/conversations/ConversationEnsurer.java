@@ -1,5 +1,6 @@
 package ai.javaclaw.conversations;
 
+import ai.javaclaw.persistence.api.ConversationQueryRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +19,12 @@ import org.springframework.util.Assert;
 public class ConversationEnsurer {
 
     private final ConversationRepository repository;
+    private final ConversationQueryRepository queryRepository;
 
-    public ConversationEnsurer(final ConversationRepository repository) {
+    public ConversationEnsurer(
+            final ConversationRepository repository, final ConversationQueryRepository queryRepository) {
         this.repository = repository;
+        this.queryRepository = queryRepository;
     }
 
     /** Preview length for the auto-derived conversation title. */
@@ -66,7 +70,7 @@ public class ConversationEnsurer {
     @Transactional
     public void touch(final String conversationId, final String userContent) {
         Assert.hasText(conversationId, "conversationId must not be blank");
-        repository.touchWithTitle(conversationId, truncate(userContent));
+        queryRepository.touchTitleIfMissing(conversationId, truncate(userContent));
     }
 
     private static String truncate(final String text) {

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.tasks.ApprovalService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -166,7 +166,7 @@ class ChatServiceTest {
 
         // Phase 2: assistant persist moved to SseStreamingService.
         // ChatService only persists the UserMessage and returns the raw Flux.
-        verify(chatMemory, times(1)).add(eq(CONVERSATION_ID), addCaptor.capture());
+        verify(chatMemory, times(1)).appendAll(eq(CONVERSATION_ID), addCaptor.capture());
         final List<Message> added = addCaptor.getValue();
         assertThat(added).hasSize(1);
         assertThat(added.get(0)).isInstanceOf(UserMessage.class);
@@ -249,7 +249,7 @@ class ChatServiceTest {
         chatService.call(CONVERSATION_ID, USER_CONTENT);
 
         final ArgumentCaptor<List<Message>> captor = ArgumentCaptor.forClass(List.class);
-        verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), captor.capture());
+        verify(chatMemory, times(2)).appendAll(eq(CONVERSATION_ID), captor.capture());
 
         final List<Message> firstAdded = captor.getAllValues().get(0);
         assertThat(firstAdded.get(0)).isInstanceOf(UserMessage.class);
@@ -287,7 +287,7 @@ class ChatServiceTest {
 
         assertThat(result).isEmpty();
         // Пустой ответ не должен персистироваться
-        verify(chatMemory, times(1)).add(anyString(), any(List.class));
+        verify(chatMemory, times(1)).appendAll(anyString(), any(List.class));
     }
 
     // -------------------------------------------------------------------------
@@ -355,7 +355,7 @@ class ChatServiceTest {
             verify(chatModel, times(0)).stream(any(Prompt.class));
             verify(chatModel, times(0)).call(any(Prompt.class));
             // User + assistant messages persisted
-            verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), any(List.class));
+            verify(chatMemory, times(2)).appendAll(eq(CONVERSATION_ID), any(List.class));
         }
 
         @Test
@@ -369,7 +369,7 @@ class ChatServiceTest {
             assertThat(result).isEqualTo(ChatService.APPROVAL_CONFIRMATION);
             verify(approvalService).submitApproval(CONVERSATION_ID, USER_CONTENT);
             verify(chatModel, times(0)).call(any(Prompt.class));
-            verify(chatMemory, times(2)).add(eq(CONVERSATION_ID), any(List.class));
+            verify(chatMemory, times(2)).appendAll(eq(CONVERSATION_ID), any(List.class));
         }
 
         @Test

@@ -1,6 +1,6 @@
 package ai.javaclaw.api.admin.tools;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.delivery.NotificationTransport;
 import java.util.List;
 import org.slf4j.Logger;
@@ -18,10 +18,9 @@ public class MessageTool {
     private static final Logger logger = LoggerFactory.getLogger(MessageTool.class);
 
     private final NotificationTransport notificationTransport;
-    private final AppendableChatMemoryRepository chatMemoryRepository;
+    private final ChatMemory chatMemoryRepository;
 
-    public MessageTool(
-            NotificationTransport notificationTransport, AppendableChatMemoryRepository chatMemoryRepository) {
+    public MessageTool(NotificationTransport notificationTransport, ChatMemory chatMemoryRepository) {
         this.notificationTransport = notificationTransport;
         this.chatMemoryRepository = chatMemoryRepository;
     }
@@ -105,14 +104,14 @@ public class MessageTool {
 
     public static class Builder {
         private NotificationTransport notificationTransport;
-        private AppendableChatMemoryRepository chatMemoryRepository;
+        private ChatMemory chatMemoryRepository;
 
         public Builder notificationTransport(NotificationTransport notificationTransport) {
             this.notificationTransport = notificationTransport;
             return this;
         }
 
-        public Builder chatMemoryRepository(AppendableChatMemoryRepository chatMemoryRepository) {
+        public Builder chatMemoryRepository(ChatMemory chatMemoryRepository) {
             this.chatMemoryRepository = chatMemoryRepository;
             return this;
         }

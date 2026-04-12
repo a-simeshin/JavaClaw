@@ -20,6 +20,12 @@
             <artifactId>javaclaw-memory</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- javaclaw-persistence-sqlite-dialect — custom Spring Data JDBC dialect for SQLite -->
+        <dependency>
+            <groupId>ai.javaclaw</groupId>
+            <artifactId>javaclaw-persistence-sqlite-dialect</artifactId>
+        </dependency>
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

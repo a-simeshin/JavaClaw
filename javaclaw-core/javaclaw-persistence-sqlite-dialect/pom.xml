@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ai.javaclaw</groupId>
+        <artifactId>javaclaw-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>javaclaw-persistence-sqlite-dialect</artifactId>
+
+    <description>
+        Leaf module: custom Spring Data JDBC dialect for SQLite.
+        Published so both production code (javaclaw-core) and tests in sibling modules
+        (javaclaw-memory) can depend on a single SqliteJdbcDialect implementation
+        without duplicating it.
+    </description>
+
+    <dependencies>
+        <!-- Spring Data JDBC — JdbcDialect, AnsiDialect, LimitClause, IdGeneration, JdbcArrayColumns -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jdbc</artifactId>
+        </dependency>
+
+        <!-- Test — JUnit 5 + AssertJ only; no Spring context needed for dialect unit tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

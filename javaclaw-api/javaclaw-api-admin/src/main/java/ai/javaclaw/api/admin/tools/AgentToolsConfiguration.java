@@ -1,6 +1,6 @@
 package ai.javaclaw.api.admin.tools;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.api.admin.files.VirtualFileService;
 import ai.javaclaw.delivery.NotificationTransport;
 import ai.javaclaw.memory.MemoryService;
@@ -43,8 +43,7 @@ public class AgentToolsConfiguration {
 
     @Bean
     public AutoDiscoveredTool<MessageTool> messageTool(
-            final NotificationTransport notificationTransport,
-            final AppendableChatMemoryRepository chatMemoryRepository) {
+            final NotificationTransport notificationTransport, final ChatMemory chatMemoryRepository) {
         return new AutoDiscoveredTool<>(MessageTool.builder()
                 .notificationTransport(notificationTransport)
                 .chatMemoryRepository(chatMemoryRepository)

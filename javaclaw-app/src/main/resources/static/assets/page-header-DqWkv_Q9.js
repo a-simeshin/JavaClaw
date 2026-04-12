@@ -1,0 +1,1 @@
+import{j as e}from"./index-D74xtTzq.js";function a({title:r,subtitle:n}){return e.jsxs("header",{className:"flex flex-col gap-1.5",children:[e.jsx("h1",{className:"font-mono text-[16px] font-bold leading-[1.2] tracking-[-0.02em] text-foreground",children:r}),n?e.jsx("p",{className:"text-[13px] leading-[1.5] text-muted-foreground",children:n}):null]})}export{a as P};

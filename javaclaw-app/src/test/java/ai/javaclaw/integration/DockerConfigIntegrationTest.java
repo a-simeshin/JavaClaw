@@ -70,7 +70,11 @@ class DockerConfigIntegrationTest extends IntegrationTestBase {
     void dbConfigIsPresent() {
         String url = environment.getProperty("spring.datasource.url");
         assertThat(url).isNotNull();
-        assertThat(url).containsIgnoringCase("postgresql");
+        if (USE_SQLITE) {
+            assertThat(url).containsIgnoringCase("sqlite");
+        } else {
+            assertThat(url).containsIgnoringCase("postgresql");
+        }
     }
 
     @Test

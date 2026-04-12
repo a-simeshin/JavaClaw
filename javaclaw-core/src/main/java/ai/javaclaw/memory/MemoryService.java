@@ -1,5 +1,6 @@
 package ai.javaclaw.memory;
 
+import ai.javaclaw.persistence.api.MemoryQueryRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.lang.Nullable;
@@ -9,9 +10,11 @@ import org.springframework.stereotype.Service;
 public class MemoryService {
 
     private final MemoryRepository repository;
+    private final MemoryQueryRepository queryRepository;
 
-    public MemoryService(MemoryRepository repository) {
+    public MemoryService(MemoryRepository repository, MemoryQueryRepository queryRepository) {
         this.repository = repository;
+        this.queryRepository = queryRepository;
     }
 
     public Memory store(@Nullable String ownerId, String key, String content, @Nullable String category) {
@@ -60,9 +63,9 @@ public class MemoryService {
 
     public List<Memory> search(@Nullable String ownerId, String query) {
         if (ownerId != null) {
-            return repository.searchByOwner(ownerId, query);
+            return queryRepository.searchForOwner(ownerId, query);
         }
-        return repository.searchGlobal(query);
+        return queryRepository.searchGlobal(query);
     }
 
     private Optional<Memory> findByKey(@Nullable String ownerId, String key) {

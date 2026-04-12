@@ -2,6 +2,9 @@ HELP.md
 .DS_Store
 .env
 
+# Local Claude Code runtime lock
+.claude/scheduled_tasks.lock
+
 # Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar

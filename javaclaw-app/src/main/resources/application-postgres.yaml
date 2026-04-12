@@ -1,0 +1,19 @@
+# PostgreSQL runtime profile (default).
+#
+# Activated automatically via `spring.profiles.default: postgres` in base
+# application.yaml, so local dev / production bootstraps straight into this
+# file without any extra flags. Owns every Postgres-specific knob:
+#   - spring.datasource.*       (JDBC URL, driver, credentials)
+#   - javaclaw.persistence.dialect=postgresql (gates PostgresJdbcConfiguration)
+# JobRunr is intentionally left to its auto-configuration — the shared
+# StorageProviderFactory picks the right provider from the DataSource.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:javaclaw}
+    username: ${DB_USERNAME:javaclaw}
+    password: ${DB_PASSWORD:javaclaw}
+    driver-class-name: org.postgresql.Driver
+
+javaclaw:
+  persistence:
+    dialect: postgresql

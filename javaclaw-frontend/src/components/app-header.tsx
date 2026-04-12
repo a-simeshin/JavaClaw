@@ -106,14 +106,14 @@ export function AppHeader() {
               )}
           >
             <IconUser width={18} height={18} strokeWidth={1.5} aria-hidden />
-            {user.username && (
+            {user?.username && (
               <span className="text-[13px] text-foreground">
                 {user.username}
               </span>
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-40">
-            {user.username && (
+            {user?.username && (
               <>
                 <DropdownMenuLabel>
                   <div className="flex flex-col">

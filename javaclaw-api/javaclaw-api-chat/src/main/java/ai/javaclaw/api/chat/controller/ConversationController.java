@@ -1,5 +1,6 @@
 package ai.javaclaw.api.chat.controller;
 
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.api.chat.controller.dto.ConversationDto;
 import ai.javaclaw.api.chat.controller.dto.CreateConversationRequest;
 import ai.javaclaw.api.chat.controller.dto.MessageDto;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,7 +47,7 @@ public class ConversationController {
     /** Max length for auto-derived conversation titles shown in the list. */
     private static final int TITLE_MAX_LENGTH = 80;
 
-    private final ChatMemoryRepository chatMemoryRepository;
+    private final ChatMemory chatMemoryRepository;
     private final ConversationEnsurer conversationEnsurer;
     private final ConversationQueryService queryService;
     private final ConversationRepository conversationRepository;

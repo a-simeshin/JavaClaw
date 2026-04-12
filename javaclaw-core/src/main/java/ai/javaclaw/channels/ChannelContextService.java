@@ -1,10 +1,9 @@
 package ai.javaclaw.channels;
 
-import java.sql.Timestamp;
+import ai.javaclaw.persistence.api.ChannelContextQueryRepository;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import tools.jackson.core.type.TypeReference;
@@ -17,30 +16,23 @@ import tools.jackson.databind.ObjectMapper;
  * (and channel-specific routing data such as chatId/channelId) is associated with that
  * conversation. Later, when an async task finishes, {@link #getContext} is used to find
  * where to deliver the notification.
+ *
+ * <p>The dialect-sensitive upsert SQL is isolated behind
+ * {@link ChannelContextQueryRepository} so the service stays database-agnostic.
  */
 @Service
 public class ChannelContextService {
 
-    private static final String UPSERT_SQL =
-            """
-            INSERT INTO conversation_channel_context (conversation_id, channel_name, routing_data, updated_at)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT (conversation_id) DO UPDATE SET
-                channel_name = EXCLUDED.channel_name,
-                routing_data = EXCLUDED.routing_data,
-                updated_at   = EXCLUDED.updated_at
-            """;
-
     private final ConversationChannelContextRepository repository;
-    private final JdbcTemplate jdbcTemplate;
+    private final ChannelContextQueryRepository queryRepository;
     private final ObjectMapper objectMapper;
 
     public ChannelContextService(
             final ConversationChannelContextRepository repository,
-            final JdbcTemplate jdbcTemplate,
+            final ChannelContextQueryRepository queryRepository,
             final ObjectMapper objectMapper) {
         this.repository = repository;
-        this.jdbcTemplate = jdbcTemplate;
+        this.queryRepository = queryRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -57,7 +49,7 @@ public class ChannelContextService {
         Assert.hasText(channelName, "channelName cannot be blank");
         try {
             final String json = objectMapper.writeValueAsString(routingData != null ? routingData : Map.of());
-            jdbcTemplate.update(UPSERT_SQL, conversationId, channelName, json, Timestamp.from(Instant.now()));
+            queryRepository.upsert(conversationId, channelName, json, Instant.now());
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Failed to save channel routing context for conversation " + conversationId, e);

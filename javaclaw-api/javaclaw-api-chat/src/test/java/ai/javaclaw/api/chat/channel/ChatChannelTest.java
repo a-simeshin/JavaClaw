@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.channels.RoutingContext;
 import java.util.Map;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 class ChatChannelTest {
 
-    private final AppendableChatMemoryRepository chatMemoryRepository = mock(AppendableChatMemoryRepository.class);
+    private final ChatMemory chatMemoryRepository = mock(ChatMemory.class);
 
     @Test
     void registersItselfWithChannelRegistryOnConstruction() {

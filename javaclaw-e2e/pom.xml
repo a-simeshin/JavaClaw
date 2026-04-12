@@ -164,6 +164,39 @@
         </profile>
 
         <!--
+            Opt-in E2E-SQLITE profile: same Playwright tests, but against SQLite instead of PostgreSQL.
+            Catches dialect-specific bugs (Integer↔boolean, Instant↔TEXT, UUID↔TEXT).
+            Activated with: ./mvnw -pl javaclaw-e2e verify -Pe2e-sqlite
+        -->
+        <profile>
+            <id>e2e-sqlite</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/integration/**/*IT.java</include>
+                                <include>**/integration/**/*IntegrationTest.java</include>
+                                <include>**/integration/**/*LiveE2ETest.java</include>
+                                <include>**/playwright/**/*E2ETest.java</include>
+                                <include>**/playwright/**/*E2EIT.java</include>
+                            </includes>
+                            <excludes combine.self="override"/>
+                            <systemPropertyVariables>
+                                <test.dialect>sqlite</test.dialect>
+                            </systemPropertyVariables>
+                            <environmentVariables>
+                                <OPENROUTER_API_KEY>${env.OPENROUTER_API_KEY}</OPENROUTER_API_KEY>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
             Opt-in SCALING-E2E profile: runs multi-pod scaling integration tests (E29/E30).
 
             Boots two independent Spring application contexts in the same JVM against a single

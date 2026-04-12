@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ai.javaclaw.integration.support.IntegrationTestAuthHelper;
+import ai.javaclaw.persistence.api.AppUserQueryRepository;
 import ai.javaclaw.users.AppUser;
 import ai.javaclaw.users.AppUserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,9 @@ class UserManagementIntegrationTest {
     AppUserRepository appUserRepository;
 
     @Autowired
+    AppUserQueryRepository appUserQueryRepository;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -56,7 +60,7 @@ class UserManagementIntegrationTest {
 
     private void resetPassword(String username, String rawPassword) {
         AppUser u = appUserRepository.findByUsername(username).orElseThrow();
-        appUserRepository.updatePassword(u.id(), passwordEncoder.encode(rawPassword));
+        appUserQueryRepository.updatePassword(u.id(), passwordEncoder.encode(rawPassword));
     }
 
     private Cookie adminCookie() throws Exception {

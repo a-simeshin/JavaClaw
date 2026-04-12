@@ -1,5 +1,6 @@
 package ai.javaclaw.agent.quota;
 
+import ai.javaclaw.persistence.api.AgentQuotaQueryRepository;
 import ai.javaclaw.tasks.RateLimitExceededException;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -18,14 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class AgentQuotaService {
 
     private final AgentQuotaRepository repository;
+    private final AgentQuotaQueryRepository queryRepository;
     private final int defaultDailyLimit;
     private final boolean enabled;
 
     public AgentQuotaService(
             final AgentQuotaRepository repository,
+            final AgentQuotaQueryRepository queryRepository,
             @Value("${javaclaw.agent.quota.default-daily-limit:100}") final int defaultDailyLimit,
             @Value("${javaclaw.agent.quota.enabled:true}") final boolean enabled) {
         this.repository = repository;
+        this.queryRepository = queryRepository;
         this.defaultDailyLimit = defaultDailyLimit;
         this.enabled = enabled;
     }
@@ -44,13 +48,13 @@ public class AgentQuotaService {
         }
         AgentQuota quota = ensureQuota(userId);
         if (needsReset(quota)) {
-            repository.resetDaily(userId);
+            queryRepository.resetDaily(userId);
             quota = quota.withDailyReset();
         }
         if (quota.isExceeded()) {
             throw new RateLimitExceededException(userId, "daily_agent_quota", quota.dailyUsed(), quota.dailyLimit());
         }
-        repository.incrementDailyUsed(userId);
+        queryRepository.incrementDailyUsed(userId);
     }
 
     /**
@@ -74,7 +78,7 @@ public class AgentQuotaService {
     @Transactional
     public void setDailyLimit(final String userId, final int limit) {
         ensureQuota(userId);
-        repository.updateDailyLimit(userId, limit);
+        queryRepository.updateDailyLimit(userId, limit);
     }
 
     public int getDefaultDailyLimit() {

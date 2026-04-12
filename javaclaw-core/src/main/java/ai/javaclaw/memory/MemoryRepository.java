@@ -7,6 +7,13 @@ import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Spring Data JDBC repository for the {@code memories} table.
+ *
+ * <p>The dialect-sensitive {@code ILIKE} search queries that used to live here
+ * have been extracted to
+ * {@link ai.javaclaw.persistence.api.MemoryQueryRepository}.
+ */
 public interface MemoryRepository extends ListCrudRepository<Memory, String> {
 
     List<Memory> findAllByOwnerId(String ownerId);
@@ -16,14 +23,6 @@ public interface MemoryRepository extends ListCrudRepository<Memory, String> {
     Optional<Memory> findByOwnerIdAndKey(String ownerId, String key);
 
     Optional<Memory> findByOwnerIdIsNullAndKey(String key);
-
-    @Query(
-            "SELECT * FROM memories WHERE owner_id = :ownerId AND (key ILIKE '%' || :query || '%' OR content ILIKE '%' || :query || '%')")
-    List<Memory> searchByOwner(@Param("ownerId") String ownerId, @Param("query") String query);
-
-    @Query(
-            "SELECT * FROM memories WHERE owner_id IS NULL AND (key ILIKE '%' || :query || '%' OR content ILIKE '%' || :query || '%')")
-    List<Memory> searchGlobal(@Param("query") String query);
 
     @Modifying
     @Query("DELETE FROM memories WHERE owner_id = :ownerId AND key = :key")

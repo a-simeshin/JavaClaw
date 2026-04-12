@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelContextService;
@@ -23,7 +24,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
@@ -146,7 +146,7 @@ class SseStreamingServiceTest {
         // Mockito timeout() blocks until the mock call occurs — this is the completion signal
         @SuppressWarnings("unchecked")
         final ArgumentCaptor<List<Message>> msgCaptor = ArgumentCaptor.forClass(List.class);
-        verify(chatMemory, timeout(5000)).add(eq("cid-1"), msgCaptor.capture());
+        verify(chatMemory, timeout(5000)).appendAll(eq("cid-1"), msgCaptor.capture());
         assertThat(msgCaptor.getValue()).hasSize(1);
         assertThat(msgCaptor.getValue().get(0)).isInstanceOf(AssistantMessage.class);
         assertThat(msgCaptor.getValue().get(0).getText()).isEqualTo("Hello world!");
@@ -185,7 +185,7 @@ class SseStreamingServiceTest {
 
         @SuppressWarnings("unchecked")
         final ArgumentCaptor<List<Message>> msgCaptor = ArgumentCaptor.forClass(List.class);
-        verify(chatMemory, timeout(5000)).add(eq("cid-2"), msgCaptor.capture());
+        verify(chatMemory, timeout(5000)).appendAll(eq("cid-2"), msgCaptor.capture());
         // Partial content must be non-empty
         assertThat(msgCaptor.getValue()).hasSize(1);
         final String persistedText = msgCaptor.getValue().get(0).getText();
@@ -333,7 +333,7 @@ class SseStreamingServiceTest {
         final ResponseBodyEmitter emitter = service.createEmitter();
 
         service.stream(emitter, "text-test", "hi");
-        verify(chatMemory, timeout(5000).atLeastOnce()).add(eq("text-test"), any(List.class));
+        verify(chatMemory, timeout(5000).atLeastOnce()).appendAll(eq("text-test"), any(List.class));
         assertThat(service.cancel("text-test")).isFalse();
     }
 

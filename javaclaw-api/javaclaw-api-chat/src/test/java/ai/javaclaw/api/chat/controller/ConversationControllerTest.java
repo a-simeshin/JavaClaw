@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.conversations.ConversationEnsurer;
 import ai.javaclaw.conversations.ConversationQueryService;
 import ai.javaclaw.conversations.ConversationRepository;
@@ -21,13 +22,12 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 class ConversationControllerTest {
 
-    private ChatMemoryRepository chatMemoryRepository;
+    private ChatMemory chatMemoryRepository;
     private ConversationEnsurer conversationEnsurer;
     private ConversationQueryService queryService;
     private ConversationRepository conversationRepository;
@@ -39,7 +39,7 @@ class ConversationControllerTest {
 
     @BeforeEach
     void setUp() {
-        chatMemoryRepository = mock(ChatMemoryRepository.class);
+        chatMemoryRepository = mock(ChatMemory.class);
         conversationEnsurer = mock(ConversationEnsurer.class);
         queryService = mock(ConversationQueryService.class);
         conversationRepository = mock(ConversationRepository.class);

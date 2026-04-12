@@ -2,12 +2,11 @@ package ai.javaclaw.channels;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.sql.Timestamp;
+import ai.javaclaw.persistence.api.ChannelContextQueryRepository;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,30 +24,28 @@ class ChannelContextServiceTest {
     private ConversationChannelContextRepository repository;
 
     @Mock
-    private JdbcTemplate jdbcTemplate;
+    private ChannelContextQueryRepository queryRepository;
 
     private ChannelContextService service;
 
     @BeforeEach
     void setUp() {
         service = new ChannelContextService(
-                repository, jdbcTemplate, JsonMapper.builder().build());
+                repository, queryRepository, JsonMapper.builder().build());
     }
 
     @Test
-    void saveContextExecutesUpsertSql() {
+    void saveContextDelegatesToQueryRepository() {
         service.saveContext("telegram-42", "TelegramChannel", Map.of("chatId", "42"));
 
-        verify(jdbcTemplate)
-                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), anyString(), any(Timestamp.class));
+        verify(queryRepository).upsert(eq("telegram-42"), eq("TelegramChannel"), any(String.class), any(Instant.class));
     }
 
     @Test
     void saveContextHandlesNullRoutingData() {
         service.saveContext("telegram-42", "TelegramChannel", null);
 
-        verify(jdbcTemplate)
-                .update(anyString(), eq("telegram-42"), eq("TelegramChannel"), eq("{}"), any(Timestamp.class));
+        verify(queryRepository).upsert(eq("telegram-42"), eq("TelegramChannel"), eq("{}"), any(Instant.class));
     }
 
     @Test

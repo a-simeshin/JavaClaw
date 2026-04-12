@@ -1,0 +1,15 @@
+# Debug runtime profile — disposable SQLite database for interactive debug
+# sessions, local chrome-devtools walkthroughs, and single-shot reproductions.
+#
+# Relies on `spring.profiles.group.debug: sqlite` declared in the base
+# application.yaml: activating the `debug` profile implicitly pulls the
+# `sqlite` profile, which in turn sets `javaclaw.persistence.dialect=sqlite`
+# and the SQLite driver. This file only overrides the database path so we
+# never collide with `./data/javaclaw.db` used by the normal sqlite profile.
+#
+# The file lives under `java.io.tmpdir` so it vanishes with the OS temp
+# cleanup — operators can still override via `SQLITE_FILE` env var if they
+# want to keep the debug database between runs.
+spring:
+  datasource:
+    url: jdbc:sqlite:${SQLITE_FILE:${java.io.tmpdir}/javaclaw-debug.db}

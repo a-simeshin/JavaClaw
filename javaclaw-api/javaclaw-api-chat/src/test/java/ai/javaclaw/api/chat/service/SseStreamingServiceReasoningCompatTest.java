@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelContextService;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;

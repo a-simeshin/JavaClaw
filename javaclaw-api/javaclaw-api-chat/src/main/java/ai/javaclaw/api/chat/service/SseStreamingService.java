@@ -1,6 +1,7 @@
 package ai.javaclaw.api.chat.service;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.agent.pipeline.ChatService;
 import ai.javaclaw.api.chat.configuration.ChatRestConfiguration;
 import ai.javaclaw.channels.ChannelContextService;
@@ -21,7 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -384,7 +384,7 @@ public class SseStreamingService {
             // Persist partial/full assistant content (fix #11: partial content on cancel)
             if (!accText.isEmpty()) {
                 try {
-                    chatMemory.add(conversationId, List.of(new AssistantMessage(accText)));
+                    chatMemory.appendAll(conversationId, List.of(new AssistantMessage(accText)));
                 } catch (Exception persistEx) {
                     log.warn("Failed to persist assistant message for conversation {}", conversationId, persistEx);
                 }

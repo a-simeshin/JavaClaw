@@ -1,6 +1,6 @@
 package ai.javaclaw.api.chat.channel;
 
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelRegistry;
 import ai.javaclaw.channels.RoutingContext;
@@ -22,10 +22,9 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ChatChannel implements Channel {
 
-    private final AppendableChatMemoryRepository chatMemoryRepository;
+    private final ChatMemory chatMemoryRepository;
 
-    public ChatChannel(
-            final ChannelRegistry channelRegistry, final AppendableChatMemoryRepository chatMemoryRepository) {
+    public ChatChannel(final ChannelRegistry channelRegistry, final ChatMemory chatMemoryRepository) {
         this.chatMemoryRepository = chatMemoryRepository;
         channelRegistry.registerChannel(this);
         log.info("Started Web Chat channel");

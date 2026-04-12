@@ -18,8 +18,10 @@
     <description>JavaClaw</description>
 
     <modules>
-        <module>javaclaw-core/javaclaw-memory</module>
         <module>javaclaw-core</module>
+        <module>javaclaw-core/javaclaw-persistence-sqlite-dialect</module>
+        <module>javaclaw-core/javaclaw-memory</module>
+
         <module>javaclaw-security</module>
         <module>javaclaw-api</module>
         <module>javaclaw-channel</module>
@@ -129,22 +131,31 @@
                 <version>${playwright.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-resolver-dns-native-macos</artifactId>
-                <version>${netty-macos.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.xerial</groupId>
                 <artifactId>sqlite-jdbc</artifactId>
                 <version>${sqlite-jdbc.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>ai.javaclaw</groupId>
                 <artifactId>javaclaw-memory</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>ai.javaclaw</groupId>
+                <artifactId>javaclaw-persistence-sqlite-dialect</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <finalName>${project.artifactId}</finalName>

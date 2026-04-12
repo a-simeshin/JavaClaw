@@ -12,6 +12,7 @@ import ai.javaclaw.tasks.NotifyPolicy;
 import ai.javaclaw.tasks.Task;
 import ai.javaclaw.tasks.TaskRepository;
 import ai.javaclaw.tasks.TaskRuntime;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +67,14 @@ class StartupRecoveryIntegrationTest extends IntegrationTestBase {
     }
 
     private void createConversation(String conversationId) {
+        Timestamp now = Timestamp.from(Instant.now());
         jdbcTemplate.update(
-                "INSERT INTO conversations (id, title, created_at, updated_at) VALUES (?, ?, now(), now())"
+                "INSERT INTO conversations (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)"
                         + " ON CONFLICT (id) DO NOTHING",
                 conversationId,
-                "Test conversation");
+                "Test conversation",
+                now,
+                now);
     }
 
     private Task saveTask(String name, String conversationId) {

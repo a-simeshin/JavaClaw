@@ -74,13 +74,11 @@ Use these files to complete the task:
   - Role: Implement `useResetClientState()` hook and wire it into logout + login + session-restore paths in the React SPA. Export initial values from stores, update `app-header.tsx` and `use-auth.ts`.
   - Agent Type: `builder`
   - Resume: true
-
 - Builder
   - Name: `builder-fe-tests`
   - Role: Write unit + integration tests for the reset hook and the logout/login flows. Keep AI SDK hook behaviour covered.
   - Agent Type: `builder`
   - Resume: true
-
 - Validator
   - Name: `validator-fe`
   - Role: Run lint, typecheck, vitest, and manual acceptance checklist. Verify no regressions in existing auth/chat tests.
@@ -208,6 +206,7 @@ Target file: `javaclaw-frontend/e2e/auth-state-leak.e2e.ts` (new)
 - **Parallel**: false
 - **Tests**: Integration: `app-header.test.tsx` — logout click clears atom + query cache + navigates.
 - In `components/app-header.tsx`: import `useResetClientState`, call it at the top of `AppHeader`, make `handleLogout` async:
+
   ```tsx
   const resetClientState = useResetClientState()
   const handleLogout = async () => {
@@ -327,3 +326,4 @@ Target file: `javaclaw-frontend/e2e/auth-state-leak.e2e.ts` (new)
 - If `pnpm typecheck` is not defined in `package.json` scripts, use `pnpm exec tsc --noEmit` as a fallback.
 - The exhaustiveness test in `client-reset.test.tsx` is the key architectural defence — it prevents this class of bug from silently reappearing when new per-user atoms are added.
 - 401 auto-redirect path (`api/http.ts`) does a full page reload and is naturally safe; no changes needed there, but add a one-line code comment noting that it intentionally relies on browser wipe.
+

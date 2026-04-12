@@ -1,0 +1,24 @@
+# SQLite runtime profile — single-file standalone deployment.
+#
+# Activated via `-Dspring-boot.run.profiles=sqlite` (or SPRING_PROFILES_ACTIVE=sqlite).
+# SQLite does not require username/password; the JDBC URL points at a filesystem
+# path that is created lazily by the driver on first connect. Override the
+# location via `SQLITE_FILE` env var when running in production.
+#
+# JobRunr picks SqLiteStorageProvider automatically from the DataSource URL —
+# no explicit storage bean here. Chat memory persistence is handled by the
+# javaclaw-memory module's JdbcChatMemory backed by Spring Data
+# JDBC; schema lives in Flyway V2 under db/migration/sqlite inside the
+# javaclaw-memory module (FK to conversations is added later by core V5).
+spring:
+  datasource:
+    url: jdbc:sqlite:${SQLITE_FILE:./data/javaclaw.db}
+    driver-class-name: org.sqlite.JDBC
+    # SQLite does not authenticate — username/password intentionally omitted.
+
+javaclaw:
+  persistence:
+    dialect: sqlite
+  security:
+    cookie:
+      secure: false  # HTTP localhost — no HTTPS

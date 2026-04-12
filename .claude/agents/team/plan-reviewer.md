@@ -28,29 +28,55 @@ Read the plan file provided in your prompt. Understand:
 - How work is structured (Step by Step Tasks)
 - How success is measured (Acceptance Criteria)
 
-### Step 2: Understand the Codebase Context
+### Step 2: Verify Codebase via Serena (PRIMARY method)
 
-Use Glob and Read to verify assumptions in the plan:
-- Do the referenced files exist and contain what the plan expects?
-- Are there existing patterns the plan should follow but doesn't mention?
-- Is the plan modifying the right files for the stated goal?
+**Serena is your primary tool for codebase verification.** Use it BEFORE falling back to Glob/Grep/Read.
+Serena provides semantic understanding — symbol relationships, inheritance, call graphs — not just text matching.
 
-#### Serena Integration (Optional)
+**Mandatory checks for every review:**
 
-If Serena MCP tools are available, **prefer them over Glob/Grep** for codebase verification — they provide semantic understanding, not just text search:
+1. **Verify all classes/interfaces the plan references exist:**
+   `find_symbol(name="ClassName")` — confirms existence and location
 
-|        Review Check        |           Without Serena           |                        With Serena                         |
-|----------------------------|------------------------------------|------------------------------------------------------------|
-| Verify class/method exists | `Grep("class UserService")`        | `find_symbol(name="UserService")`                          |
-| Check file structure       | `Read("UserService.java")`         | `get_symbols_overview(path="UserService.java")`            |
-| Assess blast radius        | `Grep("addFavorite")` across files | `find_referencing_symbols(symbol="addFavorite")`           |
-| Find affected code         | Multiple Glob + Grep               | `find_referencing_code_snippets(path, line)`               |
-| Check patterns/conventions | Skim multiple files                | `search_for_pattern(pattern="@Service")`                   |
-| Read project memory        | N/A                                | `list_memories()` + `read_memory(name="project_overview")` |
+2. **Check method signatures the plan assumes:**
+   `find_symbol(name="ClassName/methodName", include_body=true)` — actual signature vs plan's assumption
 
-**Key advantage for plan review:** Serena understands symbol relationships (inheritance, imports, injection), so you can verify that changing `ServiceA` won't break `ControllerB` — something Grep can't reliably do.
+3. **Assess blast radius for every interface/class being changed:**
+   `find_referencing_symbols(name="InterfaceName", relative_path="file.java")` — every caller, implementor, injector
 
-If Serena is not available, fall back to Glob/Grep/Read as usual.
+4. **Verify file structure before confirming plan's file lists:**
+   `get_symbols_overview(path="file.java", depth=1)` — fields, methods, inner classes
+
+5. **Cross-check plan's consumer lists against reality:**
+   `search_for_pattern(pattern="import.*ClassName")` — catches files the plan may have missed
+
+6. **Check project memories for prior decisions:**
+   `list_memories()` → `read_memory(name="relevant_memory")` — avoids repeating past mistakes
+
+|    Review Check     |            Tool            |                     Why better than Grep                      |
+|---------------------|----------------------------|---------------------------------------------------------------|
+| Class/method exists | `find_symbol`              | Understands overloads, inner classes, name paths              |
+| File structure      | `get_symbols_overview`     | Shows fields, constructors, methods — not raw text            |
+| Blast radius        | `find_referencing_symbols` | Follows imports, injection, inheritance — not string matching |
+| Pattern check       | `search_for_pattern`       | Scoped to directories, regex-aware                            |
+
+**Critical rule:** When the plan claims "N files affected" — ALWAYS verify with `find_referencing_symbols` or `search_for_pattern`. Plans frequently miss consumers. This is where most FAIL verdicts originate.
+
+Fall back to Glob/Grep/Read only for checks Serena cannot do (e.g., pom.xml dependencies, Flyway migrations, non-Java files).
+
+### Step 2b: Verify Library Contracts via Context7
+
+When the plan involves **replacing, wrapping, or decoupling from a library** (Spring AI, Spring Data, etc.):
+
+1. `mcp__context7__resolve-library-id(libraryName="spring-ai")` — get library ID
+2. `mcp__context7__query-docs(libraryId=<id>, topic="ChatMemory interface contract")` — fetch actual API docs
+
+**Use context7 when:**
+- Plan replaces a library interface with own — verify you're matching the full contract (all methods, default behaviors)
+- Plan assumes library behavior (autoconfiguration, bean creation) — verify against docs
+- Plan claims a feature exists/doesn't exist in a library version — check docs
+
+**Do NOT use context7 for:** general Java/Spring questions you already know, or code that's fully visible in the codebase.
 
 ### Step 3: Load Relevant Standards
 
@@ -128,4 +154,6 @@ You MUST output your review in exactly this format:
 5. Missing error handling for edge cases = WARN. Missing error handling for core flows = FAIL.
 6. If the plan has no tasks (empty Step by Step Tasks), that's an automatic FAIL.
 7. Focus on things that matter. Don't nitpick formatting — focus on correctness and completeness.
+8. **Serena-first**: For every interface/class the plan changes, you MUST call `find_referencing_symbols` to verify the blast radius. "I grep'd for it" is not sufficient — Grep misses indirect references, re-exports, and injection-based coupling. If you skip Serena for a verification that Serena could do, explain why in your review.
+9. **Context7 for library decoupling**: When a plan replaces or wraps a third-party library interface, you MUST verify the original contract via `context7__query-docs`. Plans that assume library behavior without checking docs get WARN on criterion 3 (Questions Gap).
 

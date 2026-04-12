@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.audit.DeliveryAuditLog;
 import ai.javaclaw.agent.audit.DeliveryAuditLogRepository;
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
@@ -40,7 +40,7 @@ class DeliveryServiceTest {
     private NotificationTransport notificationTransport;
     private DeliveryQueueRepository deliveryQueueRepository;
     private DeliveryAuditLogRepository deliveryAuditLogRepository;
-    private AppendableChatMemoryRepository chatMemoryRepository;
+    private ChatMemory chatMemoryRepository;
     private DeliveryService deliveryService;
 
     @BeforeEach
@@ -50,7 +50,7 @@ class DeliveryServiceTest {
         notificationTransport = mock(NotificationTransport.class);
         deliveryQueueRepository = mock(DeliveryQueueRepository.class);
         deliveryAuditLogRepository = mock(DeliveryAuditLogRepository.class);
-        chatMemoryRepository = mock(AppendableChatMemoryRepository.class);
+        chatMemoryRepository = mock(ChatMemory.class);
         deliveryService = new DeliveryService(
                 channelContextService,
                 channelRegistry,

@@ -1,11 +1,8 @@
 package ai.javaclaw;
 
-import ai.javaclaw.ai.memory.JavaClawMessageWindowChatMemory;
 import ai.javaclaw.tasks.TaskManager;
 import ai.javaclaw.tools.TaskTool;
 import java.util.List;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -18,7 +15,9 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Основная Spring-конфигурация JavaClaw.
  *
- * <p>Регистрирует базовые бины: ChatModel (stub), ChatMemory и TaskTool.
+ * <p>Регистрирует базовые бины: stub {@link ChatModel} и {@link TaskTool}. Сам
+ * {@code ChatMemory} теперь приходит из модуля {@code javaclaw-memory}
+ * ({@link ai.javaclaw.agent.memory.adapter.jdbc.JdbcChatMemory}), поэтому @Bean здесь не нужен.
  */
 @Configuration
 public class JavaClawConfiguration {
@@ -40,19 +39,6 @@ public class JavaClawConfiguration {
                         new Generation(
                                 new AssistantMessage(
                                         "No AI model has been configured. If you did configure a model recently, restart JavaClaw manually for the changes to take effect."))));
-    }
-
-    /**
-     * Создаёт {@link ChatMemory} bean с оконной памятью разговора.
-     *
-     * @param chatMemoryRepository репозиторий хранения истории
-     * @return экземпляр JavaClawMessageWindowChatMemory
-     */
-    @Bean
-    public ChatMemory chatMemory(final ChatMemoryRepository chatMemoryRepository) {
-        return JavaClawMessageWindowChatMemory.builder()
-                .chatMemoryRepository(chatMemoryRepository)
-                .build();
     }
 
     /**

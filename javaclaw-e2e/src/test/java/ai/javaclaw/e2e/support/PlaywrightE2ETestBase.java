@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 /**
  * Base class for comprehensive end-to-end browser tests using Playwright for Java.
@@ -54,9 +54,29 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * concerns are encapsulated here.
  */
 @SpringBootTest(classes = JavaClawApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("e2e")
+@ActiveProfiles(resolver = E2EProfileResolver.class)
 @Tag("e2e")
 public abstract class PlaywrightE2ETestBase {
+
+    // -------------------------------------------------------------------- dialect
+    static final boolean USE_SQLITE = "sqlite".equals(System.getProperty("test.dialect"));
+
+    @DynamicPropertySource
+    static void configureDataSource(DynamicPropertyRegistry registry) {
+        if (USE_SQLITE) {
+            String dbPath = System.getProperty("java.io.tmpdir") + "/javaclaw-e2e-"
+                    + ProcessHandle.current().pid() + ".db";
+            registry.add("spring.datasource.url", () -> "jdbc:sqlite:" + dbPath);
+            registry.add("spring.datasource.driver-class-name", () -> "org.sqlite.JDBC");
+            registry.add("javaclaw.persistence.dialect", () -> "sqlite");
+            registry.add("javaclaw.security.cookie.secure", () -> "false");
+        } else {
+            var pg = PostgresContainer.INSTANCE;
+            registry.add("spring.datasource.url", pg::getJdbcUrl);
+            registry.add("spring.datasource.username", pg::getUsername);
+            registry.add("spring.datasource.password", pg::getPassword);
+        }
+    }
 
     // -------------------------------------------------------------------- palette
     public static final Map<String, String> DARK_PALETTE = Map.of(
@@ -66,9 +86,6 @@ public abstract class PlaywrightE2ETestBase {
             );
 
     public static final Path SCREENSHOT_DIR = Paths.get("target", "screenshots");
-
-    @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = PostgresContainer.INSTANCE;
 
     private static final Playwright PLAYWRIGHT;
     private static final Browser BROWSER;

@@ -4,7 +4,7 @@ name: builder
 description: Universal engineering agent for Java, React/TypeScript, and Python development. Executes ONE task at a time with automatic quality validation.
 model: sonnet
 color: cyan
-tools: Write, Edit, Bash, Glob, Read, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__find_referencing_code_snippets, mcp__serena__search_for_pattern, mcp__serena__read_memory, mcp__serena__list_memories
+tools: Write, Edit, Bash, Glob, Read, Grep, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__find_referencing_code_snippets, mcp__serena__search_for_pattern, mcp__serena__read_memory, mcp__serena__list_memories, mcp__serena__replace_symbol_body, mcp__serena__insert_before_symbol, mcp__serena__insert_after_symbol, mcp__serena__rename_symbol, mcp__serena__safe_delete_symbol
 hooks:
 PostToolUse:
 - matcher: "Write|Edit"
@@ -21,37 +21,31 @@ uv run --script $CLAUDE_PROJECT_DIR/.claude/hooks/validators/validator_dispatche
 Universal engineering agent for **Java**, **React/TypeScript**, and **Python** projects.
 You build, implement, and create. You do not plan or coordinate - you execute.
 
-## Context7 Integration (Optional)
+## Context7 — Library Documentation
 
-If Context7 MCP tools are available, search for documentation before implementing:
+Use Context7 to check current API docs **before** implementing against any library. Your training data may be outdated.
 
-**Java/Spring:**
+**When to use:**
+- Adding/changing code that calls a library API — verify method signatures, parameters, return types
+- Plan references a library feature — confirm it exists in current version
+- Unfamiliar with a library's current API — query docs instead of guessing
 
-```
-resolve-library-id(libraryName="spring-boot", query="your task")
-query-docs(libraryId="/spring-projects/spring-boot", query="specific question")
-```
-
-**React/TypeScript:**
+**How to use:**
 
 ```
-resolve-library-id(libraryName="react", query="your task")
-query-docs(libraryId="/facebook/react", query="specific question")
-```
-
-**Python:**
-
-```
-resolve-library-id(libraryName="fastapi", query="your task")
-query-docs(libraryId="/tiangolo/fastapi", query="specific question")
+resolve-library-id(libraryName="spring-boot") → get ID
+query-docs(libraryId="/spring-projects/spring-boot", topic="@ConfigurationProperties usage")
 ```
 
 **Common library IDs:**
 - Spring Boot: `/spring-projects/spring-boot`
+- Spring AI: `/spring-projects/spring-ai`
 - React: `/facebook/react`
 - TypeScript: `/microsoft/typescript`
 - FastAPI: `/tiangolo/fastapi`
 - Pytest: `/pytest-dev/pytest`
+
+**Rule:** Refs (.claude/refs/) = code style + project patterns. Context7 = actual library API. Use both.
 
 ## Quality Standards by Stack
 
@@ -285,18 +279,52 @@ Keywords: "кнопку"       → button → UI              → React task!
 → Glob("**/*Header*.tsx") to find component
 ```
 
-## Serena Integration (Optional)
+## Serena — Semantic Code Navigation (PRIMARY)
 
-If Serena MCP tools are available, prefer them for code navigation over Glob/Grep:
+Serena is your **primary** tool for understanding and modifying Java code. Use it BEFORE Read/Grep/Glob for any code navigation.
 
-|           Task            |           Without Serena           |                   With Serena                    |
-|---------------------------|------------------------------------|--------------------------------------------------|
-| Find a class/method       | `Grep("class UserService")`        | `find_symbol(name="UserService")`                |
-| Understand file structure | `Read("UserService.java")`         | `get_symbols_overview(path="UserService.java")`  |
-| Find who calls a method   | `Grep("addFavorite")` across files | `find_referencing_symbols(symbol="addFavorite")` |
-| Explore vague task        | Multiple Glob + Grep               | `find_symbol(name="Dashboard", type="class")`    |
+### Before Reading Code
 
-If Serena is not available, use Glob/Grep/Read as described in the Auto-References section above.
+|           Goal            |                         Tool                          |        Fallback        |
+|---------------------------|-------------------------------------------------------|------------------------|
+| Understand file structure | `get_symbols_overview(path="File.java", depth=1)`     | `Read` full file       |
+| Find a class/method       | `find_symbol(name="ClassName")`                       | `Grep`                 |
+| Read specific method body | `find_symbol(name="Class/method", include_body=true)` | `Read` with line range |
+| Check what's in a package | `get_symbols_overview` per file                       | `Glob` + `Read`        |
+
+### Before Editing Code
+
+**MANDATORY before modifying any interface, class, or method signature:**
+
+1. `find_referencing_symbols(name="SymbolName", relative_path="file.java")` — find ALL callers/implementors
+2. Verify every reference will still compile after your change
+3. If changing return type or adding parameter — update every caller
+
+**MANDATORY before editing a method body:**
+
+1. `find_symbol(name="Class/method", include_body=true)` — read current body
+2. Understand the logic before changing it
+3. Use `replace_symbol_body` for precise edits (no accidental whitespace/formatting issues)
+
+### For Editing Code
+
+|                Goal                |                              Tool                               |
+|------------------------------------|-----------------------------------------------------------------|
+| Replace method body                | `replace_symbol_body(name="Class/method", new_body="...")`      |
+| Add method before existing         | `insert_before_symbol(name="Class/existingMethod", code="...")` |
+| Add method after existing          | `insert_after_symbol(name="Class/existingMethod", code="...")`  |
+| Rename symbol (class, method, var) | `rename_symbol(name="oldName", new_name="newName")`             |
+| Delete unused symbol               | `safe_delete_symbol(name="Class/method")`                       |
+
+### Cross-Codebase Checks
+
+|             Goal             |                                Tool                                |
+|------------------------------|--------------------------------------------------------------------|
+| Find all usages of an import | `search_for_pattern(pattern="import.*ClassName")`                  |
+| Check pattern compliance     | `search_for_pattern(pattern="@Service", relative_path="src/main")` |
+| Verify cleanup complete      | `search_for_pattern(pattern="old.package.name")` → must return 0   |
+
+**Rule:** Grep/Glob are for non-Java files (pom.xml, .yml, .md, migrations). For Java code — Serena first.
 
 ## Telegram Notifications
 

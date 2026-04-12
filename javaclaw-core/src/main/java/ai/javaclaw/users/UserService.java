@@ -1,5 +1,6 @@
 package ai.javaclaw.users;
 
+import ai.javaclaw.persistence.api.AppUserQueryRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -12,10 +13,13 @@ import org.springframework.util.Assert;
 public class UserService {
 
     private final AppUserRepository repository;
+    private final AppUserQueryRepository queryRepository;
     private final CustomRoleRepository roleRepository;
 
-    public UserService(AppUserRepository repository, CustomRoleRepository roleRepository) {
+    public UserService(
+            AppUserRepository repository, AppUserQueryRepository queryRepository, CustomRoleRepository roleRepository) {
         this.repository = repository;
+        this.queryRepository = queryRepository;
         this.roleRepository = roleRepository;
     }
 
@@ -49,7 +53,7 @@ public class UserService {
         if (!repository.existsById(id)) {
             throw new IllegalArgumentException("User not found: " + id);
         }
-        repository.updateRole(id, role);
+        queryRepository.updateRole(id, role);
     }
 
     private void validateRoleExists(String role) {
@@ -64,7 +68,7 @@ public class UserService {
         if (!repository.existsById(id)) {
             throw new IllegalArgumentException("User not found: " + id);
         }
-        repository.updatePassword(id, encodedPassword);
+        queryRepository.updatePassword(id, encodedPassword);
     }
 
     public void deactivate(String id) {
@@ -72,6 +76,6 @@ public class UserService {
         if (!repository.existsById(id)) {
             throw new IllegalArgumentException("User not found: " + id);
         }
-        repository.deactivate(id);
+        queryRepository.deactivate(id);
     }
 }

@@ -1,11 +1,11 @@
 package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.audit.ChatAuditService;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.tasks.ApprovalService;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -153,7 +153,7 @@ public class ChatService {
         }
 
         // Persist user message ONCE — fix #24 (no duplicate USER messages).
-        chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+        chatMemory.appendAll(conversationId, List.of(new UserMessage(userContent)));
 
         final Prompt prompt = buildPrompt(conversationId, userId, userContent, modelOverride);
         try {
@@ -207,13 +207,13 @@ public class ChatService {
 
         // Check for pending approval before normal chat flow (S6 human-in-the-loop)
         if (approvalService != null && approvalService.hasPendingApproval(conversationId)) {
-            chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+            chatMemory.appendAll(conversationId, List.of(new UserMessage(userContent)));
             approvalService.submitApproval(conversationId, userContent);
             persistAssistantMessage(conversationId, APPROVAL_CONFIRMATION);
             return APPROVAL_CONFIRMATION;
         }
 
-        chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+        chatMemory.appendAll(conversationId, List.of(new UserMessage(userContent)));
 
         final Prompt prompt = buildPrompt(conversationId, userId, userContent, modelOverride);
         final long startTime = System.currentTimeMillis();
@@ -248,7 +248,7 @@ public class ChatService {
         final BeanOutputConverter<T> converter = new BeanOutputConverter<>(resultType);
         final String enrichedContent = userContent + "\n\n" + converter.getFormat();
 
-        chatMemory.add(conversationId, List.of(new UserMessage(enrichedContent)));
+        chatMemory.appendAll(conversationId, List.of(new UserMessage(enrichedContent)));
 
         final Prompt prompt = buildPrompt(conversationId, null, enrichedContent);
         final long startTime = System.currentTimeMillis();
@@ -274,7 +274,7 @@ public class ChatService {
      * @return Flux с одним ChatResponse-подтверждением
      */
     private Flux<ChatResponse> handleApprovalResponse(final String conversationId, final String userContent) {
-        chatMemory.add(conversationId, List.of(new UserMessage(userContent)));
+        chatMemory.appendAll(conversationId, List.of(new UserMessage(userContent)));
         approvalService.submitApproval(conversationId, userContent);
         persistAssistantMessage(conversationId, APPROVAL_CONFIRMATION);
         final ChatResponse confirmationResponse =
@@ -344,6 +344,6 @@ public class ChatService {
         if (content == null || content.isBlank()) {
             return;
         }
-        chatMemory.add(conversationId, List.of(new AssistantMessage(content)));
+        chatMemory.appendAll(conversationId, List.of(new AssistantMessage(content)));
     }
 }

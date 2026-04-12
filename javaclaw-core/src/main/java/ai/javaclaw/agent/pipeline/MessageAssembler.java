@@ -1,11 +1,10 @@
 package ai.javaclaw.agent.pipeline;
 
 import ai.javaclaw.agent.SystemPromptProvider;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.tools.AgentEnvironment;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,13 +25,10 @@ import org.springframework.util.Assert;
  *   <li>Tool Examples — few-shot examples from {@link FewShotExamplesProvider#loadExamples(String)}</li>
  * </ol>
  *
- * <p>History is loaded directly from {@link ChatMemoryRepository} (bypassing the window applied
- * by {@link ChatMemory}), filtered to remove {@link SystemMessage} instances, sanitized via
- * {@link MessageSanitizer}, and then windowed by token budget via
- * {@link TurnBoundaryWindower} before being included in the assembled prompt.
- *
- * <p>{@link ChatMemory} is still used exclusively for <em>writing</em> new messages so that the
- * append logic remains in one place.
+ * <p>History is loaded from {@link ChatMemory}, filtered to remove {@link SystemMessage}
+ * instances, sanitized via {@link MessageSanitizer}, and then windowed by token budget via
+ * {@link TurnBoundaryWindower} before being included in the assembled prompt. Writes to memory
+ * are done elsewhere (see {@link ChatService}); this class only reads.
  */
 @Component
 public class MessageAssembler {
@@ -43,18 +39,8 @@ public class MessageAssembler {
     /** Provider for active skill sections of the system prompt. */
     private final ActiveSkillsProvider activeSkillsProvider;
 
-    /**
-     * Conversation history store used exclusively for <em>writing</em> new messages.
-     * Reading is done via {@link #chatMemoryRepository} to obtain the full unwindowed history.
-     */
+    /** Conversation history source used for reading full, unwindowed history. */
     private final ChatMemory chatMemory;
-
-    /**
-     * Raw repository used for <em>reading</em> the full, unwindowed conversation history.
-     * Bypassing {@link ChatMemory#get(String)} avoids the message-count window applied there
-     * so that {@link TurnBoundaryWindower} can apply turn-aware windowing instead.
-     */
-    private final ChatMemoryRepository chatMemoryRepository;
 
     /** Sanitizer that cleans up malformed or redundant history messages. */
     private final MessageSanitizer messageSanitizer;
@@ -79,8 +65,7 @@ public class MessageAssembler {
      *
      * @param systemPromptProvider  provider of identity and context prompt sections, must not be null
      * @param activeSkillsProvider  provider of active skill prompt sections, must not be null
-     * @param chatMemory            conversation history store used for writing, must not be null
-     * @param chatMemoryRepository  raw repository used for reading full history, must not be null
+     * @param chatMemory            conversation history source, must not be null
      * @param messageSanitizer      sanitizer for history messages, must not be null
      * @param windower              turn-boundary windower for history trimming, must not be null
      * @param budgetProperties      token budget configuration, must not be null
@@ -92,7 +77,6 @@ public class MessageAssembler {
             final SystemPromptProvider systemPromptProvider,
             final ActiveSkillsProvider activeSkillsProvider,
             final ChatMemory chatMemory,
-            final ChatMemoryRepository chatMemoryRepository,
             final MessageSanitizer messageSanitizer,
             final TurnBoundaryWindower windower,
             final TokenBudgetProperties budgetProperties,
@@ -102,7 +86,6 @@ public class MessageAssembler {
         Assert.notNull(systemPromptProvider, "systemPromptProvider must not be null");
         Assert.notNull(activeSkillsProvider, "activeSkillsProvider must not be null");
         Assert.notNull(chatMemory, "chatMemory must not be null");
-        Assert.notNull(chatMemoryRepository, "chatMemoryRepository must not be null");
         Assert.notNull(messageSanitizer, "messageSanitizer must not be null");
         Assert.notNull(windower, "windower must not be null");
         Assert.notNull(budgetProperties, "budgetProperties must not be null");
@@ -112,7 +95,6 @@ public class MessageAssembler {
         this.systemPromptProvider = systemPromptProvider;
         this.activeSkillsProvider = activeSkillsProvider;
         this.chatMemory = chatMemory;
-        this.chatMemoryRepository = chatMemoryRepository;
         this.messageSanitizer = messageSanitizer;
         this.windower = windower;
         this.budgetProperties = budgetProperties;
@@ -222,17 +204,14 @@ public class MessageAssembler {
     }
 
     /**
-     * Loads conversation history directly from {@link ChatMemoryRepository} and filters out any
+     * Loads conversation history from {@link ChatMemory} and filters out any
      * {@link SystemMessage} instances.
-     *
-     * <p>Using the raw repository instead of {@link ChatMemory#get(String)} ensures the full
-     * history is available so {@link TurnBoundaryWindower} can apply turn-aware windowing.
      *
      * @param conversationId identifier of the conversation
      * @return mutable list of non-system messages from history
      */
     private List<Message> loadFilteredHistory(final String conversationId) {
-        final List<Message> raw = chatMemoryRepository.findByConversationId(conversationId);
+        final List<Message> raw = chatMemory.findByConversationId(conversationId);
         if (raw == null || raw.isEmpty()) {
             return List.of();
         }

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ai.javaclaw.persistence.api.AgentQuotaQueryRepository;
 import ai.javaclaw.tasks.RateLimitExceededException;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -27,11 +28,14 @@ class AgentQuotaServiceTest {
     @Mock
     private AgentQuotaRepository repository;
 
+    @Mock
+    private AgentQuotaQueryRepository queryRepository;
+
     private AgentQuotaService service;
 
     @BeforeEach
     void setUp() {
-        service = new AgentQuotaService(repository, DEFAULT_LIMIT, true);
+        service = new AgentQuotaService(repository, queryRepository, DEFAULT_LIMIT, true);
     }
 
     @Test
@@ -40,7 +44,7 @@ class AgentQuotaServiceTest {
         when(repository.findByUserId(USER_ID)).thenReturn(Optional.of(quota));
 
         assertThatCode(() -> service.checkAndIncrement(USER_ID)).doesNotThrowAnyException();
-        verify(repository).incrementDailyUsed(USER_ID);
+        verify(queryRepository).incrementDailyUsed(USER_ID);
     }
 
     @Test
@@ -56,7 +60,7 @@ class AgentQuotaServiceTest {
                     assertThat(rle.getCurrentCount()).isEqualTo(100);
                     assertThat(rle.getMaxAllowed()).isEqualTo(100);
                 });
-        verify(repository, never()).incrementDailyUsed(any());
+        verify(queryRepository, never()).incrementDailyUsed(any());
     }
 
     @Test
@@ -65,8 +69,8 @@ class AgentQuotaServiceTest {
         when(repository.findByUserId(USER_ID)).thenReturn(Optional.of(quota));
 
         assertThatCode(() -> service.checkAndIncrement(USER_ID)).doesNotThrowAnyException();
-        verify(repository).resetDaily(USER_ID);
-        verify(repository).incrementDailyUsed(USER_ID);
+        verify(queryRepository).resetDaily(USER_ID);
+        verify(queryRepository).incrementDailyUsed(USER_ID);
     }
 
     @Test
@@ -81,16 +85,16 @@ class AgentQuotaServiceTest {
         verify(repository).save(captor.capture());
         assertThat(captor.getValue().userId()).isEqualTo(USER_ID);
         assertThat(captor.getValue().dailyLimit()).isEqualTo(DEFAULT_LIMIT);
-        verify(repository).incrementDailyUsed(USER_ID);
+        verify(queryRepository).incrementDailyUsed(USER_ID);
     }
 
     @Test
     void checkAndIncrementSkipsWhenDisabled() {
-        AgentQuotaService disabledService = new AgentQuotaService(repository, DEFAULT_LIMIT, false);
+        AgentQuotaService disabledService = new AgentQuotaService(repository, queryRepository, DEFAULT_LIMIT, false);
 
         assertThatCode(() -> disabledService.checkAndIncrement(USER_ID)).doesNotThrowAnyException();
         verify(repository, never()).findByUserId(any());
-        verify(repository, never()).incrementDailyUsed(any());
+        verify(queryRepository, never()).incrementDailyUsed(any());
     }
 
     @Test
@@ -133,7 +137,7 @@ class AgentQuotaServiceTest {
         when(repository.findByUserId(USER_ID)).thenReturn(Optional.of(existing));
 
         service.setDailyLimit(USER_ID, 200);
-        verify(repository).updateDailyLimit(USER_ID, 200);
+        verify(queryRepository).updateDailyLimit(USER_ID, 200);
     }
 
     @Test
@@ -143,7 +147,7 @@ class AgentQuotaServiceTest {
 
         service.setDailyLimit(USER_ID, 50);
         verify(repository).save(any(AgentQuota.class));
-        verify(repository).updateDailyLimit(USER_ID, 50);
+        verify(queryRepository).updateDailyLimit(USER_ID, 50);
     }
 
     @Test

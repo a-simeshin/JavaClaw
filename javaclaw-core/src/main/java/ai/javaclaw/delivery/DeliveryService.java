@@ -2,7 +2,7 @@ package ai.javaclaw.delivery;
 
 import ai.javaclaw.agent.audit.DeliveryAuditLog;
 import ai.javaclaw.agent.audit.DeliveryAuditLogRepository;
-import ai.javaclaw.ai.memory.AppendableChatMemoryRepository;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.channels.Channel;
 import ai.javaclaw.channels.ChannelContextService;
 import ai.javaclaw.channels.ChannelRegistry;
@@ -39,7 +39,7 @@ public class DeliveryService {
     private final NotificationTransport notificationTransport;
     private final DeliveryQueueRepository deliveryQueueRepository;
     private final DeliveryAuditLogRepository deliveryAuditLogRepository;
-    private final AppendableChatMemoryRepository chatMemoryRepository;
+    private final ChatMemory chatMemoryRepository;
 
     public DeliveryService(
             final ChannelContextService channelContextService,
@@ -47,7 +47,7 @@ public class DeliveryService {
             final NotificationTransport notificationTransport,
             final DeliveryQueueRepository deliveryQueueRepository,
             final DeliveryAuditLogRepository deliveryAuditLogRepository,
-            final AppendableChatMemoryRepository chatMemoryRepository) {
+            final ChatMemory chatMemoryRepository) {
         this.channelContextService = channelContextService;
         this.channelRegistry = channelRegistry;
         this.notificationTransport = notificationTransport;

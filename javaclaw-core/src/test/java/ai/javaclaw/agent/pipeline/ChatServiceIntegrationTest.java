@@ -7,14 +7,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import ai.javaclaw.agent.SystemPromptProvider;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.skills.SkillRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -33,7 +32,7 @@ import reactor.test.StepVerifier;
  * {@link MessageSanitizer}, {@link TokenBudgetProperties}, {@link ActiveSkillsProvider},
  * {@link MessageAssembler}.
  *
- * <p>Mocked boundaries: {@link ChatModel}, {@link ChatMemory}, {@link ChatMemoryRepository},
+ * <p>Mocked boundaries: {@link ChatModel}, {@link ChatMemory},
  * {@link SystemPromptProvider}, {@link SkillRepository}, {@link ToolCallbackResolver}.
  *
  * <p>No Spring context is started — pure constructor wiring.
@@ -62,9 +61,6 @@ class ChatServiceIntegrationTest {
 
     /** Mock chat memory — in-memory persistence not needed. */
     private ChatMemory chatMemory;
-
-    /** Mock raw repository — used by MessageAssembler to read full history. */
-    private ChatMemoryRepository chatMemoryRepository;
 
     /** Mock system prompt provider — no file system or DB access. */
     private SystemPromptProvider systemPromptProvider;
@@ -108,7 +104,6 @@ class ChatServiceIntegrationTest {
 
         chatModel = mock(ChatModel.class);
         chatMemory = mock(ChatMemory.class);
-        chatMemoryRepository = mock(ChatMemoryRepository.class);
         systemPromptProvider = mock(SystemPromptProvider.class);
         skillRepository = mock(SkillRepository.class);
         toolCallbackResolver = mock(ToolCallbackResolver.class);
@@ -118,7 +113,7 @@ class ChatServiceIntegrationTest {
         when(skillRepository.findAllByOwnerIdIsNullAndEnabledTrue()).thenReturn(List.of());
         when(toolCallbackResolver.resolve()).thenReturn(List.of());
         // Default: empty history
-        when(chatMemoryRepository.findByConversationId(any())).thenReturn(List.of());
+        when(chatMemory.findByConversationId(any())).thenReturn(List.of());
 
         final ConversationSummaryService summaryService = mock(ConversationSummaryService.class);
         final FewShotExamplesProvider fewShotExamplesProvider = mock(FewShotExamplesProvider.class);
@@ -127,7 +122,6 @@ class ChatServiceIntegrationTest {
                 systemPromptProvider,
                 skillsProvider,
                 chatMemory,
-                chatMemoryRepository,
                 sanitizer,
                 windower,
                 budgetProperties,
@@ -176,7 +170,7 @@ class ChatServiceIntegrationTest {
     void stream_withHistory_includesHistoryAfterSystem() {
         final UserMessage historyUser = new UserMessage("First question");
         final AssistantMessage historyAssistant = new AssistantMessage("First answer");
-        when(chatMemoryRepository.findByConversationId(eq(CONV_ID))).thenReturn(List.of(historyUser, historyAssistant));
+        when(chatMemory.findByConversationId(eq(CONV_ID))).thenReturn(List.of(historyUser, historyAssistant));
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
 
         final ArgumentCaptor<Prompt> promptCaptor = ArgumentCaptor.forClass(Prompt.class);
@@ -211,8 +205,7 @@ class ChatServiceIntegrationTest {
                                 "id-orphan", "myTool", "some result")))
                         .build();
 
-        when(chatMemoryRepository.findByConversationId(eq(CONV_ID)))
-                .thenReturn(List.of(historyUser, orphanToolResponse));
+        when(chatMemory.findByConversationId(eq(CONV_ID))).thenReturn(List.of(historyUser, orphanToolResponse));
         when(chatModel.stream(any(Prompt.class))).thenReturn(Flux.just(buildChatResponse(ASSISTANT_REPLY)));
 
         final ArgumentCaptor<Prompt> promptCaptor = ArgumentCaptor.forClass(Prompt.class);

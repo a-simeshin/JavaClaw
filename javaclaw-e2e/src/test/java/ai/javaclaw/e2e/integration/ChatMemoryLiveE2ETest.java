@@ -3,11 +3,11 @@ package ai.javaclaw.e2e.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ai.javaclaw.agent.Agent;
+import ai.javaclaw.agent.memory.ChatMemory;
 import ai.javaclaw.e2e.support.LiveTestBase;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -20,7 +20,7 @@ class ChatMemoryLiveE2ETest extends LiveTestBase {
     Agent agent;
 
     @Autowired
-    ChatMemoryRepository chatMemoryRepository;
+    ChatMemory chatMemoryRepository;
 
     @Test
     @Timeout(value = 60, unit = TimeUnit.SECONDS)
