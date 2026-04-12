@@ -10,9 +10,7 @@ import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -26,9 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Insertion order is preserved by the surrogate {@code id} PK
  * (PostgreSQL IDENTITY / SQLite AUTOINCREMENT), which {@code findByConversationId}
  * uses for {@code ORDER BY}. {@code created_at} is informational metadata only.
+ *
+ * <p>This class is a plain POJO. Instances are produced by
+ * {@code ai.javaclaw.agent.memory.autoconfigure.JavaClawMemoryAutoConfiguration}
+ * as the default {@link ChatMemory} bean (via {@code @ConditionalOnMissingBean}) —
+ * not by component scanning. Consumers override by declaring their own
+ * {@link ChatMemory} bean.
  */
-@Primary
-@Component
 public class JdbcChatMemory implements ChatMemory {
 
     /** SQL returning the distinct set of conversation IDs that have at least one memory entry. */

@@ -16,8 +16,9 @@ import org.springframework.context.annotation.Configuration;
  * Основная Spring-конфигурация JavaClaw.
  *
  * <p>Регистрирует базовые бины: stub {@link ChatModel} и {@link TaskTool}. Сам
- * {@code ChatMemory} теперь приходит из модуля {@code javaclaw-memory}
- * ({@link ai.javaclaw.agent.memory.adapter.jdbc.JdbcChatMemory}), поэтому @Bean здесь не нужен.
+ * {@code ChatMemory} теперь приходит из модуля {@code javaclaw-memory} через
+ * {@code JavaClawMemoryAutoConfiguration}
+ * ({@code @ConditionalOnMissingBean(ChatMemory.class)}), поэтому @Bean здесь не нужен.
  */
 @Configuration
 public class JavaClawConfiguration {

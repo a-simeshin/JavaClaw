@@ -8,9 +8,11 @@ import org.springframework.ai.chat.messages.Message;
  *
  * <p>This interface is the only contract callers depend on for reading, writing and
  * discovering conversation history. Implementations live under the
- * {@code ai.javaclaw.agent.memory.adapter} package (JDBC, in-memory, …) and are wired
- * by Spring as {@code @Component} beans — the JDBC adapter is marked {@code @Primary}
- * and picked up by default in production.
+ * {@code ai.javaclaw.agent.memory.adapter} package (JDBC, in-memory, …). The default
+ * JDBC adapter is registered by
+ * {@code ai.javaclaw.agent.memory.autoconfigure.JavaClawMemoryAutoConfiguration}
+ * via {@code @ConditionalOnMissingBean(ChatMemory.class)}; any consumer-defined
+ * {@code ChatMemory} bean transparently replaces it.
  *
  * <p>Ordering contract: {@link #findByConversationId(String)} returns messages in the
  * order they were appended. {@link #appendAll(String, List)} must preserve the relative
