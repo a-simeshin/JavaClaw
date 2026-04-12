@@ -6,6 +6,16 @@ spring:
     name: JavaClaw
   config:
     import: optional:classpath:application.private.yaml
+  profiles:
+    # Local dev and production default to the PostgreSQL profile so existing
+    # workflows keep working after multi-dialect refactor (Task #17).
+    # Override with SPRING_PROFILES_ACTIVE or -Dspring-boot.run.profiles.
+    default: postgres
+    group:
+      # Activating `debug` implicitly activates `sqlite` (dialect + driver),
+      # while application-debug.yaml only overrides SQLITE_FILE to a tmpdir
+      # path so debug sessions never clobber the normal sqlite profile DB.
+      debug: sqlite
   lifecycle:
     timeout-per-shutdown-phase: 30s
   mvc:
@@ -14,13 +24,9 @@ spring:
   threads:
     virtual:
       enabled: true
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:javaclaw}
-    username: ${DB_USERNAME:javaclaw}
-    password: ${DB_PASSWORD:javaclaw}
-    driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
+    locations: classpath:db/migration/{vendor}
   ai:
     openai:
       base-url: https://openrouter.ai/api
@@ -38,12 +44,6 @@ spring:
         instructions: "JavaClaw AI Agent Platform — provides file management, skills, and conversation tools"
         streamable-http:
           mcp-endpoint: /api/mcp
-    chat:
-      memory:
-        repository:
-          jdbc:
-            initialize-schema: never
-
 management:
   endpoints:
     web:
