@@ -1,18 +1,20 @@
 package ai.javaclaw.agent.memory.adapter.jdbc;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * Spring Data JDBC repository for {@link ChatMemoryEntry}.
  *
- * <p>Provides ordered retrieval and targeted deletion by {@code conversation_id}.
- * The distinct-conversation-ids query lives in {@link JdbcChatMemory} directly via
- * {@code NamedParameterJdbcTemplate} because Spring Data JDBC does not reliably
- * support scalar {@code List<String>} projections through {@code @Query}.
+ * <p>Provides ordered retrieval, targeted deletion and distinct-id enumeration
+ * by {@code conversation_id}. All chat-memory SQL is consolidated here —
+ * {@link JdbcChatMemory} is a pure adapter over this repository.
  */
 public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMemoryEntry, Long> {
 
@@ -36,4 +38,31 @@ public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMe
     @Modifying
     @Query("DELETE FROM spring_ai_chat_memory WHERE conversation_id = :conversationId")
     void deleteByConversationId(@Param("conversationId") String conversationId);
+
+    /**
+     * Returns the distinct set of {@code conversation_id}s that have at least one memory entry.
+     *
+     * <p>Uses {@link ConversationIdRowMapper} via {@code rowMapperClass} because Spring Data JDBC's
+     * default {@code RowMapper} targets the aggregate root ({@link ChatMemoryEntry}) and cannot
+     * project a single {@code TEXT} column into {@code String}.
+     */
+    @Query(
+            value = "SELECT DISTINCT conversation_id FROM spring_ai_chat_memory",
+            rowMapperClass = ConversationIdRowMapper.class)
+    List<String> findDistinctConversationIds();
+
+    /**
+     * {@link RowMapper} extracting a single {@code conversation_id} column as {@link String}.
+     *
+     * <p>Package-private and instantiated by Spring Data JDBC via its no-arg constructor
+     * (see {@link Query#rowMapperClass()}). Kept in this file because it exists solely to
+     * serve {@link ChatMemoryEntryJdbcRepository#findDistinctConversationIds()}.
+     */
+    class ConversationIdRowMapper implements RowMapper<String> {
+
+        @Override
+        public String mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+            return rs.getString(1);
+        }
+    }
 }

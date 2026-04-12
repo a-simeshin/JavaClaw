@@ -336,9 +336,8 @@ class JdbcChatMemorySqliteIT {
         }
 
         @Bean
-        JdbcChatMemory jdbcChatMemory(
-                final ChatMemoryEntryJdbcRepository repo, final NamedParameterJdbcTemplate namedJdbc) {
-            return new JdbcChatMemory(repo, namedJdbc);
+        JdbcChatMemory jdbcChatMemory(final ChatMemoryEntryJdbcRepository repo) {
+            return new JdbcChatMemory(repo);
         }
     }
 }

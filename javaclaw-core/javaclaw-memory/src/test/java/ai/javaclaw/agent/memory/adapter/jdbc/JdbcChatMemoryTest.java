@@ -3,7 +3,6 @@ package ai.javaclaw.agent.memory.adapter.jdbc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -12,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +23,6 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /** Unit tests for {@link JdbcChatMemory}. Mocks all external collaborators. */
 @ExtendWith(MockitoExtension.class)
@@ -34,14 +31,11 @@ class JdbcChatMemoryTest {
     @Mock
     private ChatMemoryEntryJdbcRepository repository;
 
-    @Mock
-    private NamedParameterJdbcTemplate namedJdbc;
-
     private JdbcChatMemory chatMemory;
 
     @BeforeEach
     void setUp() {
-        chatMemory = new JdbcChatMemory(repository, namedJdbc);
+        chatMemory = new JdbcChatMemory(repository);
     }
 
     // ── appendAll ────────────────────────────────────────────────────────────
@@ -49,13 +43,13 @@ class JdbcChatMemoryTest {
     @Test
     void appendAll_null_isNoOp() {
         chatMemory.appendAll("conv-1", null);
-        verifyNoInteractions(repository, namedJdbc);
+        verifyNoInteractions(repository);
     }
 
     @Test
     void appendAll_emptyList_isNoOp() {
         chatMemory.appendAll("conv-1", List.of());
-        verifyNoInteractions(repository, namedJdbc);
+        verifyNoInteractions(repository);
     }
 
     @Test
@@ -207,20 +201,14 @@ class JdbcChatMemoryTest {
     // ── findConversationIds ──────────────────────────────────────────────────
 
     @Test
-    void findConversationIds_delegatesToNamedJdbc() {
+    void findConversationIds_delegatesToRepository() {
         final List<String> expected = List.of("conv-1", "conv-2");
-        when(namedJdbc.queryForList(
-                        "SELECT DISTINCT conversation_id FROM spring_ai_chat_memory", Map.of(), String.class))
-                .thenReturn(expected);
+        when(repository.findDistinctConversationIds()).thenReturn(expected);
 
         final List<String> result = chatMemory.findConversationIds();
 
         assertThat(result).containsExactlyElementsOf(expected);
-        verify(namedJdbc)
-                .queryForList(
-                        eq("SELECT DISTINCT conversation_id FROM spring_ai_chat_memory"),
-                        eq(Map.of()),
-                        eq(String.class));
+        verify(repository).findDistinctConversationIds();
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

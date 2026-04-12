@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * Autoconfiguration for the javaclaw-memory module.
@@ -37,7 +37,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * available — no explicit wiring required here.
  */
 @AutoConfiguration
-@ConditionalOnClass({Message.class, NamedParameterJdbcTemplate.class})
+@ConditionalOnClass({Message.class, RowMapper.class})
 public class JavaClawMemoryAutoConfiguration {
 
     /**
@@ -48,14 +48,13 @@ public class JavaClawMemoryAutoConfiguration {
      * etc.) declared by the consumer transparently replaces the default without needing
      * {@code @Primary}.
      *
-     * <p>The method parameters are resolved at bean-instantiation time, after Spring Boot's
-     * {@code JdbcRepositoriesAutoConfiguration} has registered {@link ChatMemoryEntryJdbcRepository}
-     * and {@code NamedParameterJdbcTemplate}, so no explicit autoconfiguration ordering is needed.
+     * <p>The repository argument is resolved at bean-instantiation time, after Spring Boot's
+     * {@code JdbcRepositoriesAutoConfiguration} has registered {@link ChatMemoryEntryJdbcRepository},
+     * so no explicit autoconfiguration ordering is needed.
      */
     @Bean
     @ConditionalOnMissingBean(ChatMemory.class)
-    public ChatMemory jdbcChatMemory(
-            final ChatMemoryEntryJdbcRepository repository, final NamedParameterJdbcTemplate namedJdbc) {
-        return new JdbcChatMemory(repository, namedJdbc);
+    public ChatMemory jdbcChatMemory(final ChatMemoryEntryJdbcRepository repository) {
+        return new JdbcChatMemory(repository);
     }
 }
