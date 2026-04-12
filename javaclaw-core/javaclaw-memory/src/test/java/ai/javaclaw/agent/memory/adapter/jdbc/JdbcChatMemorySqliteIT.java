@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * {@code SqliteJdbcConfiguration} without creating a circular module dependency.
  */
 @SpringJUnitConfig
+@SuppressWarnings("deprecation")
 @ContextConfiguration(classes = JdbcChatMemorySqliteIT.TestContext.class)
 @TestPropertySource(properties = "javaclaw.persistence.dialect=sqlite")
 class JdbcChatMemorySqliteIT {
@@ -120,6 +121,7 @@ class JdbcChatMemorySqliteIT {
     // ── Test 4: saveAll replaces ──────────────────────────────────────────────
 
     @Test
+    @SuppressWarnings("deprecation") // pins the deprecated saveAll contract on purpose
     void saveAll_replacesExistingMessages() {
         chatMemory.appendAll(CONV_A, List.of(new UserMessage("old")));
 
@@ -133,6 +135,7 @@ class JdbcChatMemorySqliteIT {
     // ── Test 5: saveAll empty clears ─────────────────────────────────────────
 
     @Test
+    @SuppressWarnings("deprecation") // pins the deprecated saveAll contract on purpose
     void saveAll_emptyList_clearsAllMessages() {
         chatMemory.appendAll(CONV_A, List.of(new UserMessage("to be cleared")));
 

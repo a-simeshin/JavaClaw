@@ -11,46 +11,64 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
- * Autoconfiguration for the javaclaw-memory module.
+ * Spring Boot auto-configuration for the {@code javaclaw-memory} module.
  *
  * <p>Registers the default {@link ChatMemory} implementation backed by Spring Data JDBC
  * ({@link JdbcChatMemory}) whenever Spring AI message types and Spring JDBC are on the
  * classpath, and no consumer-defined {@code ChatMemory} bean already exists.
  *
- * <p>Discovered via {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
+ * <h2>Discovery</h2>
+ * Discovered via
+ * {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
  * so the module is bootstrappable as a self-contained unit — it does not rely on the
  * consumer application's {@code @ComponentScan} reaching
  * {@code ai.javaclaw.agent.memory.*}.
  *
- * <p>Override point: define your own {@code ChatMemory} bean in the consumer context and
- * this auto-config steps aside (per {@link ConditionalOnMissingBean}), which is the
+ * <h2>Override point</h2>
+ * Declare your own {@link ChatMemory} bean in the consumer context and this
+ * auto-configuration steps aside (per {@link ConditionalOnMissingBean}). This is the
  * idiomatic Spring Boot extension mechanism described in the framework's
  * <em>developing-auto-configuration</em> reference.
  *
- * <p>The Spring Data JDBC repository ({@link ChatMemoryEntryJdbcRepository}) is scanned
+ * <h2>Repository scanning</h2>
+ * The Spring Data JDBC repository ({@link ChatMemoryEntryJdbcRepository}) is scanned
  * transitively by Spring Boot's {@code JdbcRepositoriesAutoConfiguration} based on the
  * consumer application's base package. For the JavaClaw monolith that base package is
- * {@code ai.javaclaw}, which already covers the memory module.
+ * {@code ai.javaclaw}, which already covers the memory module — no explicit
+ * {@code @EnableJdbcRepositories} is needed here.
  *
- * <p>Flyway migrations under {@code classpath:db/migration/{vendor}} are picked up by
+ * <h2>Schema migrations</h2>
+ * Flyway migrations under {@code classpath:db/migration/{vendor}} are picked up by
  * Spring Boot's {@code FlywayAutoConfiguration} as soon as a {@code DataSource} is
  * available — no explicit wiring required here.
+ *
+ * <h2>Classpath gating</h2>
+ * {@link ConditionalOnClass} keys on {@link Message} (Spring AI) and {@link RowMapper}
+ * (Spring JDBC). {@link RowMapper} is deliberately chosen over
+ * {@code NamedParameterJdbcTemplate} because the adapter no longer touches the named
+ * template directly — it goes through the repository's {@code rowMapperClass=} query
+ * facility.
  */
 @AutoConfiguration
 @ConditionalOnClass({Message.class, RowMapper.class})
 public class JavaClawMemoryAutoConfiguration {
 
     /**
-     * Default {@link ChatMemory} bean: the JDBC-backed adapter.
+     * Registers the default {@link ChatMemory} bean: the JDBC-backed adapter.
      *
-     * <p>{@link ConditionalOnMissingBean} is intentionally typed on {@link ChatMemory}, not
-     * on {@link JdbcChatMemory}, so that <em>any</em> custom implementation (in-memory, Redis,
-     * etc.) declared by the consumer transparently replaces the default without needing
-     * {@code @Primary}.
+     * <p>{@link ConditionalOnMissingBean} is intentionally typed on {@link ChatMemory},
+     * not on {@link JdbcChatMemory}, so that <em>any</em> custom implementation
+     * (in-memory, Redis, etc.) declared by the consumer transparently replaces the
+     * default without needing {@code @Primary}.
      *
-     * <p>The repository argument is resolved at bean-instantiation time, after Spring Boot's
-     * {@code JdbcRepositoriesAutoConfiguration} has registered {@link ChatMemoryEntryJdbcRepository},
-     * so no explicit autoconfiguration ordering is needed.
+     * <p>The {@code repository} argument is resolved at bean-instantiation time, after
+     * Spring Boot's {@code JdbcRepositoriesAutoConfiguration} has registered
+     * {@link ChatMemoryEntryJdbcRepository}, so no explicit auto-configuration ordering
+     * ({@code @AutoConfigureAfter}) is needed.
+     *
+     * @param repository the Spring Data JDBC repository backing the adapter; injected
+     *     by the container
+     * @return a JDBC-backed {@link ChatMemory} bean
      */
     @Bean
     @ConditionalOnMissingBean(ChatMemory.class)

@@ -12,19 +12,33 @@ import org.springframework.jdbc.core.RowMapper;
 /**
  * Spring Data JDBC repository for {@link ChatMemoryEntry}.
  *
- * <p>Provides ordered retrieval, targeted deletion and distinct-id enumeration
- * by {@code conversation_id}. All chat-memory SQL is consolidated here —
- * {@link JdbcChatMemory} is a pure adapter over this repository.
+ * <p>All chat-memory SQL is consolidated here — {@link JdbcChatMemory} is a pure adapter
+ * over this repository. Extends {@link ListCrudRepository} to inherit the standard
+ * {@code save}, {@code saveAll}, {@code findAll}, {@code count}, {@code deleteAll}
+ * operations; custom queries cover the conversation-scoped use cases that CRUD cannot
+ * express by itself.
+ *
+ * <h2>Bean registration</h2>
+ * Registered transitively by Spring Boot's {@code JdbcRepositoriesAutoConfiguration} from
+ * the consumer application's base package ({@code ai.javaclaw}), which already covers
+ * this module — the autoconfiguration in
+ * {@link ai.javaclaw.agent.memory.autoconfigure.JavaClawMemoryAutoConfiguration} does
+ * not need to enable repository scanning explicitly.
  */
 public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMemoryEntry, Long> {
 
     /**
      * Returns all entries for {@code conversationId} ordered by {@code id} ascending.
      *
-     * <p>{@code id} (AUTOINCREMENT / GENERATED ALWAYS AS IDENTITY) is strictly monotonic and
-     * reflects true insertion order across batches. Using {@code created_at} alone is
-     * insufficient because multiple {@link JdbcChatMemory#appendAll(String, java.util.List)}
-     * calls within the same wall-clock second share the same second-level timestamp.
+     * <p>{@code id} (AUTOINCREMENT / GENERATED ALWAYS AS IDENTITY) is strictly monotonic
+     * and reflects true insertion order across batches. Using {@code created_at} alone
+     * is insufficient because multiple
+     * {@link JdbcChatMemory#appendAll(String, java.util.List)} calls within the same
+     * wall-clock second — and all messages inside a single batch — share the same
+     * second-level timestamp on SQLite.
+     *
+     * @param conversationId the conversation to load; must be non-null
+     * @return ordered entries, oldest first; empty list if no rows match
      */
     @Query("SELECT * FROM spring_ai_chat_memory WHERE conversation_id = :conversationId ORDER BY id")
     List<ChatMemoryEntry> findByConversationId(@Param("conversationId") String conversationId);
@@ -32,8 +46,15 @@ public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMe
     /**
      * Deletes all entries for {@code conversationId}.
      *
-     * <p>Used by {@link JdbcChatMemory#deleteByConversationId(String)} and by the transactional
-     * {@link JdbcChatMemory#saveAll(String, java.util.List)} (delete-then-append pattern).
+     * <p>Used by {@link JdbcChatMemory#deleteByConversationId(String)} for explicit
+     * conversation resets, and by the deprecated delete-then-append path in
+     * {@link JdbcChatMemory#saveAll(String, java.util.List)}. Idempotent — deleting an
+     * unknown conversation id is a no-op with a zero row count.
+     *
+     * <p>{@link Modifying} is required because the statement is not a {@code SELECT};
+     * without it Spring Data JDBC would try to materialize a result set.
+     *
+     * @param conversationId the conversation to erase; must be non-null
      */
     @Modifying
     @Query("DELETE FROM spring_ai_chat_memory WHERE conversation_id = :conversationId")
@@ -42,9 +63,16 @@ public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMe
     /**
      * Returns the distinct set of {@code conversation_id}s that have at least one memory entry.
      *
-     * <p>Uses {@link ConversationIdRowMapper} via {@code rowMapperClass} because Spring Data JDBC's
-     * default {@code RowMapper} targets the aggregate root ({@link ChatMemoryEntry}) and cannot
-     * project a single {@code TEXT} column into {@code String}.
+     * <p>Uses {@link ConversationIdRowMapper} via {@code rowMapperClass} because Spring
+     * Data JDBC's default {@link RowMapper} targets the aggregate root
+     * ({@link ChatMemoryEntry}) and cannot project a single {@code TEXT} column into a
+     * {@code String}. The custom mapper is the smallest piece of glue that makes the
+     * projection possible without dropping to {@code NamedParameterJdbcTemplate}.
+     *
+     * <p>Result ordering is database-defined and not stable across calls; callers that
+     * need deterministic order must sort the result themselves.
+     *
+     * @return distinct conversation ids, possibly empty, never {@code null}
      */
     @Query(
             value = "SELECT DISTINCT conversation_id FROM spring_ai_chat_memory",
@@ -52,14 +80,27 @@ public interface ChatMemoryEntryJdbcRepository extends ListCrudRepository<ChatMe
     List<String> findDistinctConversationIds();
 
     /**
-     * {@link RowMapper} extracting a single {@code conversation_id} column as {@link String}.
+     * {@link RowMapper} extracting a single {@code conversation_id} column as a {@link String}.
      *
      * <p>Package-private and instantiated by Spring Data JDBC via its no-arg constructor
-     * (see {@link Query#rowMapperClass()}). Kept in this file because it exists solely to
-     * serve {@link ChatMemoryEntryJdbcRepository#findDistinctConversationIds()}.
+     * (see {@link Query#rowMapperClass()}). Kept inside this interface because it exists
+     * solely to serve {@link ChatMemoryEntryJdbcRepository#findDistinctConversationIds()};
+     * promoting it to a top-level class would scatter a single-use mapper across the
+     * package.
      */
     class ConversationIdRowMapper implements RowMapper<String> {
 
+        /**
+         * Reads the first column of {@code rs} as a {@code String}.
+         *
+         * <p>{@code rowNum} is unused — the query projects a single column, so there is
+         * no per-row positional logic to perform.
+         *
+         * @param rs the current JDBC result set row
+         * @param rowNum the zero-based row index within the result set (unused)
+         * @return the value of column 1 as a {@code String}; may be {@code null}
+         * @throws SQLException if the underlying driver fails to read the column
+         */
         @Override
         public String mapRow(final ResultSet rs, final int rowNum) throws SQLException {
             return rs.getString(1);

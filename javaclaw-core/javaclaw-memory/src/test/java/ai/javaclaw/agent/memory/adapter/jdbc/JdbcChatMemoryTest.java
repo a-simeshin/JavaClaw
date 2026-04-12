@@ -24,7 +24,15 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 
-/** Unit tests for {@link JdbcChatMemory}. Mocks all external collaborators. */
+/**
+ * Unit tests for {@link JdbcChatMemory}. Mocks all external collaborators.
+ *
+ * <p>{@code @SuppressWarnings("deprecation")} is applied class-wide because
+ * {@link ai.javaclaw.agent.memory.ChatMemory#saveAll(String, java.util.List)} is
+ * intentionally deprecated (see its Javadoc) but must still be exercised here to pin
+ * the delete-then-append contract of the adapter.
+ */
+@SuppressWarnings("deprecation")
 @ExtendWith(MockitoExtension.class)
 class JdbcChatMemoryTest {
 
@@ -65,7 +73,7 @@ class JdbcChatMemoryTest {
 
         final List<ChatMemoryEntry> saved = captor.getValue();
         assertThat(saved).hasSize(1);
-        final ChatMemoryEntry entry = saved.get(0);
+        final ChatMemoryEntry entry = saved.getFirst();
         assertThat(entry.id()).isNull();
         assertThat(entry.conversationId()).isEqualTo(conversationId);
         assertThat(entry.content()).isEqualTo("hello");
@@ -145,8 +153,8 @@ class JdbcChatMemoryTest {
         final List<Message> result = chatMemory.findByConversationId("conv-1");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isInstanceOf(UserMessage.class);
-        assertThat(result.get(0).getText()).isEqualTo("hello");
+        assertThat(result.getFirst()).isInstanceOf(UserMessage.class);
+        assertThat(result.getFirst().getText()).isEqualTo("hello");
     }
 
     @Test
@@ -155,8 +163,8 @@ class JdbcChatMemoryTest {
 
         final List<Message> result = chatMemory.findByConversationId("conv-1");
 
-        assertThat(result.get(0)).isInstanceOf(AssistantMessage.class);
-        assertThat(result.get(0).getText()).isEqualTo("answer");
+        assertThat(result.getFirst()).isInstanceOf(AssistantMessage.class);
+        assertThat(result.getFirst().getText()).isEqualTo("answer");
     }
 
     @Test
@@ -165,8 +173,8 @@ class JdbcChatMemoryTest {
 
         final List<Message> result = chatMemory.findByConversationId("conv-1");
 
-        assertThat(result.get(0)).isInstanceOf(SystemMessage.class);
-        assertThat(result.get(0).getText()).isEqualTo("be helpful");
+        assertThat(result.getFirst()).isInstanceOf(SystemMessage.class);
+        assertThat(result.getFirst().getText()).isEqualTo("be helpful");
     }
 
     @Test
@@ -175,7 +183,7 @@ class JdbcChatMemoryTest {
 
         final List<Message> result = chatMemory.findByConversationId("conv-1");
 
-        assertThat(result.get(0)).isInstanceOf(ToolResponseMessage.class);
+        assertThat(result.getFirst()).isInstanceOf(ToolResponseMessage.class);
     }
 
     @Test

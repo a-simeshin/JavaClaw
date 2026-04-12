@@ -44,6 +44,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @DataJdbcTest
 @Testcontainers
 @ActiveProfiles("test")
+@SuppressWarnings("deprecation")
 @ImportAutoConfiguration(FlywayAutoConfiguration.class)
 @Import(JdbcChatMemory.class)
 class JdbcChatMemoryPostgresIT {
@@ -107,6 +108,7 @@ class JdbcChatMemoryPostgresIT {
     // ── Test 4: saveAll replaces ──────────────────────────────────────────────
 
     @Test
+    @SuppressWarnings("deprecation") // pins the deprecated saveAll contract on purpose
     void saveAll_replacesExistingMessages() {
         chatMemory.appendAll(CONV_A, List.of(new UserMessage("old1"), new UserMessage("old2")));
 
@@ -121,6 +123,7 @@ class JdbcChatMemoryPostgresIT {
     // ── Test 5: saveAll empty clears ─────────────────────────────────────────
 
     @Test
+    @SuppressWarnings("deprecation") // pins the deprecated saveAll contract on purpose
     void saveAll_emptyList_clearsAllMessages() {
         chatMemory.appendAll(CONV_A, List.of(new UserMessage("to be cleared")));
 
